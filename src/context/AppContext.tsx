@@ -121,17 +121,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [activeTimer, assignments]);
 
   const initializeDemoData = () => {
+    console.log('Initializing demo data...'); // Debug
     const demoData = generateDemoData();
     setProfiles(demoData.profiles);
     setAssignments(demoData.assignments);
     setScheduleTemplate(demoData.scheduleTemplate);
     setTimerSessions(demoData.timerSessions);
+    console.log('Demo data initialized:', demoData.profiles.length, 'profiles'); // Debug
   };
 
   const login = async (username: string, password?: string): Promise<boolean> => {
+    console.log('Login attempt:', username, 'Available profiles:', profiles.length); // Debug
+    
+    // If no profiles exist, initialize demo data first
+    if (profiles.length === 0) {
+      console.log('No profiles found, initializing demo data...'); // Debug
+      initializeDemoData();
+      // Wait a moment for state to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     // Demo mode login
     if (username === 'demo' || username === 'admin' || username === 'parent') {
       const adminProfile = profiles.find(p => p.role === 'admin');
+      console.log('Looking for admin profile:', adminProfile); // Debug
       if (adminProfile) {
         const user: AppUser = {
           id: 'demo-admin',
@@ -148,6 +161,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (username === 'abigail') {
       const abigailProfile = profiles.find(p => p.displayName === 'Abigail');
+      console.log('Looking for Abigail profile:', abigailProfile); // Debug
       if (abigailProfile) {
         const user: AppUser = {
           id: 'demo-abigail',
@@ -164,6 +178,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (username === 'khalil') {
       const khalilProfile = profiles.find(p => p.displayName === 'Khalil');
+      console.log('Looking for Khalil profile:', khalilProfile); // Debug
       if (khalilProfile) {
         const user: AppUser = {
           id: 'demo-khalil',
@@ -178,6 +193,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    console.log('Login failed - no matching profile found'); // Debug
     return false;
   };
 
