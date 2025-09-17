@@ -247,9 +247,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                 {currentBlock.startTime} - {currentBlock.endTime}
               </Badge>
             </div>
-            <CardTitle className="text-xl">
+            <h1 className="text-xl">
               {currentBlock.assignment?.title || currentBlock.subject}
-            </CardTitle>
+            </h1>
             <p className="text-muted-foreground">
               {currentBlock.blockType} • {formatTime(currentBlock.duration)}
             </p>
