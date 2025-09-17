@@ -3,6 +3,7 @@ import { useApp } from '@/context/AppContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Timer, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,7 +38,8 @@ export const Header = () => {
       <div className="flex items-center justify-between">
         {/* Left: App Name */}
         <div>
-          <h1 className="text-2xl font-bold text-primary">Mission Hub</h1>
+          <h1 className="text-2xl font-bold text-primary">StudyFlow</h1>
+          <p className="text-sm text-muted-foreground">Mission Hub</p>
         </div>
 
         {/* Right: Controls */}
@@ -87,6 +89,9 @@ export const Header = () => {
           <span className="text-sm text-muted-foreground">
             {currentUser.username}
           </span>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* Logout */}
           <Button variant="ghost" size="sm" onClick={handleLogout}>

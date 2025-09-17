@@ -2,49 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mission Hub Design System - Educational Productivity App */
+/* StudyFlow Design System - Inspired by vibrant education palette */
 
 @layer base {
   :root {
     /* Core backgrounds */
-    --background: 240 10% 98%;
-    --foreground: 222 84% 4.9%;
+    --background: 210 20% 98%;
+    --foreground: 195 100% 15%;
     --surface: 0 0% 100%;
     
     /* Card system */
     --card: 0 0% 100%;
-    --card-foreground: 222 84% 4.9%;
-    --card-shadow: 0 0% 0% / 0.05;
+    --card-foreground: 195 100% 15%;
+    --card-shadow: 195 50% 15% / 0.08;
 
     /* Interactive elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 4.9%;
+    --popover-foreground: 195 100% 15%;
 
-    /* Brand colors - Professional education theme */
-    --primary: 217 91% 60%;
+    /* Brand colors - Vibrant teal primary */
+    --primary: 195 100% 25%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 55%;
-    --primary-light: 217 91% 95%;
+    --primary-hover: 195 100% 30%;
+    --primary-light: 195 60% 96%;
 
-    /* Success & completion */
-    --success: 142 76% 36%;
+    /* Success & completion - Bright green */
+    --success: 120 60% 50%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 76% 96%;
+    --success-light: 120 60% 96%;
 
-    /* Timer & active states */
-    --timer: 25 95% 53%;
-    --timer-foreground: 0 0% 100%;
-    --timer-light: 25 95% 96%;
+    /* Timer & active states - Energetic yellow */
+    --timer: 60 80% 60%;
+    --timer-foreground: 195 100% 15%;
+    --timer-light: 60 80% 96%;
 
-    /* Content hierarchy */
-    --secondary: 220 13% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary - Purple accent */
+    --secondary: 270 60% 90%;
+    --secondary-foreground: 270 60% 25%;
     
-    --muted: 220 13% 95%;
-    --muted-foreground: 215 16% 47%;
+    /* Content hierarchy */
+    --muted: 210 20% 94%;
+    --muted-foreground: 195 30% 45%;
 
-    --accent: 217 91% 95%;
-    --accent-foreground: 217 91% 25%;
+    --accent: 270 60% 95%;
+    --accent-foreground: 270 60% 30%;
 
     /* System colors */
     --destructive: 0 84% 60%;
@@ -59,10 +60,11 @@
     --radius-sm: 0.5rem;
     --radius-lg: 1rem;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-hover)));
-    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 76% 32%));
-    --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(25 95% 48%));
+    /* Gradients - Vibrant combinations */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(195 100% 35%));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(120 60% 45%));
+    --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(60 80% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(270 60% 60%), hsl(270 60% 50%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(var(--card-shadow));
@@ -90,38 +92,38 @@
   }
 
   .dark {
-    --background: 222 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --surface: 217 32% 17.5%;
+    --background: 195 100% 8%;
+    --foreground: 210 40% 95%;
+    --surface: 195 80% 12%;
 
-    --card: 217 32% 17.5%;
-    --card-foreground: 210 40% 98%;
-    --card-shadow: 0 0% 0% / 0.2;
+    --card: 195 80% 12%;
+    --card-foreground: 210 40% 95%;
+    --card-shadow: 195 100% 5% / 0.3;
 
-    --popover: 217 32% 17.5%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 195 80% 12%;
+    --popover-foreground: 210 40% 95%;
 
-    --primary: 217 91% 65%;
+    --primary: 195 100% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 70%;
-    --primary-light: 217 32% 25%;
+    --primary-hover: 195 100% 50%;
+    --primary-light: 195 80% 18%;
 
-    --success: 142 76% 45%;
+    --success: 120 60% 55%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 32% 25%;
+    --success-light: 120 60% 18%;
 
-    --timer: 25 95% 60%;
-    --timer-foreground: 0 0% 100%;
-    --timer-light: 25 32% 25%;
+    --timer: 60 80% 65%;
+    --timer-foreground: 195 100% 8%;
+    --timer-light: 60 60% 18%;
 
-    --secondary: 217 32% 25%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 270 60% 20%;
+    --secondary-foreground: 270 40% 85%;
 
-    --muted: 217 32% 20%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 195 60% 15%;
+    --muted-foreground: 195 20% 70%;
 
-    --accent: 217 32% 25%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 60% 18%;
+    --accent-foreground: 270 40% 85%;
 
     --destructive: 0 63% 50%;
     --destructive-foreground: 210 40% 98%;
