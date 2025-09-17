@@ -87,9 +87,10 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     if (currentBlock) {
       const totalSeconds = currentBlock.duration * 60;
       setLocalTimeRemaining(totalSeconds);
+      // Only reset timer running state when actually switching blocks
       setLocalTimerRunning(false);
     }
-  }, [currentBlock]);
+  }, [currentBlockIndex]); // Changed dependency to only trigger when block actually changes
 
   // Real-time countdown - this ensures REAL seconds are counted
   useEffect(() => {
@@ -112,7 +113,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     };
   }, [localTimerRunning, localTimeRemaining]);
   const handleTimerToggle = () => {
-    console.log('handleTimerToggle called', { currentBlock, localTimerRunning });
     if (!currentBlock) return;
     if (localTimerRunning) {
       setLocalTimerRunning(false);
@@ -127,7 +127,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         description: "You've got this!"
       });
     }
-    console.log('handleTimerToggle finished, should be:', !localTimerRunning);
   };
   const handleTimerReset = () => {
     if (currentBlock) {
