@@ -87,8 +87,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     if (currentBlock) {
       const totalSeconds = currentBlock.duration * 60;
       setLocalTimeRemaining(totalSeconds);
-      // Only reset timer running state when actually switching blocks
-      setLocalTimerRunning(false);
+      // Auto-start timer when block loads
+      setLocalTimerRunning(true);
+      toast({
+        title: "Timer started! 🎯",
+        description: "Focus time has begun!"
+      });
     }
   }, [currentBlockIndex]); // Changed dependency to only trigger when block actually changes
 
@@ -112,30 +116,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       }
     };
   }, [localTimerRunning, localTimeRemaining]);
-  const handleTimerToggle = () => {
-    if (!currentBlock) return;
-    if (localTimerRunning) {
-      setLocalTimerRunning(false);
-      toast({
-        title: "Timer paused ⏸️",
-        description: "Take your time!"
-      });
-    } else {
-      setLocalTimerRunning(true);
-      toast({
-        title: "Timer started! 🎯",
-        description: "You've got this!"
-      });
-    }
-  };
-  const handleTimerReset = () => {
+  const handleTimerStop = () => {
     if (currentBlock) {
-      const totalSeconds = currentBlock.duration * 60;
-      setLocalTimeRemaining(totalSeconds);
       setLocalTimerRunning(false);
       toast({
-        title: "Timer reset 🔄",
-        description: "Ready to start fresh!"
+        title: "Timer stopped",
+        description: "Time tracking paused"
       });
     }
   };
@@ -276,7 +262,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           <CardContent className="space-y-6">
             {/* Timer */}
             <div className="flex justify-center">
-              {currentBlock && localTimeRemaining !== null && <CircularTimer durationMinutes={currentBlock.duration} isRunning={localTimerRunning} onComplete={handleTimerComplete} onToggle={handleTimerToggle} onReset={handleTimerReset} externalTimeRemaining={localTimeRemaining} className="" />}
+              {currentBlock && localTimeRemaining !== null && <CircularTimer durationMinutes={currentBlock.duration} isRunning={localTimerRunning} onComplete={handleTimerComplete} externalTimeRemaining={localTimeRemaining} className="" hideControls={true} />}
             </div>
 
             {/* Assignment Details */}
