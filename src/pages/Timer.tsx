@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/Header';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, Square, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Square, CheckCircle, ArrowLeft } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Timer = () => {
@@ -15,11 +15,31 @@ const Timer = () => {
     assignments, 
     selectedProfile,
     startTimer,
-    pauseTimer, 
     stopTimer,
     updateAssignment
   } = useApp();
   const navigate = useNavigate();
+
+  // Auto-start timer when page loads if there's an assignment available
+  useEffect(() => {
+    if (activeTimer && selectedProfile) {
+      // Timer is already running, nothing to do
+      return;
+    }
+    
+    // If we have a selected profile but no active timer, 
+    // check if there's a recent assignment to continue timing
+    if (selectedProfile && assignments.length > 0) {
+      const recentAssignment = assignments
+        .filter(a => a.profileId === selectedProfile.id && !a.completed)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+      
+      if (recentAssignment) {
+        startTimer(recentAssignment.id, selectedProfile.id);
+        toast({ title: 'Timer started automatically' });
+      }
+    }
+  }, [activeTimer, selectedProfile, assignments, startTimer]);
 
   if (!activeTimer || !selectedProfile) {
     return (
@@ -78,11 +98,6 @@ const Timer = () => {
   const totalSeconds = assignment.timeSpent * 60 + activeTimer.elapsedTime;
   const progressPercentage = Math.min((totalSeconds / (targetMinutes * 60)) * 100, 100);
 
-  const handlePause = () => {
-    pauseTimer();
-    toast({ title: 'Timer paused' });
-  };
-
   const handleStop = () => {
     stopTimer();
     toast({ title: 'Timer stopped and time saved' });
@@ -94,11 +109,6 @@ const Timer = () => {
     stopTimer();
     toast({ title: 'Assignment marked as complete!' });
     navigate('/dashboard');
-  };
-
-  const handleResume = () => {
-    startTimer(assignment.id, selectedProfile.id);
-    toast({ title: 'Timer resumed' });
   };
 
   return (
@@ -155,17 +165,7 @@ const Timer = () => {
             </div>
 
             {/* Timer Controls */}
-            <div className="flex justify-center gap-4 mb-6">
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={handlePause}
-                className="bg-timer-foreground text-timer hover:bg-timer-foreground/90"
-              >
-                <Pause className="w-5 h-5" />
-                Pause
-              </Button>
-              
+            <div className="flex justify-center mb-6">
               <Button
                 size="lg"
                 variant="outline" 
