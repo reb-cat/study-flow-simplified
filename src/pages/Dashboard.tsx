@@ -1,48 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CalendarDays, Clock, Target, Timer, BookOpen, ExternalLink } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronLeft, ChevronRight, Play, Square, ExternalLink } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { Assignment } from '@/types';
 
 const Dashboard = () => {
   const { 
     selectedProfile, 
     getAssignmentsForProfile, 
-    activeTimer, 
-    assignments, 
+    getScheduleForStudent, 
+    updateAssignment,
+    startTimer,
+    pauseTimer,
+    activeTimer,
     currentUser 
   } = useApp();
-  const navigate = useNavigate();
+  
+  const [currentWeek, setCurrentWeek] = useState(new Date());
 
   if (!selectedProfile || !currentUser) {
     return <div>Loading...</div>;
   }
 
-  const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
-  const completedAssignments = profileAssignments.filter(a => a.completed);
-  const totalTimeSpent = profileAssignments.reduce((total, a) => total + a.timeSpent, 0);
-  const avgTimePerAssignment = profileAssignments.length > 0 ? totalTimeSpent / profileAssignments.length : 0;
+  // Get Monday of current week
+  const getMonday = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  };
 
-  // This week's assignments (simplified for demo)
-  const thisWeekAssignments = profileAssignments.filter(a => {
-    if (!a.scheduledDate) return false;
-    const scheduled = new Date(a.scheduledDate);
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // Sunday
-    return scheduled >= weekStart && scheduled <= weekEnd;
+  const monday = getMonday(currentWeek);
+  const weekDays = Array.from({ length: 5 }, (_, i) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
+    return day;
   });
 
-  const thisWeekCompleted = thisWeekAssignments.filter(a => a.completed);
-  const completionPercentage = thisWeekAssignments.length > 0 
-    ? (thisWeekCompleted.length / thisWeekAssignments.length) * 100 
-    : 0;
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'numeric', 
+      day: 'numeric' 
+    });
+  };
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -59,208 +65,285 @@ const Dashboard = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const activeAssignment = activeTimer 
-    ? assignments.find(a => a.id === activeTimer.assignmentId)
-    : null;
+  const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
+
+  const getAssignmentsForDay = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return profileAssignments.filter(a => a.scheduledDate === dateStr);
+  };
+
+  const getScheduleForDay = (date: Date) => {
+    const weekday = date.getDay() === 0 ? 7 : date.getDay();
+    return getScheduleForStudent(selectedProfile.displayName, weekday);
+  };
+
+  const handleToggleComplete = (assignment: Assignment) => {
+    updateAssignment(assignment.id, { completed: !assignment.completed });
+  };
+
+  const handleStartTimer = (assignmentId: string) => {
+    if (activeTimer?.assignmentId === assignmentId) {
+      pauseTimer();
+    } else {
+      startTimer(assignmentId, selectedProfile.id);
+    }
+  };
+
+  const isTimerActive = (assignmentId: string) => {
+    return activeTimer?.assignmentId === assignmentId;
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newWeek = new Date(currentWeek);
+    newWeek.setDate(currentWeek.getDate() + (direction === 'prev' ? -7 : 7));
+    setCurrentWeek(newWeek);
+  };
+
+  const getWeekRange = () => {
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
       <main className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Welcome Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {selectedProfile.displayName}!
-          </h1>
-          <p className="text-muted-foreground">
-            Here's your learning progress and active work
-          </p>
+        {/* Mission Hub Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Mission Hub</h1>
+            <p className="text-muted-foreground">Week of {getWeekRange()}</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+              <ChevronLeft className="w-4 h-4" />
+              Previous Week
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+              Next Week
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="card-elevated">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Week's Assignments</CardTitle>
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{thisWeekCompleted.length}/{thisWeekAssignments.length}</div>
-              <Progress value={completionPercentage} className="mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                {Math.round(completionPercentage)}% complete
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-elevated">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Time Spent This Week</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatTime(thisWeekAssignments.reduce((total, a) => total + a.timeSpent, 0))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Avg: {formatTime(Math.round(avgTimePerAssignment))} per assignment
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-elevated">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Completed</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedAssignments.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Out of {profileAssignments.length} assignments
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-elevated">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Study Streak</CardTitle>
-              <Timer className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">3 days</div>
-              <p className="text-xs text-muted-foreground">
-                Keep it up! 🔥
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Active Timer Section */}
-        {activeTimer && activeAssignment && (
-          <Card className="card-elevated border-timer/20 bg-timer-light/30">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-timer rounded-full animate-pulse" />
-                    Active Timer
+        {/* Weekly Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {weekDays.map((day, dayIndex) => {
+            const dayAssignments = getAssignmentsForDay(day);
+            const daySchedule = getScheduleForDay(day);
+            
+            return (
+              <Card key={dayIndex} className="card-elevated h-fit">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold">
+                    {formatDate(day)}
                   </CardTitle>
-                  <CardDescription>Currently working on assignment</CardDescription>
-                </div>
-                <Badge className="status-timer">Running</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">{activeAssignment.title}</h3>
-                  <p className="text-sm text-muted-foreground">{activeAssignment.subject}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-mono font-bold">
-                    {formatTimerTime(activeTimer.elapsedTime)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">elapsed</p>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button size="sm" onClick={() => navigate('/timer')}>
-                  Go to Timer
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate('/hub')}>
-                  View in Hub
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Schedule Blocks */}
+                  {daySchedule.map((block) => (
+                    <div key={block.id} className="space-y-2">
+                      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+                        Block {block.blockNumber}: {block.startTime}–{block.endTime} • {block.subject}
+                      </div>
+                      
+                      {/* Assignments for this block */}
+                      {dayAssignments
+                        .filter(a => a.scheduledBlock === block.blockNumber)
+                        .map((assignment) => (
+                          <AssignmentCard
+                            key={assignment.id}
+                            assignment={assignment}
+                            onToggleComplete={handleToggleComplete}
+                            onStartTimer={handleStartTimer}
+                            isTimerActive={isTimerActive(assignment.id)}
+                            activeTimer={activeTimer}
+                            formatTime={formatTime}
+                            formatTimerTime={formatTimerTime}
+                          />
+                        ))}
+                    </div>
+                  ))}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="card-interactive" onClick={() => navigate('/hub')}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-primary" />
-                Open Mission Hub
-              </CardTitle>
-              <CardDescription>
-                View your weekly schedule and start timers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {thisWeekAssignments.length} assignments scheduled this week
-              </p>
-            </CardContent>
-          </Card>
+                  {/* Unscheduled assignments for this day */}
+                  {dayAssignments
+                    .filter(a => !a.scheduledBlock)
+                    .map((assignment) => (
+                      <div key={assignment.id} className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">
+                          Unscheduled
+                        </div>
+                        <AssignmentCard
+                          assignment={assignment}
+                          onToggleComplete={handleToggleComplete}
+                          onStartTimer={handleStartTimer}
+                          isTimerActive={isTimerActive(assignment.id)}
+                          activeTimer={activeTimer}
+                          formatTime={formatTime}
+                          formatTimerTime={formatTimerTime}
+                        />
+                      </div>
+                    ))}
 
-          <Card className="card-interactive" onClick={() => navigate('/assignments')}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                Manage Assignments
-              </CardTitle>
-              <CardDescription>
-                Add, edit, or delete your assignments
-              </CardDescription>
-             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {profileAssignments.length - completedAssignments.length} pending assignments
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-interactive opacity-75">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ExternalLink className="w-5 h-5 text-muted-foreground" />
-                Sync from Canvas
-              </CardTitle>
-              <CardDescription>
-                Import assignments from your LMS (Demo)
-              </CardDescription>
-             </CardHeader>
-            <CardContent>
-              <Badge variant="outline">Coming Soon</Badge>
-            </CardContent>
-          </Card>
+                  {/* Empty state */}
+                  {dayAssignments.length === 0 && (
+                    <p className="text-center text-muted-foreground text-sm py-8">
+                      No assignments scheduled
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
-        {/* Recent Activity */}
+        {/* Weekly Summary */}
         <Card className="card-elevated">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest completed assignments</CardDescription>
+            <CardTitle>Week Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            {completedAssignments.length > 0 ? (
-              <div className="space-y-3">
-                {completedAssignments.slice(0, 3).map((assignment) => (
-                  <div key={assignment.id} className="flex items-center justify-between p-3 bg-success-light/20 rounded-lg border border-success/20">
-                    <div>
-                      <h4 className="font-medium">{assignment.title}</h4>
-                      <p className="text-sm text-muted-foreground">{assignment.subject}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className="status-done">Completed</Badge>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {formatTime(assignment.timeSpent)} spent
-                      </p>
-                    </div>
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {profileAssignments.filter(a => {
+                    if (!a.scheduledDate) return false;
+                    const scheduled = new Date(a.scheduledDate);
+                    return weekDays.some(day => 
+                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
+                    );
+                  }).filter(a => a.completed).length}
+                </div>
+                <p className="text-sm text-muted-foreground">Completed</p>
               </div>
-            ) : (
-              <p className="text-center text-muted-foreground py-8">
-                No completed assignments yet. Start working on your tasks!
-              </p>
-            )}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-timer">
+                  {profileAssignments.filter(a => {
+                    if (!a.scheduledDate) return false;
+                    const scheduled = new Date(a.scheduledDate);
+                    return weekDays.some(day => 
+                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
+                    );
+                  }).length}
+                </div>
+                <p className="text-sm text-muted-foreground">Total Assignments</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-success">
+                  {formatTime(profileAssignments.filter(a => {
+                    if (!a.scheduledDate) return false;
+                    const scheduled = new Date(a.scheduledDate);
+                    return weekDays.some(day => 
+                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
+                    );
+                  }).reduce((total, a) => total + a.timeSpent, 0))}
+                </div>
+                <p className="text-sm text-muted-foreground">Time Spent</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </main>
     </div>
+  );
+};
+
+interface AssignmentCardProps {
+  assignment: Assignment;
+  onToggleComplete: (assignment: Assignment) => void;
+  onStartTimer: (assignmentId: string) => void;
+  isTimerActive: boolean;
+  activeTimer: any;
+  formatTime: (minutes: number) => string;
+  formatTimerTime: (seconds: number) => string;
+}
+
+const AssignmentCard: React.FC<AssignmentCardProps> = ({
+  assignment,
+  onToggleComplete,
+  onStartTimer,
+  isTimerActive,
+  activeTimer,
+  formatTime,
+  formatTimerTime
+}) => {
+  const getStatusBadge = () => {
+    if (assignment.completed) {
+      return <Badge className="status-done">Done</Badge>;
+    }
+    if (isTimerActive) {
+      return <Badge className="status-timer">Timer Running</Badge>;
+    }
+    return <Badge className="status-todo">To-Do</Badge>;
+  };
+
+  return (
+    <Card className={`p-3 space-y-3 ${
+      assignment.completed ? 'bg-success-light/10 border-success/20' : 
+      isTimerActive ? 'bg-timer-light/10 border-timer/20' : 
+      'bg-card border-border'
+    }`}>
+      <div className="space-y-2">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h4 className="font-medium text-sm">{assignment.title}</h4>
+            <p className="text-xs text-muted-foreground">{assignment.subject}</p>
+            {assignment.dueDate && (
+              <p className="text-xs text-muted-foreground">
+                Due: {new Date(assignment.dueDate).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          {getStatusBadge()}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={assignment.completed}
+              onCheckedChange={() => onToggleComplete(assignment)}
+            />
+            <span className="text-xs text-muted-foreground">
+              {isTimerActive && activeTimer ? 
+                formatTimerTime(activeTimer.elapsedTime) : 
+                formatTime(assignment.timeSpent)
+              } spent
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant={isTimerActive ? "destructive" : "outline"}
+              onClick={() => onStartTimer(assignment.id)}
+              className="h-6 px-2"
+            >
+              {isTimerActive ? (
+                <Square className="w-3 h-3" />
+              ) : (
+                <Play className="w-3 h-3" />
+              )}
+            </Button>
+
+            {assignment.canvasUrl && (
+              <Button
+                size="sm"
+                variant="ghost"
+                asChild
+                className="h-6 px-2"
+              >
+                <a href={assignment.canvasUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 };
 
