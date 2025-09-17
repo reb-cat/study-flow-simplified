@@ -39,6 +39,24 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
+  // Helper function - defined early to avoid hoisting issues
+  const calculateBlockDuration = (startTime: string, endTime: string): number => {
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    return Math.max(1, endMinutes - startMinutes);
+  };
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  };
+
   if (!selectedProfile) {
     return <div>Loading...</div>;
   }
@@ -77,23 +95,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
 
   const currentBlock = guidedBlocks[currentBlockIndex];
   const totalBlocks = guidedBlocks.length;
-
-  const calculateBlockDuration = (startTime: string, endTime: string): number => {
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-    const startMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
-    return Math.max(1, endMinutes - startMinutes);
-  };
-
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins}m`;
-  };
 
   const handleTimerToggle = () => {
     if (!currentBlock?.assignment) return;
