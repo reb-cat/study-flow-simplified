@@ -106,7 +106,7 @@ export function CircularTimer({
 
   // Dynamic color based on time remaining
   const getTimerColor = () => {
-    return 'text-primary'; // Always blue
+    return 'text-success'; // Always green
   };
   const isCompleted = timeRemaining === 0;
   return <div className={`flex flex-col items-center space-y-4 ${className}`}>
@@ -118,7 +118,7 @@ export function CircularTimer({
           
           {/* Progress circle */}
           <circle stroke="currentColor" className={`transition-all duration-1000 ease-linear ${getTimerColor()}`} fill="transparent" strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} strokeLinecap="round" r={normalizedRadius} cx={radius} cy={radius} style={{
-          filter: isCompleted ? 'drop-shadow(0 0 8px hsl(var(--emerald)))' : undefined
+          filter: isCompleted ? 'drop-shadow(0 0 8px hsl(var(--success)))' : undefined
         }} />
         </svg>
         
@@ -126,8 +126,8 @@ export function CircularTimer({
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             {isCompleted ? <div className="animate-scale-in">
-                <CheckCircle className="w-16 h-16 text-emerald mx-auto mb-2" />
-                <div className="text-lg font-semibold text-emerald">Complete!</div>
+                <CheckCircle className="w-16 h-16 text-success mx-auto mb-2" />
+                <div className="text-lg font-semibold text-success">Complete!</div>
               </div> : <>
                 <div className={`text-5xl font-bold transition-colors ${timeRemaining <= 10 ? 'animate-pulse text-timer' : 'text-foreground'}`}>
                   {formatTime(timeRemaining)}
@@ -161,7 +161,7 @@ export function CircularTimer({
       {/* Time Status Indicators */}
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         {timeRemaining > 300 && <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-emerald rounded-full" />
+            <div className="w-2 h-2 bg-success rounded-full" />
             On Track
           </div>}
         {timeRemaining <= 300 && timeRemaining > 60 && <div className="flex items-center gap-1">
