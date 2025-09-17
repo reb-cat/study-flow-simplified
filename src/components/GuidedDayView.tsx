@@ -233,7 +233,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md text-center">
           <CardContent className="p-8">
-            <CheckCircle className="w-16 h-16 text-emerald mx-auto mb-4" />
+            <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">All Done! 🎉</h2>
             <p className="text-muted-foreground mb-6">
               You've completed all your blocks for today. Great work!
@@ -347,7 +347,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
               <Button 
                 onClick={handleMarkComplete}
                 size="lg"
-                className="gap-2 bg-emerald hover:bg-emerald/90 text-white font-medium py-3"
+                className="gap-2 bg-success text-success-foreground hover:bg-success/90 font-medium py-3"
               >
                 <CheckCircle className="w-5 h-5" />
                 Done!

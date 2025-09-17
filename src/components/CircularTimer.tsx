@@ -118,7 +118,7 @@ export function CircularTimer({
 
   // Dynamic color based on time remaining
   const getTimerColor = () => {
-    if (timeRemaining > 300) return 'text-emerald'; // 5+ minutes - green
+    if (timeRemaining > 300) return 'text-success'; // 5+ minutes - green  
     if (timeRemaining > 60) return 'text-primary'; // 1-5 minutes - blue
     return 'text-timer'; // Under 1 minute - orange/red
   };
@@ -158,7 +158,7 @@ export function CircularTimer({
             cx={radius}
             cy={radius}
             style={{
-              filter: isCompleted ? 'drop-shadow(0 0 8px hsl(var(--emerald)))' : undefined
+              filter: isCompleted ? 'drop-shadow(0 0 8px hsl(var(--success)))' : undefined
             }}
           />
         </svg>
@@ -168,8 +168,8 @@ export function CircularTimer({
           <div className="text-center">
             {isCompleted ? (
               <div className="animate-scale-in">
-                <CheckCircle className="w-16 h-16 text-emerald mx-auto mb-2" />
-                <div className="text-lg font-semibold text-emerald">Complete!</div>
+                <CheckCircle className="w-16 h-16 text-success mx-auto mb-2" />
+                <div className="text-lg font-semibold text-success">Complete!</div>
               </div>
             ) : (
               <>
