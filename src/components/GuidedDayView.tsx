@@ -256,11 +256,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Guided Day Title */}
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-foreground">Guided Day</h1>
-            </div>
-
             {/* Timer */}
             <div className="flex justify-center">
               {currentBlock && localTimeRemaining !== null && <CircularTimer durationMinutes={currentBlock.duration} isRunning={localTimerRunning} onComplete={handleTimerComplete} externalTimeRemaining={localTimeRemaining} className="" hideControls={true} />}
