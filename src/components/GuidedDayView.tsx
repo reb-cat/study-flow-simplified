@@ -225,13 +225,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             <ArrowLeft className="w-4 h-4" />
             Back to Hub
           </Button>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">Guided Day</h1>
-            <p className="text-muted-foreground">
-              Block {currentBlockIndex + 1} of {totalBlocks}
-            </p>
-          </div>
-          <div className="w-20" /> {/* Spacer */}
+          <p className="text-muted-foreground">
+            Block {currentBlockIndex + 1} of {totalBlocks}
+          </p>
         </div>
 
         {/* Progress Bar */}
@@ -260,6 +256,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* Guided Day Title */}
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-foreground">Guided Day</h1>
+            </div>
+
             {/* Timer */}
             <div className="flex justify-center">
               {currentBlock && localTimeRemaining !== null && <CircularTimer durationMinutes={currentBlock.duration} isRunning={localTimerRunning} onComplete={handleTimerComplete} externalTimeRemaining={localTimeRemaining} className="" hideControls={true} />}
