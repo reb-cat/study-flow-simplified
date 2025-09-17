@@ -120,10 +120,10 @@ const Dashboard = () => {
       <Header />
       
       <main className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Mission Hub Header */}
+        {/* Dashboard Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Mission Hub</h1>
+            <h1 className="text-3xl font-bold text-foreground">StudyFlow</h1>
             <p className="text-muted-foreground">Week of {getWeekRange()}</p>
           </div>
           

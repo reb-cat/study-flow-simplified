@@ -50,11 +50,11 @@ const Timer = () => {
             <CardContent>
               <h2 className="text-2xl font-bold mb-4">No Active Timer</h2>
               <p className="text-muted-foreground mb-6">
-                Start a timer from your assignments or Mission Hub to track your work time.
+                Start a timer from your assignments or StudyFlow to track your work time.
               </p>
               <div className="flex gap-4 justify-center">
                 <Button onClick={() => navigate('/hub')}>
-                  Go to Mission Hub
+                  Go to StudyFlow
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/assignments')}>
                   View Assignments

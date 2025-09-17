@@ -112,7 +112,7 @@ const MissionHub = () => {
         {/* Week Navigation */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Mission Hub</h1>
+            <h1 className="text-3xl font-bold text-foreground">StudyFlow</h1>
             <p className="text-muted-foreground">Week of {getWeekRange()}</p>
           </div>
           

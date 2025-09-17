@@ -39,7 +39,6 @@ export const Header = () => {
         {/* Left: App Name */}
         <div>
           <h1 className="text-2xl font-bold text-primary">StudyFlow</h1>
-          <p className="text-sm text-muted-foreground">Mission Hub</p>
         </div>
 
         {/* Right: Controls */}

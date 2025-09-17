@@ -210,7 +210,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             </p>
             <Button onClick={onBackToHub} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Mission Hub
+              Back to StudyFlow
             </Button>
           </CardContent>
         </Card>

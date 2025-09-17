@@ -23,7 +23,7 @@ const Login = () => {
     try {
       const success = await login(username, password);
       if (success) {
-        toast({ title: 'Welcome to Mission Hub!' });
+        toast({ title: 'Welcome to StudyFlow!' });
         navigate('/dashboard');
       } else {
         toast({ 
@@ -70,7 +70,7 @@ const Login = () => {
           <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center">
             <GraduationCap className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Mission Hub</h1>
+          <h1 className="text-3xl font-bold text-foreground">StudyFlow</h1>
           <p className="text-muted-foreground">Your focused weekly planner with built-in timers</p>
         </div>
 
@@ -78,7 +78,7 @@ const Login = () => {
         <Card className="card-elevated">
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access Mission Hub</CardDescription>
+            <CardDescription>Enter your credentials to access StudyFlow</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
