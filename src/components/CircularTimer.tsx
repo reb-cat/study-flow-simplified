@@ -24,6 +24,7 @@ export function CircularTimer({
   externalTimeRemaining,
   className = ""
 }: CircularTimerProps) {
+  console.log('CircularTimer render:', { durationMinutes, isRunning, externalTimeRemaining });
   const totalSeconds = durationMinutes * 60 + extraTime * 60;
 
   // Use external time state if provided, otherwise manage internally

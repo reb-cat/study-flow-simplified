@@ -112,6 +112,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     };
   }, [localTimerRunning, localTimeRemaining]);
   const handleTimerToggle = () => {
+    console.log('handleTimerToggle called', { currentBlock, localTimerRunning });
     if (!currentBlock) return;
     if (localTimerRunning) {
       setLocalTimerRunning(false);
@@ -126,6 +127,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         description: "You've got this!"
       });
     }
+    console.log('handleTimerToggle finished, should be:', !localTimerRunning);
   };
   const handleTimerReset = () => {
     if (currentBlock) {
