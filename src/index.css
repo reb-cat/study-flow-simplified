@@ -2,50 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* StudyFlow Design System - Inspired by vibrant education palette */
+/* StudyFlow Design System - Accessible & Beautiful */
 
 @layer base {
   :root {
     /* Core backgrounds */
-    --background: 210 20% 98%;
-    --foreground: 195 100% 15%;
+    --background: 0 0% 100%;
+    --foreground: 222 84% 4.9%;
     --surface: 0 0% 100%;
     
     /* Card system */
     --card: 0 0% 100%;
-    --card-foreground: 195 100% 15%;
-    --card-shadow: 195 50% 15% / 0.08;
+    --card-foreground: 222 84% 4.9%;
+    --card-shadow: 220 13% 91% / 0.5;
 
     /* Interactive elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 195 100% 15%;
+    --popover-foreground: 222 84% 4.9%;
 
-    /* Brand colors - Vibrant teal primary */
-    --primary: 195 100% 25%;
+    /* Brand colors - Accessible teal primary */
+    --primary: 185 84% 31%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 195 100% 30%;
-    --primary-light: 195 60% 96%;
+    --primary-hover: 185 84% 26%;
+    --primary-light: 185 84% 96%;
 
-    /* Success & completion - Bright green */
-    --success: 120 60% 50%;
+    /* Success & completion - Accessible green */
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-    --success-light: 120 60% 96%;
+    --success-light: 142 76% 96%;
 
-    /* Timer & active states - Energetic yellow */
-    --timer: 60 80% 60%;
-    --timer-foreground: 195 100% 15%;
-    --timer-light: 60 80% 96%;
+    /* Timer & active states - Accessible orange */
+    --timer: 25 85% 45%;
+    --timer-foreground: 0 0% 100%;
+    --timer-light: 25 85% 96%;
 
-    /* Secondary - Purple accent */
-    --secondary: 270 60% 90%;
-    --secondary-foreground: 270 60% 25%;
+    /* Secondary - Muted purple */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 9% 46%;
     
     /* Content hierarchy */
-    --muted: 210 20% 94%;
-    --muted-foreground: 195 30% 45%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 270 60% 95%;
-    --accent-foreground: 270 60% 30%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 9% 46%;
 
     /* System colors */
     --destructive: 0 84% 60%;
@@ -60,11 +60,11 @@
     --radius-sm: 0.5rem;
     --radius-lg: 1rem;
     
-    /* Gradients - Vibrant combinations */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(195 100% 35%));
-    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(120 60% 45%));
-    --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(60 80% 55%));
-    --gradient-accent: linear-gradient(135deg, hsl(270 60% 60%), hsl(270 60% 50%));
+    /* Gradients - Accessible combinations */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(185 84% 35%));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 76% 32%));
+    --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(25 85% 40%));
+    --gradient-accent: linear-gradient(135deg, hsl(220 14% 91%), hsl(220 14% 86%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(var(--card-shadow));
@@ -92,38 +92,38 @@
   }
 
   .dark {
-    --background: 195 100% 8%;
-    --foreground: 210 40% 95%;
-    --surface: 195 80% 12%;
+    --background: 222 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --surface: 220 13% 9%;
 
-    --card: 195 80% 12%;
-    --card-foreground: 210 40% 95%;
-    --card-shadow: 195 100% 5% / 0.3;
+    --card: 220 13% 9%;
+    --card-foreground: 210 40% 98%;
+    --card-shadow: 0 0% 0% / 0.5;
 
-    --popover: 195 80% 12%;
-    --popover-foreground: 210 40% 95%;
+    --popover: 220 13% 9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 195 100% 45%;
+    --primary: 185 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 195 100% 50%;
-    --primary-light: 195 80% 18%;
+    --primary-hover: 185 84% 65%;
+    --primary-light: 185 84% 15%;
 
-    --success: 120 60% 55%;
+    --success: 142 76% 50%;
     --success-foreground: 0 0% 100%;
-    --success-light: 120 60% 18%;
+    --success-light: 142 76% 15%;
 
-    --timer: 60 80% 65%;
-    --timer-foreground: 195 100% 8%;
-    --timer-light: 60 60% 18%;
+    --timer: 25 85% 60%;
+    --timer-foreground: 0 0% 100%;
+    --timer-light: 25 85% 15%;
 
-    --secondary: 270 60% 20%;
-    --secondary-foreground: 270 40% 85%;
+    --secondary: 220 13% 16%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 195 60% 15%;
-    --muted-foreground: 195 20% 70%;
+    --muted: 220 13% 16%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 270 60% 18%;
-    --accent-foreground: 270 40% 85%;
+    --accent: 220 13% 16%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 63% 50%;
     --destructive-foreground: 210 40% 98%;
