@@ -106,9 +106,7 @@ export function CircularTimer({
 
   // Dynamic color based on time remaining
   const getTimerColor = () => {
-    if (timeRemaining > 300) return 'text-emerald'; // 5+ minutes - green
-    if (timeRemaining > 60) return 'text-primary'; // 1-5 minutes - blue
-    return 'text-timer'; // Under 1 minute - orange/red
+    return 'text-primary'; // Always blue
   };
   const isCompleted = timeRemaining === 0;
   return <div className={`flex flex-col items-center space-y-4 ${className}`}>
