@@ -10,7 +10,7 @@ interface CircularTimerProps {
   onReset?: () => void;
   extraTime?: number;
   hideControls?: boolean;
-  externalTimeRemaining?: number | null;
+  externalTimeRemaining?: number; // Use external time state
   onTimeUpdate?: (timeRemaining: number) => void;
   className?: string;
 }
@@ -23,10 +23,14 @@ export function CircularTimer({
   onReset,
   extraTime = 0,
   hideControls = false,
+  externalTimeRemaining,
   className = "",
 }: CircularTimerProps) {
   const totalSeconds = durationMinutes * 60 + extraTime * 60;
-  const [timeRemaining, setTimeRemaining] = useState(totalSeconds);
+  
+  // Use external time state if provided, otherwise manage internally
+  const [internalTimeRemaining, setInternalTimeRemaining] = useState(totalSeconds);
+  const timeRemaining = externalTimeRemaining !== undefined ? externalTimeRemaining : internalTimeRemaining;
 
   // Gentle completion chime using Web Audio API
   const playCompletionChime = () => {
@@ -62,18 +66,20 @@ export function CircularTimer({
     }
   };
 
-  // Reset timer when duration changes
+  // Only manage internal timer if no external time is provided
   useEffect(() => {
-    setTimeRemaining(totalSeconds);
-  }, [totalSeconds]);
+    if (externalTimeRemaining === undefined) {
+      setInternalTimeRemaining(totalSeconds);
+    }
+  }, [totalSeconds, externalTimeRemaining]);
 
-  // Countdown logic with completion
+  // Only run internal countdown if no external time is provided
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isRunning && timeRemaining > 0) {
+    if (externalTimeRemaining === undefined && isRunning && internalTimeRemaining > 0) {
       interval = setInterval(() => {
-        setTimeRemaining(prev => {
+        setInternalTimeRemaining(prev => {
           const newTime = prev - 1;
           if (newTime <= 0) {
             playCompletionChime();
@@ -82,11 +88,19 @@ export function CircularTimer({
           }
           return newTime;
         });
-      }, 1000);
+      }, 1000); // EXACTLY 1000ms = 1 real second
     }
     
     return () => clearInterval(interval);
-  }, [isRunning, timeRemaining, onComplete]);
+  }, [isRunning, internalTimeRemaining, onComplete, externalTimeRemaining]);
+
+  // Trigger completion when external timer reaches 0
+  useEffect(() => {
+    if (externalTimeRemaining !== undefined && externalTimeRemaining === 0) {
+      playCompletionChime();
+      onComplete?.();
+    }
+  }, [externalTimeRemaining, onComplete]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -180,22 +194,22 @@ export function CircularTimer({
 
       {/* Timer Controls */}
       {!hideControls && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={onToggle}
-            className="gap-2 hover-scale"
+            className="gap-2 hover-scale border-2 font-medium py-3 px-6"
             disabled={isCompleted}
           >
             {isRunning ? (
               <>
-                <Pause className="w-4 h-4" />
+                <Pause className="w-5 h-5" />
                 Pause
               </>
             ) : (
               <>
-                <Play className="w-4 h-4" />
+                <Play className="w-5 h-5" />
                 {timeRemaining === totalSeconds ? 'Start' : 'Resume'}
               </>
             )}
@@ -203,11 +217,11 @@ export function CircularTimer({
           
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={onReset}
-            className="gap-2 hover-scale"
+            className="gap-2 hover-scale border-2 font-medium py-3 px-6"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-5 h-5" />
             Reset
           </Button>
         </div>

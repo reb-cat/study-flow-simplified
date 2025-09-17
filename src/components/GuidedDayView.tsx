@@ -37,7 +37,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
   } = useApp();
 
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [localTimerRunning, setLocalTimerRunning] = useState(false);
+  const [localTimeRemaining, setLocalTimeRemaining] = useState<number | null>(null);
 
   // Helper function - defined early to avoid hoisting issues
   const calculateBlockDuration = (startTime: string, endTime: string): number => {
@@ -96,26 +97,74 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
   const currentBlock = guidedBlocks[currentBlockIndex];
   const totalBlocks = guidedBlocks.length;
 
-  const handleTimerToggle = () => {
-    if (!currentBlock?.assignment) return;
+  // Initialize timer when block changes
+  useEffect(() => {
+    if (currentBlock) {
+      const totalSeconds = currentBlock.duration * 60;
+      setLocalTimeRemaining(totalSeconds);
+      setLocalTimerRunning(false);
+    }
+  }, [currentBlock]);
+
+  // Real-time countdown - this ensures REAL seconds are counted
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
     
-    if (isTimerRunning) {
-      pauseTimer();
-      setIsTimerRunning(false);
+    if (localTimerRunning && localTimeRemaining !== null && localTimeRemaining > 0) {
+      interval = setInterval(() => {
+        setLocalTimeRemaining(prev => {
+          if (prev === null || prev <= 0) {
+            setLocalTimerRunning(false);
+            return 0;
+          }
+          return prev - 1; // Count down by 1 second every 1000ms
+        });
+      }, 1000); // EXACTLY 1000ms = 1 real second
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [localTimerRunning, localTimeRemaining]);
+
+  const handleTimerToggle = () => {
+    if (!currentBlock) return;
+    
+    if (localTimerRunning) {
+      setLocalTimerRunning(false);
+      toast({
+        title: "Timer paused ⏸️",
+        description: "Take your time!",
+      });
     } else {
-      startTimer(currentBlock.assignment.id, selectedProfile.id);
-      setIsTimerRunning(true);
+      setLocalTimerRunning(true);
+      toast({
+        title: "Timer started! 🎯",
+        description: "You've got this!",
+      });
+    }
+  };
+
+  const handleTimerReset = () => {
+    if (currentBlock) {
+      const totalSeconds = currentBlock.duration * 60;
+      setLocalTimeRemaining(totalSeconds);
+      setLocalTimerRunning(false);
+      toast({
+        title: "Timer reset 🔄",
+        description: "Ready to start fresh!",
+      });
     }
   };
 
   const handleTimerComplete = () => {
-    setIsTimerRunning(false);
-    if (currentBlock?.assignment) {
-      toast({
-        title: "Time's up! 🎉",
-        description: "Great work! Ready to move to the next block?",
-      });
-    }
+    setLocalTimerRunning(false);
+    toast({
+      title: "Time's up! 🎉",
+      description: "Great work! Ready to move to the next block?",
+    });
   };
 
   const handleMarkComplete = () => {
@@ -126,19 +175,19 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
         description: "Excellent work! Moving to next block.",
       });
       // Auto-advance to next block
-      setTimeout(() => {
-        if (currentBlockIndex < totalBlocks - 1) {
-          setCurrentBlockIndex(prev => prev + 1);
-          setIsTimerRunning(false);
-        } else {
-          // All done!
-          toast({
-            title: "All blocks complete! 🎊",
-            description: "Amazing work today!",
-          });
-          onBackToHub();
-        }
-      }, 1000);
+        setTimeout(() => {
+          if (currentBlockIndex < totalBlocks - 1) {
+            setCurrentBlockIndex(prev => prev + 1);
+            setLocalTimerRunning(false);
+          } else {
+            // All done!
+            toast({
+              title: "All blocks complete! 🎊",
+              description: "Amazing work today!",
+            });
+            onBackToHub();
+          }
+        }, 1000);
     }
   };
 
@@ -247,13 +296,17 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
           <CardContent className="space-y-6">
             {/* Timer */}
             <div className="flex justify-center">
-              <CircularTimer
-                durationMinutes={currentBlock.duration}
-                isRunning={isTimerRunning}
-                onComplete={handleTimerComplete}
-                onToggle={handleTimerToggle}
-                className="scale-90"
-              />
+              {currentBlock && localTimeRemaining !== null && (
+                <CircularTimer
+                  durationMinutes={currentBlock.duration}
+                  isRunning={localTimerRunning}
+                  onComplete={handleTimerComplete}
+                  onToggle={handleTimerToggle}
+                  onReset={handleTimerReset}
+                  externalTimeRemaining={localTimeRemaining}
+                  className="scale-90"
+                />
+              )}
             </div>
 
             {/* Assignment Details */}
@@ -290,43 +343,50 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
             )}
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Button 
                 onClick={handleMarkComplete}
-                className="gap-2 bg-emerald hover:bg-emerald/90 text-white"
+                size="lg"
+                className="gap-2 bg-emerald hover:bg-emerald/90 text-white font-medium py-3"
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-5 h-5" />
                 Done!
               </Button>
               
               <Button 
                 variant="outline" 
                 onClick={handleNeedMoreTime}
-                className="gap-2"
+                size="lg"
+                className="gap-2 border-2 py-3 font-medium"
               >
-                <Clock className="w-4 h-4" />
+                <Clock className="w-5 h-5" />
                 More Time
               </Button>
-              
+            </div>
+
+            {/* Stuck Button - Separate for emphasis */}
+            <div className="flex justify-center">
               <Button 
                 variant="outline" 
                 onClick={handleStuck}
-                className="gap-2 text-orange-600 border-orange-200 hover:bg-orange-50"
+                size="lg"
+                className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-3 font-medium min-w-[200px]"
               >
-                <AlertTriangle className="w-4 h-4" />
-                Stuck
+                <AlertTriangle className="w-5 h-5" />
+                I'm Stuck - Need Help
               </Button>
             </div>
 
             {/* Navigation */}
-            <div className="flex justify-between pt-4 border-t border-border/50">
+            <div className="flex justify-between pt-6 border-t border-border/50">
               <Button 
                 variant="ghost" 
                 onClick={() => setCurrentBlockIndex(prev => Math.max(0, prev - 1))}
                 disabled={!canGoPrev}
-                className="gap-2"
+                size="lg"
+                className="gap-2 font-medium"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-5 h-5" />
                 Previous
               </Button>
 
@@ -334,10 +394,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({ onBackToHub, selec
                 variant="ghost" 
                 onClick={() => setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1))}
                 disabled={!canGoNext}
-                className="gap-2"
+                size="lg"
+                className="gap-2 font-medium"
               >
                 Next
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
           </CardContent>
