@@ -231,7 +231,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   }
   const BlockIcon = getBlockTypeIcon(currentBlock.blockType || '');
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container max-w-4xl mx-auto p-6 space-y-6">
+      <div className="container max-w-2xl mx-auto p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={onBackToHub} className="gap-2">
@@ -275,7 +275,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           <CardContent className="space-y-6">
             {/* Timer */}
             <div className="flex justify-center">
-              {currentBlock && localTimeRemaining !== null && <CircularTimer durationMinutes={currentBlock.duration} isRunning={localTimerRunning} onComplete={handleTimerComplete} onToggle={handleTimerToggle} onReset={handleTimerReset} externalTimeRemaining={localTimeRemaining} className="scale-90" />}
+              {currentBlock && localTimeRemaining !== null && <CircularTimer durationMinutes={currentBlock.duration} isRunning={localTimerRunning} onComplete={handleTimerComplete} onToggle={handleTimerToggle} onReset={handleTimerReset} externalTimeRemaining={localTimeRemaining} className="" />}
             </div>
 
             {/* Assignment Details */}
