@@ -149,7 +149,24 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans text-base;
+  }
+
+  /* Improved typography scale */
+  .text-xs {
+    font-size: 0.8125rem; /* 13px instead of 12px */
+    line-height: 1.4;
+  }
+
+  .text-sm {
+    font-size: 0.9375rem; /* 15px instead of 14px */
+    line-height: 1.5;
+  }
+
+  /* Better button text sizing */
+  .btn-text {
+    font-size: 1rem;
+    font-weight: 500;
   }
 }
 

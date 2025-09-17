@@ -237,9 +237,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         {/* Progress Bar */}
         <div className="space-y-2">
           <Progress value={currentBlockIndex / Math.max(1, totalBlocks - 1) * 100} className="h-2" />
-          <p className="text-sm text-center text-muted-foreground">
-            {Math.round(currentBlockIndex / Math.max(1, totalBlocks - 1) * 100)}% through your day
-          </p>
+            <p className="text-base text-center text-muted-foreground">
+              {Math.round(currentBlockIndex / Math.max(1, totalBlocks - 1) * 100)}% through your day
+            </p>
         </div>
 
         {/* Current Block Card */}
@@ -247,7 +247,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-3 mb-2">
               
-              <Badge variant="outline" className="text-sm">
+              <Badge variant="outline" className="text-base font-medium">
                 {currentBlock.startTime} - {currentBlock.endTime}
               </Badge>
             </div>
@@ -273,11 +273,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                     <span className="font-medium">Assignment Details</span>
                   </div>
                   
-                  {currentBlock.assignment.subject && <p className="text-sm">
-                      <strong>Subject:</strong> {currentBlock.assignment.subject}
-                    </p>}
+                  {currentBlock.assignment.subject && <p className="text-base">
+                    <strong>Subject:</strong> {currentBlock.assignment.subject}
+                  </p>}
                   
-                  {currentBlock.assignment.dueDate && <p className="text-sm">
+                  {currentBlock.assignment.dueDate && <p className="text-base">
                       <strong>Due:</strong> {new Date(currentBlock.assignment.dueDate).toLocaleDateString()}
                     </p>}
 
@@ -292,35 +292,35 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
             {/* Action Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button onClick={handleMarkComplete} size="lg" className="gap-2 bg-success text-success-foreground hover:bg-success/90 font-medium py-3">
-                <CheckCircle className="w-5 h-5" />
+              <Button onClick={handleMarkComplete} size="lg" className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4">
+                <CheckCircle className="w-6 h-6" />
                 Done!
               </Button>
               
-              <Button variant="outline" onClick={handleNeedMoreTime} size="lg" className="gap-2 border-2 py-3 font-medium">
-                <Clock className="w-5 h-5" />
+              <Button variant="outline" onClick={handleNeedMoreTime} size="lg" className="gap-3 border-2 py-4 text-base font-semibold">
+                <Clock className="w-6 h-6" />
                 More Time
               </Button>
             </div>
 
             {/* Stuck Button - Separate for emphasis */}
             <div className="flex justify-center">
-              <Button variant="outline" onClick={handleStuck} size="lg" className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-3 font-medium min-w-[200px]">
-                <AlertTriangle className="w-5 h-5" />
+              <Button variant="outline" onClick={handleStuck} size="lg" className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[200px]">
+                <AlertTriangle className="w-6 h-6" />
                 I'm Stuck - Need Help
               </Button>
             </div>
 
             {/* Navigation */}
             <div className="flex justify-between pt-6 border-t border-border/50">
-              <Button variant="ghost" onClick={() => setCurrentBlockIndex(prev => Math.max(0, prev - 1))} disabled={!canGoPrev} size="lg" className="gap-2 font-medium">
-                <ChevronLeft className="w-5 h-5" />
+              <Button variant="ghost" onClick={() => setCurrentBlockIndex(prev => Math.max(0, prev - 1))} disabled={!canGoPrev} size="lg" className="gap-3 text-base font-semibold py-4">
+                <ChevronLeft className="w-6 h-6" />
                 Previous
               </Button>
 
-              <Button variant="ghost" onClick={() => setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1))} disabled={!canGoNext} size="lg" className="gap-2 font-medium">
+              <Button variant="ghost" onClick={() => setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1))} disabled={!canGoNext} size="lg" className="gap-3 text-base font-semibold py-4">
                 Next
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-6 h-6" />
               </Button>
             </div>
           </CardContent>
