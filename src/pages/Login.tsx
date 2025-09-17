@@ -44,14 +44,17 @@ const Login = () => {
   };
 
   const handleDemoLogin = async (demoUser: string) => {
+    console.log('Demo login clicked:', demoUser); // Debug log
     setLoading(true);
     try {
       const success = await login(demoUser);
+      console.log('Login success:', success); // Debug log
       if (success) {
         toast({ title: `Welcome ${demoUser === 'admin' ? 'Parent Admin' : demoUser}!` });
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('Demo login error:', error); // Debug log
       toast({ 
         title: 'Error', 
         description: 'Demo login failed.',
@@ -123,7 +126,7 @@ const Login = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full gap-2"
+                className="w-full gap-2 relative z-10"
                 onClick={() => handleDemoLogin('admin')}
                 disabled={loading}
               >
@@ -136,6 +139,7 @@ const Login = () => {
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="relative z-10"
                   onClick={() => handleDemoLogin('abigail')}
                   disabled={loading}
                 >
@@ -145,6 +149,7 @@ const Login = () => {
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="relative z-10"
                   onClick={() => handleDemoLogin('khalil')}
                   disabled={loading}
                 >
