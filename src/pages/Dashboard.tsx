@@ -123,8 +123,7 @@ const Dashboard = () => {
         {/* Dashboard Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">StudyFlow</h1>
-            <p className="text-muted-foreground">Week of {getWeekRange()}</p>
+            <h1 className="text-3xl font-bold text-foreground">Week of {getWeekRange()}</h1>
           </div>
           
           <div className="flex items-center gap-2">
