@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft, ChevronRight, Play, Square, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Square, ExternalLink, Focus, Calendar } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { GuidedDayView } from '@/components/GuidedDayView';
 import { Assignment } from '@/types';
 
 const Dashboard = () => {
@@ -22,6 +23,7 @@ const Dashboard = () => {
   } = useApp();
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [showGuidedMode, setShowGuidedMode] = useState(false);
 
   if (!selectedProfile || !currentUser) {
     return <div>Loading...</div>;
@@ -105,6 +107,14 @@ const Dashboard = () => {
     return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   };
 
+  // Get today's date for guided mode
+  const today = new Date().toISOString().split('T')[0];
+
+  // Show guided mode if enabled
+  if (showGuidedMode) {
+    return <GuidedDayView onBackToHub={() => setShowGuidedMode(false)} selectedDate={today} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -118,6 +128,15 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Guided Mode Toggle */}
+            <Button 
+              onClick={() => setShowGuidedMode(true)}
+              className="gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary"
+            >
+              <Focus className="w-4 h-4" />
+              Start Guided Day
+            </Button>
+            
             <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
               <ChevronLeft className="w-4 h-4" />
               Previous Week
