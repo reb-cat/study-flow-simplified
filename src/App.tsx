@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import MissionHub from "./pages/MissionHub";
 import Assignments from "./pages/Assignments";
 import Timer from "./pages/Timer";
+import WeeklySetup from "./pages/WeeklySetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Timer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/weekly-setup"
+              element={
+                <ProtectedRoute>
+                  <WeeklySetup />
                 </ProtectedRoute>
               }
             />
