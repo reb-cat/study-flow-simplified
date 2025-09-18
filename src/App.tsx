@@ -7,6 +7,7 @@ import { AppProvider, useApp } from "@/context/AppContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard"; 
 import MissionHub from "./pages/MissionHub";
+import Schedule from "./pages/Schedule";
 import Assignments from "./pages/Assignments";
 import Timer from "./pages/Timer";
 import WeeklySetup from "./pages/WeeklySetup";
@@ -41,6 +42,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <MissionHub />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/schedule"
+              element={
+                <ProtectedRoute>
+                  <Schedule />
                 </ProtectedRoute>
               }
             />

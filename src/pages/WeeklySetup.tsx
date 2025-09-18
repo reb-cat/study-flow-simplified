@@ -275,6 +275,57 @@ export default function WeeklySetup() {
               {saving ? 'Saving...' : 'Save Week Setup'}
             </Button>
           </div>
+
+          {/* Drag-Drop Scheduler */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Weekly Assignment Scheduler</h2>
+            <p className="text-muted-foreground text-sm mb-4">
+              Assign your enriched assignments to specific time blocks. The schedule template provides the structure.
+            </p>
+            
+            <div className="bg-muted/50 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold mb-2">Schedule Template Structure</h3>
+              <p className="text-sm text-muted-foreground">
+                Each student has a weekly template with fixed blocks (Co-op, Bible, Lunch) and open assignment blocks. 
+                During weekly setup, you assign specific assignments to the open blocks.
+              </p>
+            </div>
+
+            {/* Simple Assignment Scheduler */}
+            <div className="space-y-6">
+              {/* Week Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                {getAssignmentsByDay().map(({ date, assignments: dayAssignments }) => (
+                  <Card key={date.toISOString()}>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {format(date, 'EEEE')}
+                        <div className="text-sm font-normal text-muted-foreground">
+                          {format(date, 'MMM d')}
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {dayAssignments.map(assignment => (
+                        <div key={assignment.id} className="p-2 bg-muted rounded text-xs">
+                          <div className="font-medium">{assignment.title}</div>
+                          <div className="text-muted-foreground">{assignment.subject}</div>
+                          {assignment.scheduled_date && (
+                            <div className="text-muted-foreground">Block {assignment.scheduled_date}</div>
+                          )}
+                        </div>
+                      ))}
+                      {dayAssignments.length === 0 && (
+                        <div className="text-center text-muted-foreground text-sm py-4">
+                          No assignments scheduled
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>

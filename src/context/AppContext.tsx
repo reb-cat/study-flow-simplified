@@ -24,6 +24,9 @@ interface AppContextType {
   // Schedule
   scheduleTemplate: ScheduleTemplate[];
   getScheduleForStudent: (studentName: string, weekday: number) => ScheduleTemplate[];
+  getScheduleTemplate: (studentName: string, weekday: number) => ScheduleTemplate[];
+  getOpenBlocks: (studentName: string, weekday: number) => ScheduleTemplate[];
+  scheduleAssignment: (assignmentId: string, date: string, blockNumber: number) => void;
   
   // Timer management
   activeTimer: ActiveTimer | null;
@@ -233,6 +236,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return scheduleTemplate.filter(s => s.studentName === studentName && s.weekday === weekday);
   };
 
+  const getScheduleTemplate = (studentName: string, weekday: number) => {
+    return scheduleTemplate
+      .filter(s => s.studentName === studentName && s.weekday === weekday)
+      .sort((a, b) => a.blockNumber - b.blockNumber);
+  };
+
+  const getOpenBlocks = (studentName: string, weekday: number) => {
+    return scheduleTemplate
+      .filter(s => s.studentName === studentName && s.weekday === weekday && s.blockType === 'assignment')
+      .sort((a, b) => a.blockNumber - b.blockNumber);
+  };
+
+  const scheduleAssignment = (assignmentId: string, date: string, blockNumber: number) => {
+    updateAssignment(assignmentId, {
+      scheduledDate: date,
+      scheduledBlock: blockNumber
+    });
+  };
+
   const startTimer = (assignmentId: string, profileId: string) => {
     // Stop any existing timer for this profile
     if (activeTimer && activeTimer.profileId === profileId) {
@@ -319,6 +341,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteAssignment,
       scheduleTemplate,
       getScheduleForStudent,
+      getScheduleTemplate,
+      getOpenBlocks,
+      scheduleAssignment,
       activeTimer,
       timerSessions,
       startTimer,
