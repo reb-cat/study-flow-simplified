@@ -203,14 +203,14 @@ export default function WeeklySetup() {
                               Add Practice Activity
                             </Label>
                             <Select
-                              value={assignment.interactive_type || ''}
-                              onValueChange={(value) => updateAssignment(assignment.id, 'interactive_type', value)}
+                              value={assignment.interactive_type || 'none'}
+                              onValueChange={(value) => updateAssignment(assignment.id, 'interactive_type', value === 'none' ? '' : value)}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select activity type" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">None</SelectItem>
+                                <SelectItem value="none">None</SelectItem>
                                 <SelectItem value="vocabulary">Vocabulary Cards</SelectItem>
                                 <SelectItem value="grammar">Grammar Check</SelectItem>
                                 <SelectItem value="comprehension">Reading Questions</SelectItem>
