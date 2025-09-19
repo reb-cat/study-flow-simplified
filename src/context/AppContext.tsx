@@ -6,6 +6,7 @@ interface AppContextType {
   // Auth state
   currentUser: AppUser | null;
   isDemo: boolean;
+  isLoading: boolean; // Add loading state
   login: (username: string, password?: string) => Promise<boolean>;
   logout: () => void;
   
@@ -51,6 +52,7 @@ export const useApp = () => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isDemo, setIsDemo] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -58,12 +60,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [timerSessions, setTimerSessions] = useState<TimerSession[]>([]);
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
 
+  // Initialize demo data function
+  const initializeDemoData = () => {
+    console.log('Initializing demo data...');
+    const demoData = generateDemoData();
+    setProfiles(demoData.profiles);
+    setAssignments(demoData.assignments);
+    setScheduleTemplate(demoData.scheduleTemplate);
+    setTimerSessions(demoData.timerSessions);
+    setIsDemo(true);
+    console.log('Demo data initialized:', demoData.profiles.length, 'profiles');
+  };
+
   // Load data on mount
   useEffect(() => {
+    console.log('AppProvider mounting, loading saved data...');
     const savedData = localStorage.getItem('mission-hub-data');
     if (savedData) {
       try {
         const data = JSON.parse(savedData);
+        console.log('Loaded saved data:', data);
         setProfiles(data.profiles || []);
         setAssignments(data.assignments || []);
         setScheduleTemplate(data.scheduleTemplate || []);
@@ -72,13 +88,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedProfile(data.selectedProfile || null);
         setActiveTimer(data.activeTimer || null);
         setIsDemo(data.isDemo || false);
+        console.log('Restored currentUser:', data.currentUser);
       } catch (error) {
         console.error('Failed to load saved data:', error);
         initializeDemoData();
       }
     } else {
+      console.log('No saved data found, initializing demo data');
       initializeDemoData();
     }
+    setIsLoading(false); // Set loading to false after data is loaded
   }, []);
 
   // Save data to localStorage whenever state changes
@@ -122,16 +141,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return () => clearInterval(interval);
   }, [activeTimer, assignments]);
-
-  const initializeDemoData = () => {
-    console.log('Initializing demo data...'); // Debug
-    const demoData = generateDemoData();
-    setProfiles(demoData.profiles);
-    setAssignments(demoData.assignments);
-    setScheduleTemplate(demoData.scheduleTemplate);
-    setTimerSessions(demoData.timerSessions);
-    console.log('Demo data initialized:', demoData.profiles.length, 'profiles'); // Debug
-  };
 
   const login = async (username: string, password?: string): Promise<boolean> => {
     console.log('Login attempt:', username, 'Available profiles:', profiles.length); // Debug
@@ -329,6 +338,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       currentUser,
       isDemo,
+      isLoading, // Add the missing isLoading property
       login,
       logout,
       profiles,
