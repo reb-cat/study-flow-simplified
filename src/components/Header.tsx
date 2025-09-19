@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Timer, LogOut, Settings, Calendar, Target } from 'lucide-react';
+import { Timer, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Header = () => {
@@ -43,28 +43,6 @@ export const Header = () => {
 
         {/* Right: Controls */}
         <div className="flex items-center gap-4">
-          {/* Navigation */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/hub')}
-              className="gap-2"
-            >
-              <Target className="w-4 h-4" />
-              Mission Hub
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/schedule')}
-              className="gap-2"
-            >
-              <Calendar className="w-4 h-4" />
-              Schedule
-            </Button>
-          </div>
-
           {/* Active Timer Indicator */}
           {activeTimer && (
             <Button
@@ -79,38 +57,26 @@ export const Header = () => {
             </Button>
           )}
 
-          {/* Student Switcher & Admin Controls */}
+          {/* Student Switcher (Admin only) */}
           {currentUser.role === 'admin' && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/admin/weekly-setup')}
-                className="gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                Weekly Setup
-              </Button>
-              
-              <Select
-                value={selectedProfile?.id || ''}
-                onValueChange={(value) => {
-                  const profile = profiles.find(p => p.id === value);
-                  if (profile) setSelectedProfile(profile);
-                }}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Select student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {studentProfiles.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id}>
-                      {profile.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
+            <Select
+              value={selectedProfile?.id || ''}
+              onValueChange={(value) => {
+                const profile = profiles.find(p => p.id === value);
+                if (profile) setSelectedProfile(profile);
+              }}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Select student" />
+              </SelectTrigger>
+              <SelectContent>
+                {studentProfiles.map((profile) => (
+                  <SelectItem key={profile.id} value={profile.id}>
+                    {profile.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
           {/* Role Badge */}

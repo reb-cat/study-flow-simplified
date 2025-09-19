@@ -5,10 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ChevronRight, Play, Pause, Square, ExternalLink } from 'lucide-react';
 import { Assignment, ScheduleTemplate } from '@/types';
-import { format, addDays } from 'date-fns';
 
 const MissionHub = () => {
   const { 
@@ -22,86 +20,26 @@ const MissionHub = () => {
     activeTimer
   } = useApp();
 
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+
   if (!selectedProfile) {
     return <div>Loading...</div>;
   }
 
-  // Work-ahead filtering logic
-  const getRelevantAssignments = (assignments: Assignment[], currentDate: Date) => {
-    const today = new Date(currentDate);
-    today.setHours(0, 0, 0, 0);
-    
-    // Work-ahead window: Today + 5 school days
-    const workAheadDays = 5;
-    const workAheadDate = new Date(today);
-    
-    // Add 5 school days (skip weekends)
-    let daysAdded = 0;
-    while (daysAdded < workAheadDays) {
-      workAheadDate.setDate(workAheadDate.getDate() + 1);
-      const dayOfWeek = workAheadDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip Sunday(0) and Saturday(6)
-        daysAdded++;
-      }
-    }
-    
-    return assignments.filter(assignment => {
-      // Hide completed
-      if (assignment.completed) return false;
-      
-      // No due date = hide
-      if (!assignment.dueDate) return false;
-      
-      const dueDate = new Date(assignment.dueDate);
-      
-      // Show if due within the work-ahead window
-      return dueDate <= workAheadDate;
-    });
+  // Get Monday of current week
+  const getMonday = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    return new Date(d.setDate(diff));
   };
 
-  // Categorize by urgency
-  const categorizeByUrgency = (filteredAssignments: Assignment[], currentDate: Date) => {
-    const today = new Date(currentDate);
-    today.setHours(0, 0, 0, 0);
-    
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    
-    const threeDaysOut = new Date(today);
-    threeDaysOut.setDate(today.getDate() + 3);
-    
-    return {
-      overdue: filteredAssignments.filter(a => 
-        new Date(a.dueDate!) < today
-      ),
-      urgent: filteredAssignments.filter(a => {
-        const due = new Date(a.dueDate!);
-        return due >= today && due <= tomorrow;
-      }),
-      thisWeek: filteredAssignments.filter(a => {
-        const due = new Date(a.dueDate!);
-        return due > tomorrow && due <= threeDaysOut;
-      }),
-      upcoming: filteredAssignments.filter(a => {
-        const due = new Date(a.dueDate!);
-        return due > threeDaysOut;
-      })
-    };
-  };
-
-  const getDaysUntilDue = (dueDate: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return `${Math.abs(diffDays)} days overdue`;
-    if (diffDays === 0) return 'Due today';
-    if (diffDays === 1) return 'Due tomorrow';
-    return `Due in ${diffDays} days`;
-  };
+  const monday = getMonday(currentWeek);
+  const weekDays = Array.from({ length: 5 }, (_, i) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
+    return day;
+  });
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -127,23 +65,15 @@ const MissionHub = () => {
   };
 
   const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
-  const currentDate = new Date();
-  const relevantAssignments = getRelevantAssignments(profileAssignments, currentDate);
-  const categorizedAssignments = categorizeByUrgency(relevantAssignments, currentDate);
 
-  // Calculate work-ahead date for display
-  const getWorkAheadDate = () => {
-    const today = new Date();
-    const workAheadDate = new Date(today);
-    let daysAdded = 0;
-    while (daysAdded < 5) {
-      workAheadDate.setDate(workAheadDate.getDate() + 1);
-      const dayOfWeek = workAheadDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        daysAdded++;
-      }
-    }
-    return workAheadDate;
+  const getAssignmentsForDay = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return profileAssignments.filter(a => a.scheduledDate === dateStr);
+  };
+
+  const getScheduleForDay = (date: Date) => {
+    const weekday = date.getDay() === 0 ? 7 : date.getDay(); // Convert Sunday=0 to 7, Monday=1
+    return getScheduleForStudent(selectedProfile.displayName, weekday);
   };
 
   const handleToggleComplete = (assignment: Assignment) => {
@@ -162,173 +92,161 @@ const MissionHub = () => {
     return activeTimer?.assignmentId === assignmentId;
   };
 
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newWeek = new Date(currentWeek);
+    newWeek.setDate(currentWeek.getDate() + (direction === 'prev' ? -7 : 7));
+    setCurrentWeek(newWeek);
+  };
+
+  const getWeekRange = () => {
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="p-6 max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Mission Hub</h1>
-          <p className="text-muted-foreground">Work-ahead assignments for {selectedProfile.displayName}</p>
+      <main className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Week Navigation */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">StudyFlow</h1>
+            <p className="text-muted-foreground">Week of {getWeekRange()}</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+              <ChevronLeft className="w-4 h-4" />
+              Previous Week
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+              Next Week
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Work-ahead messaging */}
-        <Alert>
-          <AlertDescription>
-            📚 Showing work due through {format(getWorkAheadDate(), 'EEEE, MMM d')}
-            <br />
-            Monday assignments should be done by Friday!
-          </AlertDescription>
-        </Alert>
+        {/* Weekly Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {weekDays.map((day, dayIndex) => {
+            const dayAssignments = getAssignmentsForDay(day);
+            const daySchedule = getScheduleForDay(day);
+            
+            return (
+              <Card key={dayIndex} className="card-elevated h-fit">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold">
+                    {formatDate(day)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Schedule Blocks */}
+                  {daySchedule.map((block) => (
+                    <div key={block.id} className="space-y-2">
+                      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+                        Block {block.blockNumber}: {block.startTime}–{block.endTime} • {block.subject}
+                      </div>
+                      
+                      {/* Assignments for this block */}
+                      {dayAssignments
+                        .filter(a => a.scheduledBlock === block.blockNumber)
+                        .map((assignment) => (
+                          <AssignmentCard
+                            key={assignment.id}
+                            assignment={assignment}
+                            onToggleComplete={handleToggleComplete}
+                            onStartTimer={handleStartTimer}
+                            isTimerActive={isTimerActive(assignment.id)}
+                            activeTimer={activeTimer}
+                            formatTime={formatTime}
+                            formatTimerTime={formatTimerTime}
+                          />
+                        ))}
+                    </div>
+                  ))}
 
-        {/* No assignments message */}
-        {relevantAssignments.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">🎉 No assignments due in the next 5 school days!</p>
-            </CardContent>
-          </Card>
-        )}
+                  {/* Unscheduled assignments for this day */}
+                  {dayAssignments
+                    .filter(a => !a.scheduledBlock)
+                    .map((assignment) => (
+                      <div key={assignment.id} className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">
+                          Unscheduled
+                        </div>
+                        <AssignmentCard
+                          assignment={assignment}
+                          onToggleComplete={handleToggleComplete}
+                          onStartTimer={handleStartTimer}
+                          isTimerActive={isTimerActive(assignment.id)}
+                          activeTimer={activeTimer}
+                          formatTime={formatTime}
+                          formatTimerTime={formatTimerTime}
+                        />
+                      </div>
+                    ))}
 
-        {/* Overdue Section */}
-        {categorizedAssignments.overdue.length > 0 && (
-          <UrgencySection
-            title="🔴 OVERDUE - Do First!"
-            urgency="critical"
-            assignments={categorizedAssignments.overdue}
-            onToggleComplete={handleToggleComplete}
-            onStartTimer={handleStartTimer}
-            isTimerActive={isTimerActive}
-            activeTimer={activeTimer}
-            formatTime={formatTime}
-            formatTimerTime={formatTimerTime}
-            getDaysUntilDue={getDaysUntilDue}
-          />
-        )}
+                  {/* Empty state */}
+                  {dayAssignments.length === 0 && (
+                    <p className="text-center text-muted-foreground text-sm py-8">
+                      No assignments scheduled
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
-        {/* Urgent Section */}
-        {categorizedAssignments.urgent.length > 0 && (
-          <UrgencySection
-            title="🟡 Due Today/Tomorrow - Priority"
-            urgency="high"
-            assignments={categorizedAssignments.urgent}
-            onToggleComplete={handleToggleComplete}
-            onStartTimer={handleStartTimer}
-            isTimerActive={isTimerActive}
-            activeTimer={activeTimer}
-            formatTime={formatTime}
-            formatTimerTime={formatTimerTime}
-            getDaysUntilDue={getDaysUntilDue}
-          />
-        )}
-
-        {/* This Week Section */}
-        {categorizedAssignments.thisWeek.length > 0 && (
-          <UrgencySection
-            title="🟢 Due in 2-3 Days - Schedule These"
-            urgency="medium"
-            assignments={categorizedAssignments.thisWeek}
-            onToggleComplete={handleToggleComplete}
-            onStartTimer={handleStartTimer}
-            isTimerActive={isTimerActive}
-            activeTimer={activeTimer}
-            formatTime={formatTime}
-            formatTimerTime={formatTimerTime}
-            getDaysUntilDue={getDaysUntilDue}
-            showDaysUntilDue={true}
-          />
-        )}
-
-        {/* Upcoming Section */}
-        {categorizedAssignments.upcoming.length > 0 && (
-          <UrgencySection
-            title="🔵 Due in 4-5 Days - Start Planning"
-            urgency="low"
-            assignments={categorizedAssignments.upcoming}
-            onToggleComplete={handleToggleComplete}
-            onStartTimer={handleStartTimer}
-            isTimerActive={isTimerActive}
-            activeTimer={activeTimer}
-            formatTime={formatTime}
-            formatTimerTime={formatTimerTime}
-            getDaysUntilDue={getDaysUntilDue}
-            showDaysUntilDue={true}
-            note="Remember: If due Monday, finish by Friday!"
-          />
-        )}
+        {/* Weekly Summary */}
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle>Week Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {profileAssignments.filter(a => {
+                    if (!a.scheduledDate) return false;
+                    const scheduled = new Date(a.scheduledDate);
+                    return weekDays.some(day => 
+                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
+                    );
+                  }).filter(a => a.completed).length}
+                </div>
+                <p className="text-sm text-muted-foreground">Completed</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-timer">
+                  {profileAssignments.filter(a => {
+                    if (!a.scheduledDate) return false;
+                    const scheduled = new Date(a.scheduledDate);
+                    return weekDays.some(day => 
+                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
+                    );
+                  }).length}
+                </div>
+                <p className="text-sm text-muted-foreground">Total Assignments</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-success">
+                  {formatTime(profileAssignments.filter(a => {
+                    if (!a.scheduledDate) return false;
+                    const scheduled = new Date(a.scheduledDate);
+                    return weekDays.some(day => 
+                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
+                    );
+                  }).reduce((total, a) => total + a.timeSpent, 0))}
+                </div>
+                <p className="text-sm text-muted-foreground">Time Spent</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
-  );
-};
-
-interface UrgencySectionProps {
-  title: string;
-  urgency: 'critical' | 'high' | 'medium' | 'low';
-  assignments: Assignment[];
-  onToggleComplete: (assignment: Assignment) => void;
-  onStartTimer: (assignmentId: string) => void;
-  isTimerActive: (assignmentId: string) => boolean;
-  activeTimer: any;
-  formatTime: (minutes: number) => string;
-  formatTimerTime: (seconds: number) => string;
-  getDaysUntilDue: (dueDate: string) => string;
-  showDaysUntilDue?: boolean;
-  note?: string;
-}
-
-const UrgencySection: React.FC<UrgencySectionProps> = ({
-  title,
-  urgency,
-  assignments,
-  onToggleComplete,
-  onStartTimer,
-  isTimerActive,
-  activeTimer,
-  formatTime,
-  formatTimerTime,
-  getDaysUntilDue,
-  showDaysUntilDue = false,
-  note
-}) => {
-  const getBorderColor = () => {
-    switch (urgency) {
-      case 'critical': return 'border-red-500';
-      case 'high': return 'border-yellow-500';
-      case 'medium': return 'border-green-500';
-      case 'low': return 'border-blue-500';
-      default: return 'border-border';
-    }
-  };
-
-  return (
-    <Card className={`${getBorderColor()} border-l-4`}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          {title}
-          {note && <span className="text-sm font-normal text-muted-foreground">{note}</span>}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {assignments.map(assignment => (
-            <AssignmentCard
-              key={assignment.id}
-              assignment={assignment}
-              onToggleComplete={onToggleComplete}
-              onStartTimer={onStartTimer}
-              isTimerActive={isTimerActive(assignment.id)}
-              activeTimer={activeTimer}
-              formatTime={formatTime}
-              formatTimerTime={formatTimerTime}
-              getDaysUntilDue={getDaysUntilDue}
-              showDaysUntilDue={showDaysUntilDue}
-            />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 
@@ -340,8 +258,6 @@ interface AssignmentCardProps {
   activeTimer: any;
   formatTime: (minutes: number) => string;
   formatTimerTime: (seconds: number) => string;
-  getDaysUntilDue: (dueDate: string) => string;
-  showDaysUntilDue?: boolean;
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
@@ -351,9 +267,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   isTimerActive,
   activeTimer,
   formatTime,
-  formatTimerTime,
-  getDaysUntilDue,
-  showDaysUntilDue = false
+  formatTimerTime
 }) => {
   const getStatusBadge = () => {
     if (assignment.completed) {
@@ -378,7 +292,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             <p className="text-xs text-muted-foreground">{assignment.subject}</p>
             {assignment.dueDate && (
               <p className="text-xs text-muted-foreground">
-                {showDaysUntilDue ? getDaysUntilDue(assignment.dueDate) : `Due: ${new Date(assignment.dueDate).toLocaleDateString()}`}
+                Due: {new Date(assignment.dueDate).toLocaleDateString()}
               </p>
             )}
           </div>

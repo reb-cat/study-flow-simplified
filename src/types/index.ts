@@ -18,12 +18,6 @@ export interface Assignment {
   canvasId?: string;
   canvasUrl?: string;
   createdAt: string;
-  // Enrichment fields
-  speechifyUrl?: string;
-  worksheetQuestions?: any;
-  interactiveType?: 'vocabulary' | 'grammar' | 'comprehension' | 'timeline';
-  parentNotes?: string;
-  requiresPrinting?: boolean;
 }
 
 export interface ScheduleTemplate {

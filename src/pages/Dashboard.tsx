@@ -164,8 +164,8 @@ const Dashboard = () => {
                   {/* Schedule Blocks */}
                   {daySchedule.map((block) => (
                     <div key={block.id} className="space-y-2">
-                      <div className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
-                        {block.startTime}–{block.endTime} • {block.subject}
+                      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+                        Block {block.blockNumber}: {block.startTime}–{block.endTime} • {block.subject}
                       </div>
                       
                       {/* Assignments for this block */}
