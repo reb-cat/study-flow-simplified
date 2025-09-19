@@ -18,7 +18,7 @@ export interface ScheduleBlock {
 }
 
 export const useDaySchedule = (studentName: string, date: Date) => {
-  const { profiles } = useApp();
+  const { profiles, isDemo, assignments: localAssignments, scheduleTemplate: localScheduleTemplate } = useApp();
 
   // Get weekday name (Monday, Tuesday, etc.)
   const weekdayName = format(date, 'EEEE');
@@ -37,10 +37,42 @@ export const useDaySchedule = (studentName: string, date: Date) => {
   console.log('Student profile:', studentProfile);
   console.log('User ID for assignments:', userId);
 
-  // Fetch schedule template from Supabase
+  // Fetch schedule template - use local state in demo mode, Supabase otherwise  
   const { data: scheduleTemplate = [], isLoading: templateLoading, error: templateError } = useQuery({
-    queryKey: ['schedule-template', studentName, weekdayName],
+    queryKey: ['schedule-template', studentName, weekdayName, isDemo],
     queryFn: async () => {
+      if (isDemo) {
+        // Use local demo data
+        console.log('🔍 Using demo schedule template for:', studentName, weekdayName);
+        const weekdayNumber = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].indexOf(weekdayName) + 1;
+        const demoTemplate = localScheduleTemplate.filter(
+          s => s.studentName === studentName && s.weekday === weekdayNumber
+        );
+        
+        // Sort by start time to ensure chronological order
+        const sortedData = demoTemplate.sort((a, b) => {
+          const timeA = a.startTime.replace(':', '');
+          const timeB = b.startTime.replace(':', '');
+          return parseInt(timeA) - parseInt(timeB);
+        });
+
+        // Convert to database format
+        const formatted = sortedData.map(block => ({
+          id: block.id,
+          student_name: block.studentName,
+          weekday: weekdayName,
+          block_number: block.blockNumber,
+          start_time: block.startTime,
+          end_time: block.endTime,
+          subject: block.subject,
+          block_type: block.blockType,
+          block_name: null
+        }));
+
+        console.log('✅ Demo schedule template data (sorted by time):', formatted);
+        return formatted;
+      }
+
       console.log('🔍 Fetching schedule for:', studentName, weekdayName);
       const { data, error } = await supabase
         .from('schedule_template')
@@ -62,13 +94,41 @@ export const useDaySchedule = (studentName: string, date: Date) => {
 
       console.log('✅ Schedule template data (sorted by time):', sortedData);
       return sortedData;
-    }
+    },
+    enabled: isDemo || !!studentName // Always enabled in demo mode or when we have a student name
   });
 
-  // Fetch assignments from Supabase for this student and date
+  // Fetch assignments - use local state in demo mode, Supabase otherwise
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useQuery({
-    queryKey: ['assignments', userId, dateStr],
+    queryKey: ['assignments', userId, dateStr, isDemo],
     queryFn: async () => {
+      if (isDemo) {
+        // Use local demo data
+        console.log('🔍 Using demo assignments for user:', userId, 'date:', dateStr);
+        const studentProfile = profiles.find(p => p.displayName === studentName);
+        const demoAssignments = localAssignments.filter(
+          a => a.profileId === studentProfile?.id && a.scheduledDate === dateStr
+        );
+        console.log('✅ Found demo assignments:', demoAssignments);
+        return demoAssignments.map(a => ({
+          ...a,
+          user_id: userId,
+          scheduled_date: a.scheduledDate,
+          scheduled_block: a.scheduledBlock,
+          completion_status: a.completed ? 'completed' : 'pending',
+          due_date: a.dueDate,
+          created_at: a.createdAt,
+          canvas_id: a.canvasId ? parseInt(a.canvasId) : null,
+          canvas_url: a.canvasUrl,
+          speechify_url: a.speechifyUrl,
+          worksheet_questions: a.worksheetQuestions,
+          interactive_type: a.interactiveType,
+          parent_notes: a.parentNotes,
+          requires_printing: a.requiresPrinting,
+          time_spent: a.timeSpent
+        }));
+      }
+
       if (!userId) {
         console.log('❌ No userId, cannot fetch assignments');
         return [];
@@ -89,7 +149,7 @@ export const useDaySchedule = (studentName: string, date: Date) => {
       console.log('✅ Found assignments:', data);
       return data || [];
     },
-    enabled: !!userId // Only run query if we have a userId
+    enabled: !!userId || isDemo // Run if we have userId or in demo mode
   });
 
   return useMemo(() => {
