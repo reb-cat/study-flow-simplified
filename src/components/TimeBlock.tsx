@@ -57,7 +57,7 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
         {/* Time Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="text-xs font-medium text-muted-foreground">
-            Block {block.blockNumber}: {block.startTime} - {block.endTime}
+            {block.startTime} - {block.endTime}
           </div>
           {getStatusBadge()}
         </div>
