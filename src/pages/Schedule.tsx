@@ -55,7 +55,7 @@ export default function Schedule() {
         {/* Week Navigation */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Schedule Spine</h1>
+            <h1 className="text-3xl font-bold text-foreground">Schedule</h1>
             <p className="text-muted-foreground">
               {selectedProfile.displayName} • Week of {getWeekRange()}
             </p>
