@@ -17,7 +17,15 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser } = useApp();
-  return currentUser ? <>{children}</> : <Navigate to="/" />;
+  
+  console.log('ProtectedRoute check - currentUser:', currentUser);
+  
+  if (!currentUser) {
+    console.log('No currentUser - redirecting to login');
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
 };
 
 const App = () => (

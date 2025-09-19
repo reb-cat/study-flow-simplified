@@ -7,7 +7,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek } from 'date-fns';
 
 export default function Schedule() {
-  const { selectedProfile } = useApp();
+  const { selectedProfile, currentUser } = useApp();
+  console.log('Schedule page - currentUser:', currentUser);
+  console.log('Schedule page - selectedProfile:', selectedProfile);
+  
   const [currentWeek, setCurrentWeek] = useState(() => {
     const now = new Date();
     return startOfWeek(now, { weekStartsOn: 1 }); // Start week on Monday
