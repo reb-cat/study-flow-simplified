@@ -37,16 +37,22 @@ export const useDaySchedule = (studentName: string, date: Date) => {
         .from('schedule_template')
         .select('*')
         .eq('student_name', studentName)
-        .eq('weekday', weekdayName)
-        .order('block_number');
+        .eq('weekday', weekdayName);
 
       if (error) {
         console.error('❌ Error fetching schedule template:', error);
         return [];
       }
 
-      console.log('✅ Schedule template data:', data);
-      return data || [];
+      // Sort by start time to ensure chronological order
+      const sortedData = data?.sort((a, b) => {
+        const timeA = a.start_time.replace(':', '');
+        const timeB = b.start_time.replace(':', '');
+        return parseInt(timeA) - parseInt(timeB);
+      }) || [];
+
+      console.log('✅ Schedule template data (sorted by time):', sortedData);
+      return sortedData;
     }
   });
 
