@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { format } from 'date-fns';
-import { Assignment, ScheduleTemplate } from '@/types';
+import { Assignment } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 export interface ScheduleBlock {
   id: string;
@@ -16,16 +18,33 @@ export interface ScheduleBlock {
 }
 
 export const useDaySchedule = (studentName: string, date: Date) => {
-  const { scheduleTemplate, getAssignmentsForProfile, profiles } = useApp();
+  const { getAssignmentsForProfile, profiles } = useApp();
+
+  // Get weekday name (Monday, Tuesday, etc.)
+  const weekdayName = format(date, 'EEEE');
+
+  // Fetch schedule template from Supabase
+  const { data: scheduleTemplate = [], isLoading } = useQuery({
+    queryKey: ['schedule-template', studentName, weekdayName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schedule_template')
+        .select('*')
+        .eq('student_name', studentName)
+        .eq('weekday', weekdayName)
+        .order('block_number');
+
+      if (error) {
+        console.error('Error fetching schedule template:', error);
+        return [];
+      }
+
+      return data || [];
+    }
+  });
 
   return useMemo(() => {
-    // Get the weekday (1 = Monday, 2 = Tuesday, etc.)
-    const weekday = date.getDay() === 0 ? 7 : date.getDay();
-    
-    // Get the template for this student and day
-    const dayTemplate = scheduleTemplate.filter(
-      t => t.studentName === studentName && t.weekday === weekday
-    ).sort((a, b) => a.blockNumber - b.blockNumber);
+    if (isLoading || !scheduleTemplate) return [];
 
     // Get the student's profile to find their assignments
     const studentProfile = profiles.find(p => p.displayName === studentName);
@@ -39,19 +58,19 @@ export const useDaySchedule = (studentName: string, date: Date) => {
     );
 
     // Merge template with assignments
-    const schedule: ScheduleBlock[] = dayTemplate.map(block => {
-      const isAssignmentBlock = block.blockType === 'assignment';
+    const schedule: ScheduleBlock[] = scheduleTemplate.map(block => {
+      const isAssignmentBlock = block.block_type === 'assignment';
       const assignment = scheduledAssignments.find(
-        a => a.scheduledBlock === block.blockNumber
+        a => a.scheduledBlock === block.block_number
       );
 
       return {
         id: block.id,
-        blockNumber: block.blockNumber,
-        startTime: block.startTime,
-        endTime: block.endTime,
+        blockNumber: block.block_number,
+        startTime: block.start_time,
+        endTime: block.end_time,
         subject: block.subject,
-        blockType: block.blockType as any,
+        blockType: block.block_type as any,
         isFixed: !isAssignmentBlock,
         isOpen: isAssignmentBlock && !assignment,
         assignment: assignment
@@ -59,7 +78,7 @@ export const useDaySchedule = (studentName: string, date: Date) => {
     });
 
     return schedule;
-  }, [studentName, date, scheduleTemplate, getAssignmentsForProfile, profiles]);
+  }, [studentName, date, scheduleTemplate, getAssignmentsForProfile, profiles, isLoading]);
 };
 
 export const useWeekSchedule = (studentName: string, weekStart: Date) => {
