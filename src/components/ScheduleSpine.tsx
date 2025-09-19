@@ -73,9 +73,6 @@ export const ScheduleSpine: React.FC<ScheduleSpineProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>{format(date, 'EEEE, MMM d')}</span>
-          <span className="text-sm font-normal text-muted-foreground">
-            {studentName}
-          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
