@@ -25,46 +25,54 @@ export const generateDemoData = () => {
   const scheduleTemplate: ScheduleTemplate[] = [
     // Khalil's Monday Schedule - Full Spine Example
     { id: 'khalil-mon-1', studentName: 'Khalil', weekday: 1, blockNumber: 1, startTime: '09:00', endTime: '09:20', subject: 'Bible', blockType: 'break' },
-    { id: 'khalil-mon-2', studentName: 'Khalil', weekday: 1, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Math', blockType: 'assignment' },
-    { id: 'khalil-mon-3', studentName: 'Khalil', weekday: 1, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'English', blockType: 'assignment' },
+    { id: 'khalil-mon-2', studentName: 'Khalil', weekday: 1, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-mon-3', studentName: 'Khalil', weekday: 1, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
     { id: 'khalil-mon-4', studentName: 'Khalil', weekday: 1, blockNumber: 4, startTime: '10:20', endTime: '10:30', subject: 'Break', blockType: 'break' },
-    { id: 'khalil-mon-5', studentName: 'Khalil', weekday: 1, blockNumber: 5, startTime: '10:30', endTime: '11:20', subject: 'History', blockType: 'assignment' },
-    { id: 'khalil-mon-6', studentName: 'Khalil', weekday: 1, blockNumber: 6, startTime: '11:20', endTime: '12:20', subject: 'Earth Science', blockType: 'co-op' },
+    { id: 'khalil-mon-5', studentName: 'Khalil', weekday: 1, blockNumber: 5, startTime: '10:30', endTime: '11:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-mon-6', studentName: 'Khalil', weekday: 1, blockNumber: 6, startTime: '11:20', endTime: '12:20', subject: 'Geometry Class', blockType: 'co-op' },
     { id: 'khalil-mon-7', studentName: 'Khalil', weekday: 1, blockNumber: 7, startTime: '12:20', endTime: '13:00', subject: 'Lunch', blockType: 'break' },
+    { id: 'khalil-mon-8', studentName: 'Khalil', weekday: 1, blockNumber: 8, startTime: '13:00', endTime: '14:00', subject: 'Literature Class', blockType: 'co-op' },
     
     // Khalil's Tuesday Schedule
     { id: 'khalil-tue-1', studentName: 'Khalil', weekday: 2, blockNumber: 1, startTime: '09:00', endTime: '09:20', subject: 'Bible', blockType: 'break' },
-    { id: 'khalil-tue-2', studentName: 'Khalil', weekday: 2, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Science', blockType: 'assignment' },
-    { id: 'khalil-tue-3', studentName: 'Khalil', weekday: 2, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Career Prep', blockType: 'assignment' },
-    { id: 'khalil-tue-4', studentName: 'Khalil', weekday: 2, blockNumber: 4, startTime: '10:30', endTime: '11:20', subject: 'Math', blockType: 'assignment' },
-    { id: 'khalil-tue-5', studentName: 'Khalil', weekday: 2, blockNumber: 5, startTime: '11:20', endTime: '12:20', subject: 'Earth Science', blockType: 'co-op' },
+    { id: 'khalil-tue-2', studentName: 'Khalil', weekday: 2, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-tue-3', studentName: 'Khalil', weekday: 2, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-tue-4', studentName: 'Khalil', weekday: 2, blockNumber: 4, startTime: '10:30', endTime: '11:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-tue-5', studentName: 'Khalil', weekday: 2, blockNumber: 5, startTime: '11:20', endTime: '12:20', subject: 'Baking Class', blockType: 'co-op' },
+    { id: 'khalil-tue-6', studentName: 'Khalil', weekday: 2, blockNumber: 6, startTime: '13:00', endTime: '14:00', subject: 'Physics Class', blockType: 'co-op' },
     
     // Khalil's Wednesday Schedule
     { id: 'khalil-wed-1', studentName: 'Khalil', weekday: 3, blockNumber: 1, startTime: '09:00', endTime: '09:20', subject: 'Bible', blockType: 'break' },
-    { id: 'khalil-wed-2', studentName: 'Khalil', weekday: 3, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'English', blockType: 'assignment' },
-    { id: 'khalil-wed-3', studentName: 'Khalil', weekday: 3, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'History', blockType: 'assignment' },
-    { id: 'khalil-wed-4', studentName: 'Khalil', weekday: 3, blockNumber: 4, startTime: '10:30', endTime: '11:20', subject: 'Science', blockType: 'assignment' },
+    { id: 'khalil-wed-2', studentName: 'Khalil', weekday: 3, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-wed-3', studentName: 'Khalil', weekday: 3, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-wed-4', studentName: 'Khalil', weekday: 3, blockNumber: 4, startTime: '10:30', endTime: '11:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-wed-5', studentName: 'Khalil', weekday: 3, blockNumber: 5, startTime: '11:20', endTime: '12:20', subject: 'Art Class', blockType: 'co-op' },
     
     // Khalil's Thursday Schedule
     { id: 'khalil-thu-1', studentName: 'Khalil', weekday: 4, blockNumber: 1, startTime: '09:00', endTime: '09:20', subject: 'Bible', blockType: 'break' },
-    { id: 'khalil-thu-2', studentName: 'Khalil', weekday: 4, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Math', blockType: 'assignment' },
-    { id: 'khalil-thu-3', studentName: 'Khalil', weekday: 4, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Career Prep', blockType: 'assignment' },
-    { id: 'khalil-thu-4', studentName: 'Khalil', weekday: 4, blockNumber: 4, startTime: '11:20', endTime: '12:20', subject: 'Earth Science', blockType: 'co-op' },
+    { id: 'khalil-thu-2', studentName: 'Khalil', weekday: 4, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-thu-3', studentName: 'Khalil', weekday: 4, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-thu-4', studentName: 'Khalil', weekday: 4, blockNumber: 4, startTime: '11:20', endTime: '12:20', subject: 'Chemistry Class', blockType: 'co-op' },
+    { id: 'khalil-thu-5', studentName: 'Khalil', weekday: 4, blockNumber: 5, startTime: '13:00', endTime: '14:00', subject: 'History Class', blockType: 'co-op' },
     
     // Khalil's Friday Schedule
     { id: 'khalil-fri-1', studentName: 'Khalil', weekday: 5, blockNumber: 1, startTime: '09:00', endTime: '09:20', subject: 'Bible', blockType: 'break' },
-    { id: 'khalil-fri-2', studentName: 'Khalil', weekday: 5, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Review', blockType: 'assignment' },
-    { id: 'khalil-fri-3', studentName: 'Khalil', weekday: 5, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Study Hall', blockType: 'assignment' },
+    { id: 'khalil-fri-2', studentName: 'Khalil', weekday: 5, blockNumber: 2, startTime: '09:20', endTime: '09:50', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'khalil-fri-3', studentName: 'Khalil', weekday: 5, blockNumber: 3, startTime: '09:50', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
 
     // Abigail's Schedule (Simpler for demo)
-    { id: 'abi-mon-1', studentName: 'Abigail', weekday: 1, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Math', blockType: 'assignment' },
-    { id: 'abi-mon-2', studentName: 'Abigail', weekday: 1, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'English', blockType: 'assignment' },
-    { id: 'abi-mon-3', studentName: 'Abigail', weekday: 1, blockNumber: 3, startTime: '10:30', endTime: '11:10', subject: 'Science', blockType: 'assignment' },
-    { id: 'abi-tue-1', studentName: 'Abigail', weekday: 2, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'English', blockType: 'assignment' },
-    { id: 'abi-tue-2', studentName: 'Abigail', weekday: 2, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Math', blockType: 'assignment' },
-    { id: 'abi-wed-1', studentName: 'Abigail', weekday: 3, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Science', blockType: 'assignment' },
-    { id: 'abi-thu-1', studentName: 'Abigail', weekday: 4, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Math', blockType: 'assignment' },
-    { id: 'abi-fri-1', studentName: 'Abigail', weekday: 5, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Review', blockType: 'assignment' },
+    { id: 'abi-mon-1', studentName: 'Abigail', weekday: 1, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-mon-2', studentName: 'Abigail', weekday: 1, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-mon-3', studentName: 'Abigail', weekday: 1, blockNumber: 3, startTime: '10:30', endTime: '11:10', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-mon-4', studentName: 'Abigail', weekday: 1, blockNumber: 4, startTime: '11:20', endTime: '12:20', subject: 'Piano Lesson', blockType: 'co-op' },
+    { id: 'abi-tue-1', studentName: 'Abigail', weekday: 2, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-tue-2', studentName: 'Abigail', weekday: 2, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-tue-3', studentName: 'Abigail', weekday: 2, blockNumber: 3, startTime: '10:30', endTime: '11:10', subject: 'Literature Class', blockType: 'co-op' },
+    { id: 'abi-wed-1', studentName: 'Abigail', weekday: 3, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-wed-2', studentName: 'Abigail', weekday: 3, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Math Tutoring', blockType: 'co-op' },
+    { id: 'abi-thu-1', studentName: 'Abigail', weekday: 4, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Open Assignment Block', blockType: 'assignment' },
+    { id: 'abi-thu-2', studentName: 'Abigail', weekday: 4, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Science Lab', blockType: 'co-op' },
+    { id: 'abi-fri-1', studentName: 'Abigail', weekday: 5, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Open Assignment Block', blockType: 'assignment' },
   ];
 
   const assignments: Assignment[] = [

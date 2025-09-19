@@ -120,7 +120,7 @@ export const useDaySchedule = (studentName: string, date: Date) => {
 
     // Merge template with assignments
     const schedule: ScheduleBlock[] = scheduleTemplate.map(block => {
-      const isAssignmentBlock = block.block_type === 'Assignment';
+      const isAssignmentBlock = block.block_type === 'assignment';
       const assignment = assignments.find(
         a => a.scheduled_block === block.block_number
       );
