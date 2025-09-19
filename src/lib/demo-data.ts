@@ -10,7 +10,7 @@ export const generateDemoData = () => {
     },
     {
       id: 'profile-abigail',
-      userId: 'user-abigail',
+      userId: 'abigail-user', // Fixed to match database
       role: 'student',
       displayName: 'Abigail'
     },
