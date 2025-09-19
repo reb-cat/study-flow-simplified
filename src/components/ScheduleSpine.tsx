@@ -70,12 +70,12 @@ export const ScheduleSpine: React.FC<ScheduleSpineProps> = ({
 
   return (
     <Card className="card-elevated">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>{format(date, 'EEEE, MMM d')}</span>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">
+          {format(date, 'EEEE, MMM d')}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {schedule.map((block) => (
           <TimeBlock
             key={block.id}

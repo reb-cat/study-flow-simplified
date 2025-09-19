@@ -53,9 +53,9 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
 
   return (
     <Card className={`${getBlockTypeColor()} transition-colors duration-200`}>
-      <CardContent className="p-3">
+      <CardContent className="p-2">
         {/* Time Header */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-1">
           <div className="text-xs font-medium text-muted-foreground">
             {block.startTime} - {block.endTime}
           </div>
@@ -64,7 +64,7 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
 
         {/* Fixed Block Content */}
         {block.isFixed && (
-          <div className="text-center py-2">
+          <div className="text-center py-1">
             <div className="font-medium text-sm">{block.subject}</div>
             <div className="text-xs text-muted-foreground capitalize">
               {block.blockType}
@@ -74,8 +74,8 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
 
         {/* Assignment Block Content */}
         {!block.isFixed && block.assignment && (
-          <div className="space-y-2">
-            <div className="space-y-1">
+          <div className="space-y-1">
+            <div className="space-y-0.5">
               <h4 className="font-medium text-sm">{block.assignment.title}</h4>
               <p className="text-xs text-muted-foreground">{block.assignment.subject}</p>
               {block.assignment.dueDate && (
@@ -132,11 +132,11 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
 
         {/* Open Block Content */}
         {block.isOpen && (
-          <div className="text-center py-4">
-            <div className="text-sm text-muted-foreground mb-2">
+          <div className="text-center py-2">
+            <div className="text-sm text-muted-foreground mb-1">
               Open Assignment Block
             </div>
-            <div className="text-xs text-muted-foreground mb-2">
+            <div className="text-xs text-muted-foreground mb-1">
               Subject: {block.subject}
             </div>
             {showAddButton && (
@@ -144,7 +144,7 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onAddAssignment?.(block.blockNumber)}
-                className="h-8"
+                className="h-6 px-2 text-xs"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Add Assignment
