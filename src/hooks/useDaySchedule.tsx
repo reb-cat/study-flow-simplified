@@ -23,11 +23,16 @@ export const useDaySchedule = (studentName: string, date: Date) => {
   // Get weekday name (Monday, Tuesday, etc.)
   const weekdayName = format(date, 'EEEE');
 
+  console.log('=== useDaySchedule called ===');
+  console.log('Student:', studentName);
+  console.log('Date:', date);
+  console.log('Weekday:', weekdayName);
+
   // Fetch schedule template from Supabase
   const { data: scheduleTemplate = [], isLoading, error } = useQuery({
     queryKey: ['schedule-template', studentName, weekdayName],
     queryFn: async () => {
-      console.log('Fetching schedule for:', studentName, weekdayName);
+      console.log('🔍 Fetching schedule for:', studentName, weekdayName);
       const { data, error } = await supabase
         .from('schedule_template')
         .select('*')
@@ -36,37 +41,42 @@ export const useDaySchedule = (studentName: string, date: Date) => {
         .order('block_number');
 
       if (error) {
-        console.error('Error fetching schedule template:', error);
+        console.error('❌ Error fetching schedule template:', error);
         return [];
       }
 
-      console.log('Schedule template data:', data);
+      console.log('✅ Schedule template data:', data);
       return data || [];
     }
   });
 
   return useMemo(() => {
+    console.log('=== useMemo processing ===');
+    console.log('isLoading:', isLoading);
+    console.log('error:', error);
+    console.log('scheduleTemplate:', scheduleTemplate);
+
     if (isLoading) {
-      console.log('Schedule loading...');
+      console.log('⏳ Schedule loading...');
       return [];
     }
     
     if (error) {
-      console.error('Schedule query error:', error);
+      console.error('❌ Schedule query error:', error);
       return [];
     }
 
     if (!scheduleTemplate || scheduleTemplate.length === 0) {
-      console.log('No schedule template found for:', studentName, weekdayName);
+      console.log('⚠️ No schedule template found for:', studentName, weekdayName);
       return [];
     }
 
-    console.log('Processing schedule template:', scheduleTemplate);
+    console.log('📋 Processing schedule template:', scheduleTemplate);
 
     // Get the student's profile to find their assignments
     const studentProfile = profiles.find(p => p.displayName === studentName);
     if (!studentProfile) {
-      console.log('No student profile found for:', studentName);
+      console.log('⚠️ No student profile found for:', studentName);
       return [];
     }
 
@@ -77,7 +87,7 @@ export const useDaySchedule = (studentName: string, date: Date) => {
       a => a.scheduledDate === dateStr
     );
 
-    console.log('Scheduled assignments for', dateStr, ':', scheduledAssignments);
+    console.log('📝 Scheduled assignments for', dateStr, ':', scheduledAssignments);
 
     // Merge template with assignments
     const schedule: ScheduleBlock[] = scheduleTemplate.map(block => {
@@ -99,7 +109,7 @@ export const useDaySchedule = (studentName: string, date: Date) => {
       };
     });
 
-    console.log('Final schedule:', schedule);
+    console.log('📅 Final schedule:', schedule);
     return schedule;
   }, [studentName, date, scheduleTemplate, getAssignmentsForProfile, profiles, isLoading, error]);
 };
