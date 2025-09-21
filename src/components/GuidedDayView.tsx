@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CircularTimer } from './CircularTimer';
-import { ChevronLeft, ChevronRight, CheckCircle, Clock, BookOpen, ArrowLeft, AlertTriangle, Target, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Clock, BookOpen, ArrowLeft, AlertTriangle, Target, ExternalLink, ChevronDown, FileText } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { useAssignments } from '@/hooks/useAssignments';
@@ -333,44 +334,61 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               )}
             </div>
 
-            {/* Assignment Details */}
+            {/* Assignment Instructions - Collapsible */}
             {currentBlock.assignment && (
-              <Card className="bg-muted/30 border-none">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-primary" />
-                    <span className="font-medium">Assignment Details</span>
-                  </div>
-                  
-                  {currentBlock.assignment.subject && (
-                    <p className="text-base">
-                      <strong>Subject:</strong> {currentBlock.assignment.subject}
-                    </p>
-                  )}
-                  
-                  {currentBlock.assignment.due_date && (
-                    <p className="text-base">
-                      <strong>Due:</strong> {new Date(currentBlock.assignment.due_date).toLocaleDateString()}
-                    </p>
-                  )}
-
-                  {(currentBlock.assignment as any).instructions && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Instructions:</p>
-                      <p className="text-sm bg-background/50 p-3 rounded border">{(currentBlock.assignment as any).instructions}</p>
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between p-4 h-auto border border-border/50 hover:bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      <span className="font-medium">View Assignment Instructions</span>
                     </div>
-                  )}
+                    <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </Button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="pt-4">
+                  <Card className="bg-muted/30 border-none">
+                    <CardContent className="p-4 space-y-4">
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {currentBlock.assignment.title}
+                        </h3>
+                        
+                        {currentBlock.assignment.subject && (
+                          <p className="text-base">
+                            <strong>Subject:</strong> {currentBlock.assignment.subject}
+                          </p>
+                        )}
+                        
+                        {currentBlock.assignment.due_date && (
+                          <p className="text-base">
+                            <strong>Due:</strong> {new Date(currentBlock.assignment.due_date).toLocaleDateString()}
+                          </p>
+                        )}
 
-                  {currentBlock.assignment.canvas_url && (
-                    <Button variant="outline" size="sm" asChild className="gap-2">
-                      <a href={currentBlock.assignment.canvas_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-3 h-3" />
-                        Open in Canvas
-                      </a>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+                        {(currentBlock.assignment as any).instructions && (
+                          <div className="space-y-2">
+                            <p className="font-medium">Instructions:</p>
+                            <div className="bg-background/50 p-4 rounded-lg border">
+                              <p className="text-sm leading-relaxed">{(currentBlock.assignment as any).instructions}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {currentBlock.assignment.canvas_url && (
+                          <Button size="lg" asChild className="w-full gap-2 bg-primary/90 hover:bg-primary/80">
+                            <a href={currentBlock.assignment.canvas_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-4 h-4" />
+                              Open Assignment in Canvas
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
             {/* Non-Assignment Block Info */}
