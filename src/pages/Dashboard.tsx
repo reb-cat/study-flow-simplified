@@ -31,6 +31,9 @@ const Dashboard = () => {
   const { getCachedScheduleForDay } = useScheduleCache();
   const { assignments } = useAssignments();
   
+  console.log('Dashboard - assignments received:', assignments);
+  console.log('Dashboard - assignments length:', assignments?.length);
+  
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
   const [weekSchedules, setWeekSchedules] = useState<Record<string, SupabaseScheduleBlock[]>>({});

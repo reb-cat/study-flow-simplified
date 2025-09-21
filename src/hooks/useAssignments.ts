@@ -21,13 +21,16 @@ export function useAssignments() {
 
   // Return appropriate result based on demo mode
   if (isDemo) {
+    console.log('Demo mode - raw assignments:', demoResult.assignments);
+    const mappedAssignments = demoResult.assignments.map(a => ({
+      ...a,
+      user_id: a.student_name, // Map for compatibility
+      canvas_url: null,
+      canvas_id: null
+    })) as UnifiedAssignment[];
+    console.log('Demo mode - mapped assignments:', mappedAssignments);
     return {
-      assignments: demoResult.assignments.map(a => ({
-        ...a,
-        user_id: a.student_name, // Map for compatibility
-        canvas_url: null,
-        canvas_id: null
-      })) as UnifiedAssignment[],
+      assignments: mappedAssignments,
       isLoading: demoResult.isLoading,
       error: demoResult.error,
       refetch: demoResult.refetch,
