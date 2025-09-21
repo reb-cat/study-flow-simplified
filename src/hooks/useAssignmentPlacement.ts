@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
-import { SupabaseAssignment } from '@/hooks/useSupabaseAssignments';
+import { UnifiedAssignment } from '@/types/assignment';
 import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra } from '@/lib/family-detection';
 
-interface AssignmentWithFamily extends SupabaseAssignment {
+interface AssignmentWithFamily extends UnifiedAssignment {
   detectedFamily: string;
 }
 
@@ -13,7 +13,7 @@ interface AssignmentWithFamily extends SupabaseAssignment {
  * using Charlotte Mason family patterns
  */
 export function useAssignmentPlacement(
-  assignments: SupabaseAssignment[],
+  assignments: UnifiedAssignment[],
   scheduleBlocks: SupabaseScheduleBlock[],
   studentName: string,
   selectedDate: string

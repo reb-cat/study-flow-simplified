@@ -10,7 +10,7 @@ import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { Assignment } from '@/types';
 import { useSupabaseSchedule, SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
-import { useSupabaseAssignments } from '@/hooks/useSupabaseAssignments';
+import { useAssignments } from '@/hooks/useAssignments';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { DayScheduleCard } from '@/components/DayScheduleCard';
 
@@ -21,7 +21,7 @@ const Dashboard = () => {
   } = useApp();
   
   const { getCachedScheduleForDay } = useScheduleCache();
-  const { assignments, updateAssignment: updateSupabaseAssignment } = useSupabaseAssignments(currentUser?.id);
+  const { assignments, updateAssignment: updateSupabaseAssignment } = useAssignments();
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);

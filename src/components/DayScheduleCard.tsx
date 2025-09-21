@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScheduleBlockDisplay } from '@/components/ScheduleBlockDisplay';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
-import { SupabaseAssignment } from '@/hooks/useSupabaseAssignments';
+import { UnifiedAssignment } from '@/types/assignment';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
 
 interface DayScheduleCardProps {
   day: Date;
   dayIndex: number;
   selectedProfile: any;
-  assignments: SupabaseAssignment[];
+  assignments: UnifiedAssignment[];
   scheduleBlocks: SupabaseScheduleBlock[]; // Pre-fetched schedule blocks
   formatDate: (date: Date) => string;
   handleToggleComplete: (assignment: any) => void;
@@ -110,7 +110,7 @@ export function DayScheduleCard({
 
 // Simplified Assignment Card for Supabase data
 interface AssignmentCardProps {
-  assignment: SupabaseAssignment | any; // Allow flexibility for now
+  assignment: UnifiedAssignment | any; // Allow flexibility for now
   onToggleComplete: (assignment: any) => void;
   onStartTimer: (assignmentId: string) => void;
   isTimerActive: boolean;
