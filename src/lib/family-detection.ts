@@ -68,9 +68,9 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
 /**
  * Detect the family classification of an assignment
  */
-export function detectFamily(assignment: { title?: string; subject?: string; canvasUrl?: string }): AssignmentFamily {
+export function detectFamily(assignment: { title?: string; subject?: string | null; course_name?: string | null }): AssignmentFamily {
   const title = (assignment.title || '').toLowerCase();
-  const course = (assignment.subject || '').toLowerCase();
+  const course = (assignment.course_name || assignment.subject || '').toLowerCase();
   
   // Keywords override course defaults
   if (title.includes('create') || title.includes('sketch') || title.includes('map') || 

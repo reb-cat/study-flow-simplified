@@ -9,20 +9,18 @@ import { ChevronLeft, ChevronRight, Play, Square, ExternalLink, Focus, Calendar 
 import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { Assignment } from '@/types';
-import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
-import { PopulatedScheduleBlock } from '@/types/schedule';
+import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
+import { useSupabaseAssignments } from '@/hooks/useSupabaseAssignments';
+import { DayScheduleCard } from '@/components/DayScheduleCard';
 
 const Dashboard = () => {
   const { 
     selectedProfile, 
-    getAssignmentsForProfile, 
-    getScheduleForStudent, 
-    updateAssignment,
-    startTimer,
-    pauseTimer,
-    activeTimer,
     currentUser 
   } = useApp();
+  
+  const { getScheduleForDay } = useSupabaseSchedule();
+  const { assignments, updateAssignment: updateSupabaseAssignment } = useSupabaseAssignments(currentUser?.id);
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
@@ -69,49 +67,26 @@ const Dashboard = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
-
-  const getAssignmentsForDay = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return profileAssignments.filter(a => a.scheduledDate === dateStr);
+  // Helper to get day name for database query
+  const getDayName = (date: Date): string => {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return dayNames[date.getDay()];
   };
 
-  const getScheduleForDay = (date: Date) => {
-    const weekday = date.getDay() === 0 ? 7 : date.getDay();
-    return getScheduleForStudent(selectedProfile.displayName, weekday);
+  const handleToggleComplete = async (assignment: any) => {
+    await updateSupabaseAssignment(assignment.id, { 
+      completed_at: assignment.completed_at ? null : new Date().toISOString() 
+    });
   };
 
-  const getPopulatedScheduleForDay = (date: Date): { 
-    scheduleBlocks: any[], 
-    populatedBlocks: PopulatedScheduleBlock[] 
-  } => {
-    const scheduleBlocks = getScheduleForDay(date);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    const { populatedBlocks } = useAssignmentPlacement(
-      profileAssignments,
-      scheduleBlocks,
-      selectedProfile.displayName,
-      dateStr
-    );
-    
-    return { scheduleBlocks, populatedBlocks };
-  };
-
-  const handleToggleComplete = (assignment: Assignment) => {
-    updateAssignment(assignment.id, { completed: !assignment.completed });
-  };
-
+  // Timer functionality simplified for now
   const handleStartTimer = (assignmentId: string) => {
-    if (activeTimer?.assignmentId === assignmentId) {
-      pauseTimer();
-    } else {
-      startTimer(assignmentId, selectedProfile.id);
-    }
+    console.log('Starting timer for assignment:', assignmentId);
+    // TODO: Implement real timer functionality with Supabase
   };
 
   const isTimerActive = (assignmentId: string) => {
-    return activeTimer?.assignmentId === assignmentId;
+    return false; // TODO: Implement real timer state
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -168,96 +143,23 @@ const Dashboard = () => {
 
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {weekDays.map((day, dayIndex) => {
-            const dayAssignments = getAssignmentsForDay(day);
-            const { scheduleBlocks, populatedBlocks } = getPopulatedScheduleForDay(day);
-            
-            return (
-              <Card key={dayIndex} className="card-elevated h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold">
-                    {formatDate(day)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Schedule Blocks */}
-                  {scheduleBlocks.map((block) => {
-                    const populatedBlock = populatedBlocks.find(p => p.id === block.id);
-                    const blockType = (block.blockType || '').toLowerCase();
-                    
-                    return (
-                      <div key={block.id} className="space-y-2">
-                        <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded flex items-center justify-between">
-                          <span>Block {block.blockNumber}: {block.startTime}–{block.endTime} • {block.subject}</span>
-                          {populatedBlock?.assignedFamily && (blockType === 'assignment' || blockType === 'study hall') && (
-                            <Badge variant="outline" className="text-xs">
-                              {populatedBlock.assignedFamily}
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        {/* Auto-populated assignments */}
-                        {populatedBlock?.assignment && (
-                          <AssignmentCard
-                            assignment={populatedBlock.assignment}
-                            onToggleComplete={handleToggleComplete}
-                            onStartTimer={handleStartTimer}
-                            isTimerActive={isTimerActive(populatedBlock.assignment.id)}
-                            activeTimer={activeTimer}
-                            formatTime={formatTime}
-                            formatTimerTime={formatTimerTime}
-                          />
-                        )}
-                        
-                        {/* Manually scheduled assignments for this block */}
-                        {dayAssignments
-                          .filter(a => a.scheduledBlock === block.blockNumber && !populatedBlock?.assignment)
-                          .map((assignment) => (
-                            <AssignmentCard
-                              key={assignment.id}
-                              assignment={assignment}
-                              onToggleComplete={handleToggleComplete}
-                              onStartTimer={handleStartTimer}
-                              isTimerActive={isTimerActive(assignment.id)}
-                              activeTimer={activeTimer}
-                              formatTime={formatTime}
-                              formatTimerTime={formatTimerTime}
-                            />
-                          ))}
-                      </div>
-                    );
-                  })}
-
-                  {/* Unscheduled assignments for this day */}
-                  {dayAssignments
-                    .filter(a => !a.scheduledBlock)
-                    .map((assignment) => (
-                      <div key={assignment.id} className="space-y-2">
-                        <div className="text-xs font-medium text-muted-foreground">
-                          Unscheduled
-                        </div>
-                        <AssignmentCard
-                          assignment={assignment}
-                          onToggleComplete={handleToggleComplete}
-                          onStartTimer={handleStartTimer}
-                          isTimerActive={isTimerActive(assignment.id)}
-                          activeTimer={activeTimer}
-                          formatTime={formatTime}
-                          formatTimerTime={formatTimerTime}
-                        />
-                      </div>
-                    ))}
-
-                  {/* Empty state */}
-                  {dayAssignments.length === 0 && (
-                    <p className="text-center text-muted-foreground text-sm py-8">
-                      No assignments scheduled
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+          {weekDays.map((day, dayIndex) => (
+            <DayScheduleCard 
+              key={dayIndex}
+              day={day}
+              dayIndex={dayIndex}
+              selectedProfile={selectedProfile}
+              assignments={assignments}
+              getScheduleForDay={getScheduleForDay}
+              formatDate={formatDate}
+              handleToggleComplete={handleToggleComplete}
+              handleStartTimer={handleStartTimer}
+              isTimerActive={isTimerActive}
+              formatTime={formatTime}
+              formatTimerTime={formatTimerTime}
+              getDayName={getDayName}
+            />
+          ))}
         </div>
 
         {/* Weekly Summary */}
@@ -269,21 +171,21 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">
-                  {profileAssignments.filter(a => {
-                    if (!a.scheduledDate) return false;
-                    const scheduled = new Date(a.scheduledDate);
+                  {assignments.filter(a => {
+                    if (!a.scheduled_date) return false;
+                    const scheduled = new Date(a.scheduled_date);
                     return weekDays.some(day => 
                       day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
                     );
-                  }).filter(a => a.completed).length}
+                  }).filter(a => a.completed_at).length}
                 </div>
                 <p className="text-sm text-muted-foreground">Completed</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-timer">
-                  {profileAssignments.filter(a => {
-                    if (!a.scheduledDate) return false;
-                    const scheduled = new Date(a.scheduledDate);
+                  {assignments.filter(a => {
+                    if (!a.scheduled_date) return false;
+                    const scheduled = new Date(a.scheduled_date);
                     return weekDays.some(day => 
                       day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
                     );
@@ -293,13 +195,13 @@ const Dashboard = () => {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-success">
-                  {formatTime(profileAssignments.filter(a => {
-                    if (!a.scheduledDate) return false;
-                    const scheduled = new Date(a.scheduledDate);
+                  {formatTime(assignments.filter(a => {
+                    if (!a.scheduled_date) return false;
+                    const scheduled = new Date(a.scheduled_date);
                     return weekDays.some(day => 
                       day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
                     );
-                  }).reduce((total, a) => total + a.timeSpent, 0))}
+                  }).reduce((total, a) => total + (a.time_spent || 0), 0))}
                 </div>
                 <p className="text-sm text-muted-foreground">Time Spent</p>
               </div>
@@ -308,102 +210,6 @@ const Dashboard = () => {
         </Card>
       </main>
     </div>
-  );
-};
-
-interface AssignmentCardProps {
-  assignment: Assignment;
-  onToggleComplete: (assignment: Assignment) => void;
-  onStartTimer: (assignmentId: string) => void;
-  isTimerActive: boolean;
-  activeTimer: any;
-  formatTime: (minutes: number) => string;
-  formatTimerTime: (seconds: number) => string;
-}
-
-const AssignmentCard: React.FC<AssignmentCardProps> = ({
-  assignment,
-  onToggleComplete,
-  onStartTimer,
-  isTimerActive,
-  activeTimer,
-  formatTime,
-  formatTimerTime
-}) => {
-  const getStatusBadge = () => {
-    if (assignment.completed) {
-      return <Badge className="status-done">Done</Badge>;
-    }
-    if (isTimerActive) {
-      return <Badge className="status-timer">Timer Running</Badge>;
-    }
-    return <Badge className="status-todo">To-Do</Badge>;
-  };
-
-  return (
-    <Card className={`p-3 space-y-3 ${
-      assignment.completed ? 'bg-success-light/10 border-success/20' : 
-      isTimerActive ? 'bg-timer-light/10 border-timer/20' : 
-      'bg-card border-border'
-    }`}>
-      <div className="space-y-2">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h4 className="font-medium text-sm">{assignment.title}</h4>
-            <p className="text-xs text-muted-foreground">{assignment.subject}</p>
-            {assignment.dueDate && (
-              <p className="text-xs text-muted-foreground">
-                Due: {new Date(assignment.dueDate).toLocaleDateString()}
-              </p>
-            )}
-          </div>
-          {getStatusBadge()}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={assignment.completed}
-              onCheckedChange={() => onToggleComplete(assignment)}
-            />
-            <span className="text-xs text-muted-foreground">
-              {isTimerActive && activeTimer ? 
-                formatTimerTime(activeTimer.elapsedTime) : 
-                formatTime(assignment.timeSpent)
-              } spent
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              size="sm"
-              variant={isTimerActive ? "destructive" : "outline"}
-              onClick={() => onStartTimer(assignment.id)}
-              className="h-6 px-2"
-            >
-              {isTimerActive ? (
-                <Square className="w-3 h-3" />
-              ) : (
-                <Play className="w-3 h-3" />
-              )}
-            </Button>
-
-            {assignment.canvasUrl && (
-              <Button
-                size="sm"
-                variant="ghost"
-                asChild
-                className="h-6 px-2"
-              >
-                <a href={assignment.canvasUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-    </Card>
   );
 };
 

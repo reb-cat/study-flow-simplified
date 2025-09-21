@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { Assignment } from '@/types';
 import { PopulatedScheduleBlock } from '@/types/schedule';
+import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
+import { SupabaseAssignment } from '@/hooks/useSupabaseAssignments';
 import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra } from '@/lib/family-detection';
 
-interface AssignmentWithFamily extends Assignment {
+interface AssignmentWithFamily extends SupabaseAssignment {
   detectedFamily: string;
 }
 
@@ -12,8 +13,8 @@ interface AssignmentWithFamily extends Assignment {
  * using Charlotte Mason family patterns
  */
 export function useAssignmentPlacement(
-  assignments: Assignment[],
-  scheduleBlocks: any[], // Using any to avoid complex typing issues
+  assignments: SupabaseAssignment[],
+  scheduleBlocks: SupabaseScheduleBlock[],
   studentName: string,
   selectedDate: string
 ): {
@@ -31,13 +32,13 @@ export function useAssignmentPlacement(
 
     // Get unscheduled assignments (no scheduled_date or scheduled_block)
     const unscheduledAssignments = assignmentsWithFamily.filter(a => 
-      !a.scheduledDate && !a.scheduledBlock
+      !a.scheduled_date && !a.scheduled_block
     );
 
     // Get Assignment and Study Hall blocks for processing
     const assignableBlocks = scheduleBlocks.filter(block => {
-      const blockType = (block.blockType || '').toLowerCase();
-      return blockType === 'assignment' || isStudyHallBlock(block.blockType, block.startTime);
+      const blockType = (block.block_type || '').toLowerCase();
+      return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time);
     });
 
     // Create a map to track which assignments have been scheduled
@@ -46,15 +47,16 @@ export function useAssignmentPlacement(
     // Process blocks and populate with assignments
     const populatedBlocks: PopulatedScheduleBlock[] = assignableBlocks.map(block => {
       const dayName = getDayName(selectedDate);
-      const family = getBlockFamily(studentName, dayName, block.blockNumber || 0);
+      const family = getBlockFamily(studentName, dayName, block.block_number || 0);
       
       if (!family) return { ...block, assignment: undefined, assignedFamily: undefined };
 
       // Special case: Khalil's Algebra priority
-      if (shouldPrioritizeAlgebra(studentName, dayName, block.blockNumber || 0)) {
+      if (shouldPrioritizeAlgebra(studentName, dayName, block.block_number || 0)) {
         const algebraAssignment = unscheduledAssignments.find(a => 
           !scheduledAssignments.has(a.id) &&
-          (a.subject || '').toLowerCase().includes('algebra')
+          ((a.subject || '').toLowerCase().includes('algebra') || 
+           (a.course_name || '').toLowerCase().includes('algebra'))
         );
         
         if (algebraAssignment) {
@@ -68,7 +70,7 @@ export function useAssignmentPlacement(
       }
 
       // Special case: Study Hall blocks prefer short tasks
-      if (isStudyHallBlock(block.blockType, block.startTime)) {
+      if (isStudyHallBlock(block.block_type, block.start_time)) {
         const shortTask = unscheduledAssignments.find(a => 
           !scheduledAssignments.has(a.id) &&
           a.detectedFamily === family &&
@@ -93,11 +95,11 @@ export function useAssignmentPlacement(
         )
         .sort((a, b) => {
           // Sort by due date (earliest first)
-          if (a.dueDate && b.dueDate) {
-            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+          if (a.due_date && b.due_date) {
+            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
           }
-          if (a.dueDate) return -1;
-          if (b.dueDate) return 1;
+          if (a.due_date) return -1;
+          if (b.due_date) return 1;
           return 0;
         });
 
