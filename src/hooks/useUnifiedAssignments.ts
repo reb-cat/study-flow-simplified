@@ -20,10 +20,16 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
     setError(null);
 
     try {
-      // EXACT SAME QUERY STRUCTURE for both tables
+      // Different column sets for different tables
+      const baseColumns = 'id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, created_at, updated_at';
+      const productionColumns = `${baseColumns}, canvas_url, canvas_id`;
+      const demoColumns = baseColumns; // demo table doesn't have canvas fields
+      
+      const columns = isDemo ? demoColumns : productionColumns;
+      
       const { data, error: fetchError } = await supabase
         .from(tableName as any)
-        .select('id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, created_at, updated_at, canvas_url, canvas_id')
+        .select(columns)
         .eq('user_id', targetUserId)
         .order('due_date', { ascending: true });
 
