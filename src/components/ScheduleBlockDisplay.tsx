@@ -14,10 +14,7 @@ export function ScheduleBlockDisplay({ block, assignedFamily, children }: Schedu
   return (
     <div className="space-y-2">
       <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded flex items-center justify-between">
-        <div>
-          <span>Block {block.block_number}: {convertTo12Hour(block.start_time)}–{convertTo12Hour(block.end_time)}</span>
-          <span className="ml-2">• {block.subject || block.block_name}</span>
-        </div>
+        <span>{block.subject || block.block_name}</span>
         {assignedFamily && block.block_type === 'Assignment' && (
           <Badge variant="outline" className="text-xs">
             {assignedFamily}
