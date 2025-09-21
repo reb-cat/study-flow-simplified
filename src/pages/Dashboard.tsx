@@ -12,7 +12,7 @@ import { Assignment } from '@/types';
 import { useSupabaseSchedule, SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
-import { DayScheduleCard } from '@/components/DayScheduleCard';
+import { SimpleDayOverview } from '@/components/SimpleDayOverview';
 
 const Dashboard = () => {
   const { 
@@ -183,22 +183,17 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Weekly Grid */}
+        {/* Weekly Overview Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {weekDays.map((day, dayIndex) => (
-            <DayScheduleCard 
+            <SimpleDayOverview
               key={dayIndex}
               day={day}
-              dayIndex={dayIndex}
               selectedProfile={selectedProfile}
               assignments={assignments}
               scheduleBlocks={weekSchedules[day.toISOString().split('T')[0]] || []}
               formatDate={formatDate}
-              handleToggleComplete={handleToggleComplete}
-              handleStartTimer={handleStartTimer}
-              isTimerActive={isTimerActive}
               formatTime={formatTime}
-              formatTimerTime={formatTimerTime}
               getDayName={getDayName}
             />
           ))}
