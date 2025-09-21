@@ -20,10 +20,10 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
     setError(null);
 
     try {
-      // EXACT SAME QUERY STRUCTURE for both tables
+      // EXACT SAME QUERY STRUCTURE for both tables - select common fields
       const { data, error: fetchError } = await supabase
-        .from(tableName)
-        .select('*')
+        .from(tableName as any)
+        .select('id, user_id, title, subject, course_name, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, created_at, updated_at, canvas_url, canvas_id')
         .eq('user_id', targetUserId)
         .order('due_date', { ascending: true });
 
@@ -33,7 +33,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
         return;
       }
 
-      // Transform data to unified format - handle type differences
+      // Transform data to unified format
       const unifiedData: UnifiedAssignment[] = (data || []).map((assignment: any) => ({
         id: assignment.id,
         user_id: assignment.user_id,
@@ -44,7 +44,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
         scheduled_date: assignment.scheduled_date,
         scheduled_block: assignment.scheduled_block,
         completed_at: assignment.completed_at,
-        time_spent: assignment.time_spent,
+        time_spent: assignment.time_spent || 0,
         priority: assignment.priority,
         difficulty: assignment.difficulty,
         created_at: assignment.created_at,
