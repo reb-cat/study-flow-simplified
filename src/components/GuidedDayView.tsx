@@ -382,67 +382,40 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               </Card>
             )}
 
-            {/* Action Buttons - Different for different block types */}
-            {(currentBlock.blockType?.toLowerCase() === 'assignment' || currentBlock.blockType?.toLowerCase() === 'bible' || currentBlock.blockType?.toLowerCase() === 'movement') && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button 
-                    onClick={handleMarkComplete} 
-                    size="lg" 
-                    className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
-                  >
-                    <CheckCircle className="w-6 h-6" />
-                    {currentBlock.blockType?.toLowerCase() === 'assignment' ? 'Done!' : 'Mark Complete'}
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    onClick={handleNeedMoreTime} 
-                    size="lg" 
-                    className="gap-3 border-2 py-4 text-base font-semibold"
-                  >
-                    <Clock className="w-6 h-6" />
-                    More Time
-                  </Button>
-                </div>
+            {/* Action Buttons - Always show all buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button 
+                onClick={handleMarkComplete} 
+                size="lg" 
+                className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
+              >
+                <CheckCircle className="w-6 h-6" />
+                Done!
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleNeedMoreTime} 
+                size="lg" 
+                className="gap-3 border-2 py-4 text-base font-semibold"
+              >
+                <Clock className="w-6 h-6" />
+                More Time
+              </Button>
+            </div>
 
-                {/* Stuck Button - Only for assignments */}
-                {currentBlock.blockType?.toLowerCase() === 'assignment' && (
-                  <div className="flex justify-center">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleStuck} 
-                      size="lg" 
-                      className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[200px]"
-                    >
-                      <AlertTriangle className="w-6 h-6" />
-                      I'm Stuck - Need Help
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Simple Continue for Co-op, Travel, Prep/Load blocks */}
-            {(['co-op', 'travel', 'prep/load', 'lunch'].includes(currentBlock.blockType?.toLowerCase() || '')) && (
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => {
-                    if (currentBlockIndex < totalBlocks - 1) {
-                      setCurrentBlockIndex(prev => prev + 1);
-                      setLocalTimerRunning(false);
-                    } else {
-                      onBackToHub();
-                    }
-                  }}
-                  size="lg" 
-                  className="gap-3 bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold py-4 min-w-[200px]"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                  {currentBlock.blockType?.toLowerCase() === 'co-op' ? 'Attend Class' : 'Continue'}
-                </Button>
-              </div>
-            )}
+            {/* Stuck Button - Always available */}
+            <div className="flex justify-center">
+              <Button 
+                variant="outline" 
+                onClick={handleStuck} 
+                size="lg" 
+                className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[200px]"
+              >
+                <AlertTriangle className="w-6 h-6" />
+                I'm Stuck - Need Help
+              </Button>
+            </div>
 
             {/* Navigation */}
             <div className="flex justify-between pt-6 border-t border-border/50">
