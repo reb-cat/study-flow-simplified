@@ -10,7 +10,16 @@ import { useAssignments } from '@/hooks/useAssignments';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
 import { PopulatedScheduleBlock } from '@/types/schedule';
-import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra, FALLBACKS, requiresSpecialResources, estimateAssignmentMinutes, getStudyHallPriority } from '@/lib/family-detection';
+import { 
+  detectFamily, 
+  getBlockFamily, 
+  isStudyHallBlock, 
+  shouldPrioritizeAlgebra, 
+  FALLBACKS, 
+  requiresSpecialResources, 
+  estimateAssignmentMinutes, 
+  getStudyHallPriority 
+} from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 
 const Dashboard = () => {
