@@ -41,10 +41,13 @@ export function OverviewDayCard({
           
           const assignment = populatedBlock?.assignment || manualAssignment;
           
+          // Pass through fallback for blocks that should have one
+          const blockWithFallback = populatedBlock || block;
+          
           return (
             <OverviewScheduleBlock 
               key={block.id} 
-              block={block}
+              block={blockWithFallback}
               assignment={assignment}
             />
           );

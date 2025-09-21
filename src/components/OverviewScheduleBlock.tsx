@@ -41,7 +41,8 @@ export function OverviewScheduleBlock({ block, assignment }: OverviewScheduleBlo
     if ((block as any).fallback) {
       return 'text-muted-foreground italic';
     }
-    if (!assignment && block.block_type === 'Assignment') {
+    if (!assignment && (block.block_type === 'Assignment' || 
+        (block.subject === 'Study Hall' || block.block_name === 'Study Hall'))) {
       return 'text-muted-foreground/60 italic';
     }
     return 'text-foreground';

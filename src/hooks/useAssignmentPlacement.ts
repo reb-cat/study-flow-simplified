@@ -41,7 +41,8 @@ export function useAssignmentPlacement(
     // Get Assignment and Study Hall blocks for processing
     const assignableBlocks = scheduleBlocks.filter(block => {
       const blockType = (block.block_type || '').toLowerCase();
-      return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name);
+      const isStudyHall = isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name);
+      return blockType === 'assignment' || isStudyHall;
     });
 
     // Track which assignments have been scheduled to prevent duplicates
@@ -50,6 +51,7 @@ export function useAssignmentPlacement(
     // Process blocks and populate with assignments
     const populatedBlocks: PopulatedScheduleBlock[] = [];
     
+    // First, handle all assignable blocks (Assignment and Study Hall blocks)
     for (const block of assignableBlocks) {
       const dayName = getDayName(selectedDate);
       const family = getBlockFamily(studentName, dayName, block.block_number || 0);
@@ -133,6 +135,21 @@ export function useAssignmentPlacement(
         });
       } else {
         populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
+      }
+    }
+
+    // Second pass: Add fallbacks for any remaining Study Hall blocks that weren't processed
+    for (const block of scheduleBlocks) {
+      const alreadyProcessed = populatedBlocks.find(p => p.id === block.id);
+      if (!alreadyProcessed && isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name)) {
+        const dayName = getDayName(selectedDate);
+        const family = getBlockFamily(studentName, dayName, block.block_number || 0);
+        populatedBlocks.push({
+          ...block,
+          assignment: undefined,
+          assignedFamily: family,
+          fallback: STUDY_HALL_FALLBACK
+        });
       }
     }
 
