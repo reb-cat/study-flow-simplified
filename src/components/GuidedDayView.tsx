@@ -405,7 +405,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               <Button 
                 onClick={handleMarkComplete} 
                 size="lg" 
-                className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
+                className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4 min-w-[160px]"
               >
                 <CheckCircle className="w-6 h-6" />
                 Done!
@@ -415,7 +415,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                 variant="outline" 
                 onClick={handleNeedMoreTime} 
                 size="lg" 
-                className="gap-3 border-2 py-4 text-base font-semibold"
+                className="gap-3 border-2 py-4 text-base font-semibold min-w-[160px]"
               >
                 <Clock className="w-6 h-6" />
                 More Time
@@ -428,7 +428,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                 variant="outline" 
                 onClick={handleStuck} 
                 size="lg" 
-                className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[200px]"
+                className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[160px]"
               >
                 <AlertTriangle className="w-6 h-6" />
                 I'm Stuck - Need Help
