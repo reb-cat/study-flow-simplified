@@ -30,8 +30,7 @@ export function useSupabaseSchedule() {
         .from('schedule_template')
         .select('*')
         .eq('student_name', studentName)
-        .eq('weekday', dayName)
-        .order('start_time::time');
+        .eq('weekday', dayName);
         
       setIsLoading(false);
 
@@ -41,7 +40,17 @@ export function useSupabaseSchedule() {
         return [];
       }
       
-      return data || []; // This has the REAL schedule
+      // Sort by time client-side since Supabase REST API doesn't support ::time casting
+      const sortedData = (data || []).sort((a, b) => {
+        // Convert HH:MM to minutes for proper sorting
+        const timeToMinutes = (timeStr: string) => {
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          return hours * 60 + minutes;
+        };
+        return timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
+      });
+      
+      return sortedData;
     } catch (err) {
       setIsLoading(false);
       console.error('Network error fetching schedule:', err);
