@@ -2,68 +2,27 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppProvider, useApp } from "@/context/AppContext";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"; 
-import MissionHub from "./pages/MissionHub";
-import Assignments from "./pages/Assignments";
-import Timer from "./pages/Timer";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import Index from "./pages/Index";
+import Schedule from "./pages/Schedule";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser } = useApp();
-  return currentUser ? <>{children}</> : <Navigate to="/" />;
-};
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/hub"
-              element={
-                <ProtectedRoute>
-                  <MissionHub />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assignments"
-              element={
-                <ProtectedRoute>
-                  <Assignments />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/timer"
-              element={
-                <ProtectedRoute>
-                  <Timer />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/schedule" element={<Schedule />} />
           </Routes>
-        </AppProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

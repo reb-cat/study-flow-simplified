@@ -59,11 +59,13 @@ export type Database = {
           created_at: string | null
           creation_source: string | null
           deleted_at: string | null
+          detected_family: string | null
           difficulty: string | null
           due_date: string | null
           grading_delay_detected_at: string | null
           id: string
           instructions: string | null
+          interactive_type: string | null
           is_assignment_block: boolean | null
           is_canvas_import: boolean | null
           is_portable: boolean | null
@@ -73,6 +75,7 @@ export type Database = {
           needs_printing: boolean | null
           notes: string | null
           parent_id: string | null
+          parent_notes: string | null
           points_value: number | null
           portability_reason: string | null
           print_reason: string | null
@@ -80,9 +83,11 @@ export type Database = {
           printed_at: string | null
           priority: string | null
           reading_number: number | null
+          requires_printing: boolean | null
           scheduled_block: number | null
           scheduled_date: string | null
           segment_order: number | null
+          speechify_url: string | null
           subject: string | null
           submission_types: string[] | null
           suggested_due_date: string | null
@@ -90,6 +95,7 @@ export type Database = {
           title: string
           updated_at: string | null
           user_id: string
+          worksheet_questions: Json | null
         }
         Insert: {
           academic_year?: string | null
@@ -114,11 +120,13 @@ export type Database = {
           created_at?: string | null
           creation_source?: string | null
           deleted_at?: string | null
+          detected_family?: string | null
           difficulty?: string | null
           due_date?: string | null
           grading_delay_detected_at?: string | null
           id?: string
           instructions?: string | null
+          interactive_type?: string | null
           is_assignment_block?: boolean | null
           is_canvas_import?: boolean | null
           is_portable?: boolean | null
@@ -128,6 +136,7 @@ export type Database = {
           needs_printing?: boolean | null
           notes?: string | null
           parent_id?: string | null
+          parent_notes?: string | null
           points_value?: number | null
           portability_reason?: string | null
           print_reason?: string | null
@@ -135,9 +144,11 @@ export type Database = {
           printed_at?: string | null
           priority?: string | null
           reading_number?: number | null
+          requires_printing?: boolean | null
           scheduled_block?: number | null
           scheduled_date?: string | null
           segment_order?: number | null
+          speechify_url?: string | null
           subject?: string | null
           submission_types?: string[] | null
           suggested_due_date?: string | null
@@ -145,6 +156,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           user_id: string
+          worksheet_questions?: Json | null
         }
         Update: {
           academic_year?: string | null
@@ -169,11 +181,13 @@ export type Database = {
           created_at?: string | null
           creation_source?: string | null
           deleted_at?: string | null
+          detected_family?: string | null
           difficulty?: string | null
           due_date?: string | null
           grading_delay_detected_at?: string | null
           id?: string
           instructions?: string | null
+          interactive_type?: string | null
           is_assignment_block?: boolean | null
           is_canvas_import?: boolean | null
           is_portable?: boolean | null
@@ -183,6 +197,7 @@ export type Database = {
           needs_printing?: boolean | null
           notes?: string | null
           parent_id?: string | null
+          parent_notes?: string | null
           points_value?: number | null
           portability_reason?: string | null
           print_reason?: string | null
@@ -190,9 +205,11 @@ export type Database = {
           printed_at?: string | null
           priority?: string | null
           reading_number?: number | null
+          requires_printing?: boolean | null
           scheduled_block?: number | null
           scheduled_date?: string | null
           segment_order?: number | null
+          speechify_url?: string | null
           subject?: string | null
           submission_types?: string[] | null
           suggested_due_date?: string | null
@@ -200,6 +217,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string
+          worksheet_questions?: Json | null
         }
         Relationships: []
       }
@@ -850,6 +868,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      worksheet_answers: {
+        Row: {
+          answers: Json | null
+          assignment_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          exported: boolean | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          assignment_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          exported?: boolean | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          assignment_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          exported?: boolean | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worksheet_answers_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
