@@ -140,13 +140,13 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
     
-    /* Schedule Block Colors - Dark mode (SOLID vibrant colors) */
-    --color-prep: 176 58% 19%;       /* Deep teal */
-    --color-location: 261 66% 35%;   /* Deep purple */
-    --color-home: 160 66% 18%;       /* Deep emerald green */
-    --color-special: 19 75% 28%;     /* Deep burnt orange */
-    --color-travel: 224 64% 33%;     /* Deep blue */
-    --color-movement: 39 73% 26%;    /* Deep amber */
+    /* Schedule Block Colors - Dark mode (YOUR EXACT COLORS) */
+    --color-prep: 199 73% 58%;       /* #47b2e2 blue */
+    --color-location: 263 69% 50%;   /* #6d28d9 purple */
+    --color-home: 142 70% 55%;       /* #3ddd7c green */
+    --color-special: 28 100% 72%;    /* #ffb26e orange */
+    --color-travel: 199 73% 58%;     /* #47b2e2 blue */
+    --color-movement: 66 100% 70%;   /* #efff68 yellow */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -244,40 +244,34 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Dark mode - SOLID vibrant colors */
+  /* Dark mode - YOUR EXACT COLORS with transparency */
   .dark .schedule-block-prep {
-    background-color: hsl(var(--color-prep));
-    border-color: hsl(var(--color-prep));
-    color: #e5e7eb; /* Light gray text */
+    background-color: hsl(var(--color-prep) / 0.2);
+    border-color: hsl(var(--color-prep) / 0.3);
   }
 
   .dark .schedule-block-location {
-    background-color: hsl(var(--color-location));
-    border-color: hsl(var(--color-location));
-    color: #e5e7eb; /* Light gray text */
+    background-color: hsl(var(--color-location) / 0.2);
+    border-color: hsl(var(--color-location) / 0.3);
   }
 
   .dark .schedule-block-home {
-    background-color: hsl(var(--color-home));
-    border-color: hsl(var(--color-home));
-    color: #e5e7eb; /* Light gray text */
+    background-color: hsl(var(--color-home) / 0.2);
+    border-color: hsl(var(--color-home) / 0.3);
   }
 
   .dark .schedule-block-special {
-    background-color: hsl(var(--color-special));
-    border-color: hsl(var(--color-special));
-    color: #e5e7eb; /* Light gray text */
+    background-color: hsl(var(--color-special) / 0.2);
+    border-color: hsl(var(--color-special) / 0.3);
   }
 
   .dark .schedule-block-travel {
-    background-color: hsl(var(--color-travel));
-    border-color: hsl(var(--color-travel));
-    color: #e5e7eb; /* Light gray text */
+    background-color: hsl(var(--color-travel) / 0.25);
+    border-color: hsl(var(--color-travel) / 0.35);
   }
 
   .dark .schedule-block-movement {
-    background-color: hsl(var(--color-movement));
-    border-color: hsl(var(--color-movement));
-    color: #e5e7eb; /* Light gray text */
+    background-color: hsl(var(--color-movement) / 0.2);
+    border-color: hsl(var(--color-movement) / 0.3);
   }
 }
