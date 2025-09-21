@@ -133,7 +133,14 @@ export function useAssignmentPlacement(
       unscheduledCount: unscheduledAssignments.length - scheduledAssignments.size
     };
     
-  }, [assignments, scheduleBlocks, studentName, selectedDate]);
+  }, [
+    assignments?.length, 
+    JSON.stringify(assignments?.map(a => ({ id: a.id, title: a.title, course_name: a.course_name, scheduled_date: a.scheduled_date, scheduled_block: a.scheduled_block }))),
+    scheduleBlocks?.length,
+    JSON.stringify(scheduleBlocks?.map(b => ({ id: b.id, block_type: b.block_type, block_number: b.block_number, start_time: b.start_time }))),
+    studentName, 
+    selectedDate
+  ]);
 }
 
 /**

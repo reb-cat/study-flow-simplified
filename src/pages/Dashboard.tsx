@@ -136,10 +136,9 @@ const Dashboard = () => {
       return {};
     }
 
-    console.log('Running week-wide assignment placement');
-    
     // Collect all assignment blocks for the week with their day info
     const allBlocksForWeek: Array<SupabaseScheduleBlock & { dayDate: string; dayName: string }> = [];
+    
     
     Object.entries(weekSchedules).forEach(([dayDate, dayBlocks]) => {
       const date = new Date(dayDate + 'T12:00:00');
@@ -179,13 +178,6 @@ const Dashboard = () => {
     for (const blockWithDay of allBlocksForWeek) {
       const { dayDate, dayName, ...block } = blockWithDay;
       const family = getBlockFamily(selectedProfile.displayName, dayName, block.block_number || 0);
-      
-      console.log('Processing block:', {
-        day: dayName,
-        blockNumber: block.block_number,
-        blockType: block.block_type,
-        family
-      });
       
       if (!family) {
         weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: undefined });
@@ -278,7 +270,6 @@ const Dashboard = () => {
       const selectedAssignment = matchingAssignments[0];
       
       if (selectedAssignment) {
-        console.log('Assigned to block:', selectedAssignment.title);
         scheduledAssignments.add(selectedAssignment.id);
         weekAssignmentData[dayDate].push({ 
           ...block, 
@@ -289,7 +280,6 @@ const Dashboard = () => {
         // Use existing fallback system
         const fallbacks = FALLBACKS[family];
         const fallback = Array.isArray(fallbacks) ? fallbacks[0] : fallbacks;
-        console.log('No assignment found, using fallback:', fallback);
         weekAssignmentData[dayDate].push({ 
           ...block, 
           assignment: undefined, 
@@ -319,7 +309,12 @@ const Dashboard = () => {
     });
 
     return weekAssignmentData;
-  }, [selectedProfile, assignments, weekSchedules, getDayName]);
+  }, [
+    selectedProfile?.displayName, 
+    JSON.stringify(assignments?.map(a => ({ id: a.id, title: a.title, course_name: a.course_name }))),
+    JSON.stringify(Object.keys(weekSchedules)), 
+    getDayName
+  ]);
 
   // Run assignment placement when schedules or assignments change
   useEffect(() => {
