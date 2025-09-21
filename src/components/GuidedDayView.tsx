@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GuidedDayViewProps {
   onBackToHub: () => void;
@@ -173,44 +174,74 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     });
   };
 
-  const handleMarkComplete = () => {
-    if (currentBlock?.assignment) {
-      updateAssignment(currentBlock.assignment.id, {
-        completed: true
+  // Simple database update functions
+  const updateBlockStatus = async (blockId: string, status: string) => {
+    const { error } = await supabase
+      .from('daily_schedule_status')
+      .upsert({
+        template_block_id: blockId,
+        student_name: selectedProfile.displayName,
+        date: effectiveDate,
+        status: status,
+        current_assignment_id: currentBlock?.assignment?.id || null
       });
-      toast({
-        title: "Assignment complete! 🌟",
-        description: "Excellent work! Moving to next block."
-      });
-      // Auto-advance to next block
-      setTimeout(() => {
-        if (currentBlockIndex < totalBlocks - 1) {
-          setCurrentBlockIndex(prev => prev + 1);
-          setLocalTimerRunning(false);
-        } else {
-          // All done!
-          toast({
-            title: "All blocks complete! 🎊",
-            description: "Amazing work today!"
-          });
-          onBackToHub();
-        }
-      }, 1000);
+    
+    if (error) {
+      console.error('Error updating block status:', error);
     }
   };
 
-  const handleNeedMoreTime = () => {
-    toast({
-      title: "No problem! 💙",
-      description: "Take the time you need. You're doing great!"
-    });
+  const moveToNextBlock = () => {
+    if (currentBlockIndex < totalBlocks - 1) {
+      setCurrentBlockIndex(prev => prev + 1);
+      setLocalTimerRunning(false);
+    } else {
+      // All blocks complete - return to hub
+      onBackToHub();
+    }
   };
 
-  const handleStuck = () => {
+  // Simple button handlers
+  const handleDone = async () => {
+    // Update database status
+    await updateBlockStatus(currentBlock.id, 'complete');
+    
+    // Update assignment if it exists
+    if (currentBlock.assignment && updateAssignment) {
+      await updateAssignment(currentBlock.assignment.id, { 
+        completed: true
+      });
+    }
+    
     toast({
-      title: "Help is on the way! 🤝",
-      description: "This has been flagged for assistance."
+      title: "Done! ✓",
+      description: "Moving to next block"
     });
+    
+    // Move to next block
+    moveToNextBlock();
+  };
+
+  const handleNeedMoreTimeSimple = async () => {
+    await updateBlockStatus(currentBlock.id, 'overtime');
+    
+    toast({
+      title: "More time noted →",
+      description: "Moving to next block"
+    });
+    
+    moveToNextBlock();
+  };
+
+  const handleStuckSimple = async () => {
+    await updateBlockStatus(currentBlock.id, 'stuck');
+    
+    toast({
+      title: "Help needed ⚠",
+      description: "Moving to next block"
+    });
+    
+    moveToNextBlock();
   };
 
   const canGoNext = currentBlockIndex < totalBlocks - 1;
@@ -400,39 +431,42 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               </Card>
             )}
 
-            {/* Action Buttons - Always show all buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {/* Done Button - Always available */}
               <Button 
-                onClick={handleMarkComplete} 
+                onClick={handleDone} 
                 size="lg" 
-                className="gap-2 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
+                className="w-full gap-2 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
               >
                 <CheckCircle className="w-6 h-6" />
-                Done!
+                Done
               </Button>
               
-              <Button 
-                variant="outline" 
-                onClick={handleNeedMoreTime} 
-                size="lg" 
-                className="gap-2 border-2 py-4 text-base font-semibold"
-              >
-                <Clock className="w-6 h-6" />
-                More Time
-              </Button>
-            </div>
-
-            {/* Stuck Button - Always available */}
-            <div className="flex justify-center">
-              <Button 
-                variant="outline" 
-                onClick={handleStuck} 
-                size="lg" 
-                className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold"
-              >
-                <AlertTriangle className="w-6 h-6" />
-                I'm Stuck - Need Help
-              </Button>
+              {/* Assignment-only buttons */}
+              {currentBlock.assignment && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleNeedMoreTimeSimple} 
+                    size="lg" 
+                    className="gap-2 border-2 py-4 text-base font-semibold"
+                  >
+                    <Clock className="w-6 h-6" />
+                    More Time
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={handleStuckSimple} 
+                    size="lg" 
+                    className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold"
+                  >
+                    <AlertTriangle className="w-6 h-6" />
+                    Stuck
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
