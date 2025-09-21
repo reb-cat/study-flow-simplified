@@ -215,64 +215,64 @@
   }
 
   .schedule-block-prep {
-    background-color: hsl(var(--color-prep));
-    border-color: hsl(var(--color-prep));
+    background: rgba(14, 165, 233, 0.15);   /* Sky blue 15% */
+    border-color: rgba(14, 165, 233, 0.15);
   }
 
   .schedule-block-location {
-    background-color: hsl(var(--color-location));
-    border-color: hsl(var(--color-location));
+    background: rgba(139, 92, 246, 0.15);   /* Purple 15% */
+    border-color: rgba(139, 92, 246, 0.15);
   }
 
   .schedule-block-home {
-    background-color: hsl(var(--color-home));
-    border-color: hsl(var(--color-home));
+    background: rgba(16, 185, 129, 0.15);   /* Teal-green 15% */
+    border-color: rgba(16, 185, 129, 0.15);
   }
 
   .schedule-block-special {
-    background-color: hsl(var(--color-special));
-    border-color: hsl(var(--color-special));
+    background: rgba(251, 146, 60, 0.15);   /* Orange 15% */
+    border-color: rgba(251, 146, 60, 0.15);
   }
 
   .schedule-block-travel {
-    background-color: hsl(var(--color-travel));
-    border-color: hsl(var(--color-travel));
+    background: rgba(6, 182, 212, 0.15);    /* Cyan 15% */
+    border-color: rgba(6, 182, 212, 0.15);
   }
 
   .schedule-block-movement {
-    background-color: hsl(var(--color-movement));
-    border-color: hsl(var(--color-movement));
+    background: rgba(236, 72, 153, 0.15);   /* Pink 15% */
+    border-color: rgba(236, 72, 153, 0.15);
   }
 
-  /* Dark mode - 60% transparency */
+  /* Dark mode - 40% opacity (60% transparency) */
   .dark .schedule-block-home {
-    background: rgba(34, 197, 94, 0.6);   /* Green - 60% opacity */
-    border-color: rgba(34, 197, 94, 0.6);
+    background: rgba(34, 197, 94, 0.4);     /* Green 40% */
+    border-color: rgba(34, 197, 94, 0.4);
   }
 
   .dark .schedule-block-location {
-    background: rgba(147, 51, 234, 0.6);  /* Purple - 60% opacity */
-    border-color: rgba(147, 51, 234, 0.6);
+    background: rgba(147, 51, 234, 0.4);    /* Purple 40% */
+    border-color: rgba(147, 51, 234, 0.4);
   }
 
   .dark .schedule-block-special {
-    background: rgba(239, 68, 68, 0.6);   /* Red - 60% opacity */
-    border-color: rgba(239, 68, 68, 0.6);
+    background: rgba(239, 68, 68, 0.4);     /* Red 40% */
+    border-color: rgba(239, 68, 68, 0.4);
   }
 
   .dark .schedule-block-prep {
-    background: rgba(59, 130, 246, 0.6);  /* Blue - 60% opacity */
-    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(59, 130, 246, 0.4);    /* Blue 40% */
+    border-color: rgba(59, 130, 246, 0.4);
   }
 
   .dark .schedule-block-travel {
-    background: rgba(6, 182, 212, 0.6);   /* Cyan - 60% opacity */
-    border-color: rgba(6, 182, 212, 0.6);
+    background: rgba(6, 182, 212, 0.4);     /* Cyan 40% */
+    border-color: rgba(6, 182, 212, 0.4);
   }
 
   .dark .schedule-block-movement {
-    background: rgba(255, 51, 239, 0.6);  /* Bright pink - 60% opacity */
-    border-color: rgba(255, 51, 239, 0.6);
+    background: rgba(236, 72, 153, 0.4);    /* Pink 40% */
+    border-color: rgba(236, 72, 153, 0.4);
   }
 
   /* Make ALL text bold in dark mode for readability */
