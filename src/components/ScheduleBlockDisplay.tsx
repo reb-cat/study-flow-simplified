@@ -15,12 +15,12 @@ export function ScheduleBlockDisplay({ block, assignedFamily, children }: Schedu
   const colorClass = getSubjectColorClass(block.subject || assignedFamily);
   
   return (
-    <div className="space-y-3">
-      <div className={`text-sm font-medium rounded-lg p-3 transition-all duration-200 ${colorClass || 'bg-card border border-border/50'}`}>
-        <span className="text-foreground/90">
+    <div className="space-y-2">
+      <div className={`flex items-center gap-3 text-sm font-medium rounded-lg px-3 py-2 transition-all duration-200 ${colorClass || 'bg-card border border-border/50'}`}>
+        <span className="text-foreground/90 whitespace-nowrap text-xs">
           {convertTo12Hour(block.start_time)}
         </span>
-        <span className="ml-3 text-foreground font-semibold">
+        <span className="text-foreground font-semibold flex-1 min-w-0">
           {block.subject || block.block_name}
         </span>
       </div>
