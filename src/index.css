@@ -64,6 +64,8 @@
     --green-family-light: 142 76% 96%;
     --orange-family: 25 85% 45%;
     --orange-family-light: 25 85% 96%;
+    --yellow-family: 45 95% 55%;
+    --yellow-family-light: 45 95% 96%;
 
     /* Calming background variations */
     --bg-soft: 220 20% 98%;
@@ -157,6 +159,8 @@
     --green-family-light: 142 76% 15%;
     --orange-family: 25 85% 60%;
     --orange-family-light: 25 85% 15%;
+    --yellow-family: 45 90% 60%;
+    --yellow-family-light: 45 90% 15%;
 
     /* Dark calming backgrounds */
     --bg-soft: 220 13% 8%;
@@ -232,6 +236,10 @@
   
   .subject-orange {
     @apply bg-orange-family-light border-l-4 border-orange-family;
+  }
+  
+  .subject-yellow {
+    @apply bg-yellow-family-light border-l-4 border-yellow-family;
   }
 
   /* Status badges */

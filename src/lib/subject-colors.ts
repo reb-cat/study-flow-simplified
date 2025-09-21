@@ -6,6 +6,7 @@ export type SubjectColorClass =
   | 'subject-purple'   // Co-op blocks
   | 'subject-green'    // Assignments & Bible
   | 'subject-orange'   // Online classes & special subjects
+  | 'subject-yellow'   // Movement & breaks
   | '';
 
 /**
@@ -14,6 +15,7 @@ export type SubjectColorClass =
  * Purple: Co-op, Lunch  
  * Green: Assignment, Bible
  * Orange: Forensics, Tutoring, Algebra, Language Fundamentals
+ * Yellow: Movement & breaks
  */
 export function getSubjectColorClass(blockType?: string, subject?: string): SubjectColorClass {
   const blockTypeLower = blockType?.toLowerCase() || '';
@@ -25,6 +27,11 @@ export function getSubjectColorClass(blockType?: string, subject?: string): Subj
       subjectLower.includes('algebra') ||
       subjectLower.includes('language fundamentals')) {
     return 'subject-orange';
+  }
+  
+  // Yellow: Movement & break blocks - energetic "get up and move!" color
+  if (subjectLower.includes('movement')) {
+    return 'subject-yellow';
   }
   
   // Blue: Travel & Prep blocks
@@ -62,6 +69,8 @@ export function getSubjectBackground(subject?: string): string {
       return 'bg-green-family-light';
     case 'subject-orange':
       return 'bg-orange-family-light';
+    case 'subject-yellow':
+      return 'bg-yellow-family-light';
     default:
       return 'bg-card';
   }

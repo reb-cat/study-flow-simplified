@@ -87,6 +87,10 @@ export default {
           DEFAULT: "hsl(var(--orange-family))",
           light: "hsl(var(--orange-family-light))",
         },
+        "yellow-family": {
+          DEFAULT: "hsl(var(--yellow-family))",
+          light: "hsl(var(--yellow-family-light))",
+        },
         // Calming backgrounds
         "bg-soft": "hsl(var(--bg-soft))",
         "bg-warm": "hsl(var(--bg-warm))",
