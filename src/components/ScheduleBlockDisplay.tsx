@@ -12,7 +12,7 @@ interface ScheduleBlockDisplayProps {
 
 // Display exactly what comes from the database
 export function ScheduleBlockDisplay({ block, assignedFamily, children }: ScheduleBlockDisplayProps) {
-  const colorClass = getSubjectColorClass(block.subject || assignedFamily);
+  const colorClass = getSubjectColorClass(block.subject || assignedFamily, block.block_name);
   
   const shortenSubjectName = (name: string) => {
     const shortNames: Record<string, string> = {

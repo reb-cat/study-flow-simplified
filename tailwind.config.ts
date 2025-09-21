@@ -70,30 +70,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Subject family colors for EF-friendly design
-        "math-family": {
-          DEFAULT: "hsl(var(--math-family))",
-          light: "hsl(var(--math-family-light))",
+        // Activity-based colors for schedule blocks
+        "travel": {
+          DEFAULT: "hsl(var(--travel))",
+          light: "hsl(var(--travel-light))",
         },
-        "language-family": {
-          DEFAULT: "hsl(var(--language-family))",
-          light: "hsl(var(--language-family-light))",
+        "coop": {
+          DEFAULT: "hsl(var(--coop))",
+          light: "hsl(var(--coop-light))",
         },
-        "science-family": {
-          DEFAULT: "hsl(var(--science-family))",
-          light: "hsl(var(--science-family-light))",
+        "assignments": {
+          DEFAULT: "hsl(var(--assignments))",
+          light: "hsl(var(--assignments-light))",
         },
-        "history-family": {
-          DEFAULT: "hsl(var(--history-family))",
-          light: "hsl(var(--history-family-light))",
-        },
-        "arts-family": {
-          DEFAULT: "hsl(var(--arts-family))",
-          light: "hsl(var(--arts-family-light))",
-        },
-        "practical-family": {
-          DEFAULT: "hsl(var(--practical-family))",
-          light: "hsl(var(--practical-family-light))",
+        "online": {
+          DEFAULT: "hsl(var(--online))",
+          light: "hsl(var(--online-light))",
         },
         // Calming backgrounds
         "bg-soft": "hsl(var(--bg-soft))",
