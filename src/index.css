@@ -55,19 +55,15 @@
     --input: 0 0% 100%;
     --ring: 217 91% 60%;
 
-    /* Subject family colors - EF-friendly color coding */
-    --math-family: 275 85% 60%;
-    --math-family-light: 275 85% 96%;
-    --language-family: 142 60% 45%;
-    --language-family-light: 142 60% 96%;
-    --science-family: 200 85% 55%;
-    --science-family-light: 200 85% 96%;
-    --history-family: 25 75% 55%;
-    --history-family-light: 25 75% 96%;
-    --arts-family: 320 65% 60%;
-    --arts-family-light: 320 65% 96%;
-    --practical-family: 45 80% 50%;
-    --practical-family-light: 45 80% 96%;
+    /* Activity-based colors for schedule blocks */
+    --blue-family: 217 91% 60%;
+    --blue-family-light: 217 91% 96%;
+    --purple-family: 275 85% 60%;
+    --purple-family-light: 275 85% 96%;
+    --green-family: 142 76% 36%;
+    --green-family-light: 142 76% 96%;
+    --orange-family: 25 85% 45%;
+    --orange-family-light: 25 85% 96%;
 
     /* Calming background variations */
     --bg-soft: 220 20% 98%;
@@ -152,19 +148,15 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
 
-    /* Dark mode subject families */
-    --math-family: 275 70% 65%;
-    --math-family-light: 275 70% 15%;
-    --language-family: 142 50% 55%;
-    --language-family-light: 142 50% 15%;
-    --science-family: 200 70% 65%;
-    --science-family-light: 200 70% 15%;
-    --history-family: 25 65% 60%;
-    --history-family-light: 25 65% 15%;
-    --arts-family: 320 55% 65%;
-    --arts-family-light: 320 55% 15%;
-    --practical-family: 45 70% 60%;
-    --practical-family-light: 45 70% 15%;
+    /* Dark mode activity-based colors */
+    --blue-family: 217 91% 65%;
+    --blue-family-light: 217 91% 15%;
+    --purple-family: 275 70% 65%;
+    --purple-family-light: 275 70% 15%;
+    --green-family: 142 76% 50%;
+    --green-family-light: 142 76% 15%;
+    --orange-family: 25 85% 60%;
+    --orange-family-light: 25 85% 15%;
 
     /* Dark calming backgrounds */
     --bg-soft: 220 13% 8%;
@@ -225,29 +217,21 @@
     @apply space-y-4 p-4 rounded-lg border border-border/30;
   }
 
-  /* Subject family styling */
-  .subject-math {
-    @apply bg-math-family-light border-l-4 border-math-family;
+  /* Activity-based styling */
+  .subject-blue {
+    @apply bg-blue-family-light border-l-4 border-blue-family;
   }
   
-  .subject-language {
-    @apply bg-language-family-light border-l-4 border-language-family;
+  .subject-purple {
+    @apply bg-purple-family-light border-l-4 border-purple-family;
   }
   
-  .subject-science {
-    @apply bg-science-family-light border-l-4 border-science-family;
+  .subject-green {
+    @apply bg-green-family-light border-l-4 border-green-family;
   }
   
-  .subject-history {
-    @apply bg-history-family-light border-l-4 border-history-family;
-  }
-  
-  .subject-arts {
-    @apply bg-arts-family-light border-l-4 border-arts-family;
-  }
-  
-  .subject-practical {
-    @apply bg-practical-family-light border-l-4 border-practical-family;
+  .subject-orange {
+    @apply bg-orange-family-light border-l-4 border-orange-family;
   }
 
   /* Status badges */

@@ -1,77 +1,68 @@
-// EF-friendly subject color mapping
+// Activity-based color mapping for schedule blocks
 import { AssignmentFamily } from './family-detection';
 
 export type SubjectColorClass = 
-  | 'subject-math' 
-  | 'subject-language' 
-  | 'subject-science' 
-  | 'subject-history' 
-  | 'subject-arts' 
-  | 'subject-practical'
+  | 'subject-blue'     // Travel & Prep
+  | 'subject-purple'   // Co-op blocks
+  | 'subject-green'    // Assignments & Bible
+  | 'subject-orange'   // Online classes & special subjects
   | '';
 
 /**
- * Maps assignment families to EF-friendly color classes for visual organization
+ * Maps block types and subjects to activity-based color classes
+ * Blue: Prep/Load
+ * Purple: Co-op, Lunch  
+ * Green: Assignment, Bible
+ * Orange: Forensics, Tutoring, Algebra, Language Fundamentals
  */
-export function getSubjectColorClass(family?: AssignmentFamily | string): SubjectColorClass {
-  if (!family) return '';
+export function getSubjectColorClass(blockType?: string, subject?: string): SubjectColorClass {
+  const blockTypeLower = blockType?.toLowerCase() || '';
+  const subjectLower = subject?.toLowerCase() || '';
   
-  const familyLower = family.toLowerCase();
-  
-  if (familyLower.includes('math') || familyLower.includes('algebra') || familyLower.includes('geometry')) {
-    return 'subject-math';
+  // Orange: Special subjects that need attention (override block_type)
+  if (subjectLower.includes('forensics') || 
+      subjectLower.includes('tutoring') || 
+      subjectLower.includes('algebra') ||
+      subjectLower.includes('language fundamentals')) {
+    return 'subject-orange';
   }
   
-  if (familyLower.includes('language') || familyLower.includes('english') || familyLower.includes('writing')) {
-    return 'subject-language';
+  // Blue: Travel & Prep blocks
+  if (blockTypeLower.includes('prep') || blockTypeLower.includes('load')) {
+    return 'subject-blue';
   }
   
-  if (familyLower.includes('science') || familyLower.includes('biology') || familyLower.includes('chemistry') || familyLower.includes('physics')) {
-    return 'subject-science';
+  // Purple: Co-op time blocks
+  if (blockTypeLower.includes('co-op') || blockTypeLower.includes('lunch')) {
+    return 'subject-purple';
   }
   
-  if (familyLower.includes('history') || familyLower.includes('social') || familyLower.includes('geography')) {
-    return 'subject-history';
-  }
-  
-  if (familyLower.includes('arts') || familyLower.includes('art') || familyLower.includes('music') || familyLower.includes('drama')) {
-    return 'subject-arts';
-  }
-  
-  if (familyLower.includes('practical') || familyLower.includes('pe') || familyLower.includes('physical') || familyLower.includes('life')) {
-    return 'subject-practical';
+  // Green: Assignment and Bible blocks
+  if (blockTypeLower.includes('assignment') || subjectLower.includes('bible')) {
+    return 'subject-green';
   }
   
   return '';
 }
 
 /**
- * Get a subject-specific background color for better visual organization
+ * Legacy function for backward compatibility - uses subject only
  */
 export function getSubjectBackground(subject?: string): string {
   if (!subject) return 'bg-card';
   
-  const subjectLower = subject.toLowerCase();
+  const colorClass = getSubjectColorClass('', subject);
   
-  if (subjectLower.includes('math') || subjectLower.includes('algebra')) {
-    return 'bg-math-family-light';
+  switch (colorClass) {
+    case 'subject-blue':
+      return 'bg-blue-family-light';
+    case 'subject-purple':
+      return 'bg-purple-family-light';
+    case 'subject-green':
+      return 'bg-green-family-light';
+    case 'subject-orange':
+      return 'bg-orange-family-light';
+    default:
+      return 'bg-card';
   }
-  
-  if (subjectLower.includes('english') || subjectLower.includes('language')) {
-    return 'bg-language-family-light';
-  }
-  
-  if (subjectLower.includes('science') || subjectLower.includes('biology')) {
-    return 'bg-science-family-light';
-  }
-  
-  if (subjectLower.includes('history') || subjectLower.includes('social')) {
-    return 'bg-history-family-light';
-  }
-  
-  if (subjectLower.includes('art') || subjectLower.includes('music')) {
-    return 'bg-arts-family-light';
-  }
-  
-  return 'bg-card';
 }

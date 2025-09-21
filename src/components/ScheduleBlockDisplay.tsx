@@ -12,7 +12,7 @@ interface ScheduleBlockDisplayProps {
 
 // Display exactly what comes from the database
 export function ScheduleBlockDisplay({ block, assignedFamily, children }: ScheduleBlockDisplayProps) {
-  const colorClass = getSubjectColorClass(block.subject || assignedFamily);
+  const colorClass = getSubjectColorClass(block.block_type, block.subject || assignedFamily);
   
   return (
     <div className="space-y-2">

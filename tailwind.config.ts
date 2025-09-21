@@ -70,30 +70,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Subject family colors for EF-friendly design
-        "math-family": {
-          DEFAULT: "hsl(var(--math-family))",
-          light: "hsl(var(--math-family-light))",
+        // Activity-based colors for schedule blocks
+        "blue-family": {
+          DEFAULT: "hsl(var(--blue-family))",
+          light: "hsl(var(--blue-family-light))",
         },
-        "language-family": {
-          DEFAULT: "hsl(var(--language-family))",
-          light: "hsl(var(--language-family-light))",
+        "purple-family": {
+          DEFAULT: "hsl(var(--purple-family))",
+          light: "hsl(var(--purple-family-light))",
         },
-        "science-family": {
-          DEFAULT: "hsl(var(--science-family))",
-          light: "hsl(var(--science-family-light))",
+        "green-family": {
+          DEFAULT: "hsl(var(--green-family))",
+          light: "hsl(var(--green-family-light))",
         },
-        "history-family": {
-          DEFAULT: "hsl(var(--history-family))",
-          light: "hsl(var(--history-family-light))",
-        },
-        "arts-family": {
-          DEFAULT: "hsl(var(--arts-family))",
-          light: "hsl(var(--arts-family-light))",
-        },
-        "practical-family": {
-          DEFAULT: "hsl(var(--practical-family))",
-          light: "hsl(var(--practical-family-light))",
+        "orange-family": {
+          DEFAULT: "hsl(var(--orange-family))",
+          light: "hsl(var(--orange-family-light))",
         },
         // Calming backgrounds
         "bg-soft": "hsl(var(--bg-soft))",
