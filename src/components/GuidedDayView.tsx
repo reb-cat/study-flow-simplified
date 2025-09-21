@@ -351,18 +351,40 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Timer */}
-            <div className="flex justify-center">
-              {currentBlock && localTimeRemaining !== null && (
-                <CircularTimer 
-                  durationMinutes={currentBlock.duration} 
-                  isRunning={localTimerRunning} 
-                  onComplete={handleTimerComplete} 
-                  externalTimeRemaining={localTimeRemaining} 
-                  className="" 
-                  hideControls={true} 
-                />
-              )}
+            {/* Timer with Controls */}
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                {currentBlock && localTimeRemaining !== null && (
+                  <CircularTimer 
+                    durationMinutes={currentBlock.duration} 
+                    isRunning={localTimerRunning} 
+                    onComplete={handleTimerComplete} 
+                    externalTimeRemaining={localTimeRemaining} 
+                    className="" 
+                    hideControls={false}
+                  />
+                )}
+              </div>
+              
+              {/* Timer Controls */}
+              <div className="flex justify-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocalTimerRunning(!localTimerRunning)}
+                  className="gap-2"
+                >
+                  {localTimerRunning ? 'Pause' : 'Start'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTimerStop}
+                  className="gap-2"
+                >
+                  Stop
+                </Button>
+              </div>
             </div>
 
             {/* Assignment Instructions - Collapsible */}
