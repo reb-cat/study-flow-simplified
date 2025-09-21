@@ -33,8 +33,8 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
         return;
       }
 
-      // Transform data to unified format
-      const unifiedData: UnifiedAssignment[] = (data || []).map(assignment => ({
+      // Transform data to unified format - handle type differences
+      const unifiedData: UnifiedAssignment[] = (data || []).map((assignment: any) => ({
         id: assignment.id,
         user_id: assignment.user_id,
         title: assignment.title,
