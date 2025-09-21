@@ -74,6 +74,14 @@
     /* Transitions */
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* Schedule Block Colors - Light mode (subtle tints) */
+    --color-prep: 200 60% 95%;       /* Light blue - Prep/Load */
+    --color-location: 263 40% 95%;   /* Light purple - Co-op, Lunch */
+    --color-home: 145 50% 95%;       /* Light green - Assignment, Bible */
+    --color-special: 25 70% 95%;     /* Light orange - Special classes */
+    --color-travel: 200 60% 92%;     /* Slightly darker blue - Travel */
+    --color-movement: 50 70% 95%;    /* Light yellow - Movement */
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -131,6 +139,14 @@
     --border: 217 32% 25%;
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
+    
+    /* Schedule Block Colors - Dark mode (vibrant with transparency) */
+    --color-prep: 200 70% 60%;       /* Bright blue #47b2e2 */
+    --color-location: 263 61% 51%;   /* Bright purple #6d28d9 */
+    --color-home: 145 55% 62%;       /* Bright green #3ddd7c */
+    --color-special: 28 100% 72%;    /* Bright orange #ffb26e */
+    --color-travel: 200 70% 50%;     /* Deeper blue for travel */
+    --color-movement: 65 100% 70%;   /* Bright yellow #efff68 */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -191,5 +207,65 @@
   
   .card-interactive {
     @apply card-elevated hover:shadow transition-all duration-200 cursor-pointer;
+  }
+
+  /* Schedule Block Styles */
+  .schedule-block {
+    @apply rounded-lg border transition-colors duration-200;
+  }
+
+  .schedule-block-prep {
+    background-color: hsl(var(--color-prep));
+    border-color: hsl(var(--color-prep));
+  }
+
+  .schedule-block-location {
+    background-color: hsl(var(--color-location));
+    border-color: hsl(var(--color-location));
+  }
+
+  .schedule-block-home {
+    background-color: hsl(var(--color-home));
+    border-color: hsl(var(--color-home));
+  }
+
+  .schedule-block-special {
+    background-color: hsl(var(--color-special));
+    border-color: hsl(var(--color-special));
+  }
+
+  .schedule-block-travel {
+    background-color: hsl(var(--color-travel));
+    border-color: hsl(var(--color-travel));
+  }
+
+  .schedule-block-movement {
+    background-color: hsl(var(--color-movement));
+    border-color: hsl(var(--color-movement));
+  }
+
+  /* Dark mode with transparency */
+  .dark .schedule-block-prep {
+    background-color: hsl(var(--color-prep) / 0.15);
+  }
+
+  .dark .schedule-block-location {
+    background-color: hsl(var(--color-location) / 0.15);
+  }
+
+  .dark .schedule-block-home {
+    background-color: hsl(var(--color-home) / 0.15);
+  }
+
+  .dark .schedule-block-special {
+    background-color: hsl(var(--color-special) / 0.15);
+  }
+
+  .dark .schedule-block-travel {
+    background-color: hsl(var(--color-travel) / 0.15);
+  }
+
+  .dark .schedule-block-movement {
+    background-color: hsl(var(--color-movement) / 0.15);
   }
 }

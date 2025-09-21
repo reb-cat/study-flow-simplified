@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { convertTo12Hour } from '@/lib/utils';
+import { getScheduleBlockClassName } from '@/lib/schedule-colors';
 
 interface ScheduleBlockDisplayProps {
   block: SupabaseScheduleBlock;
@@ -11,10 +12,15 @@ interface ScheduleBlockDisplayProps {
 
 // Display exactly what comes from the database
 export function ScheduleBlockDisplay({ block, assignedFamily, children }: ScheduleBlockDisplayProps) {
+  const blockClassName = getScheduleBlockClassName(block);
+  
   return (
-    <div className="space-y-2">
-      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+    <div className={`space-y-2 p-3 ${blockClassName}`}>
+      <div className="text-xs font-medium text-foreground/80">
         <span>{convertTo12Hour(block.start_time)}–{convertTo12Hour(block.end_time)} • {block.subject || block.block_name}</span>
+        {assignedFamily && (
+          <span className="ml-2 text-foreground/60">({assignedFamily})</span>
+        )}
       </div>
       
       {block.block_type === 'Assignment' && !children && (
