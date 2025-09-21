@@ -353,6 +353,57 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_assignments: {
+        Row: {
+          completed_at: string | null
+          course_name: string | null
+          created_at: string | null
+          difficulty: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          scheduled_block: number | null
+          scheduled_date: string | null
+          student_name: string
+          subject: string | null
+          time_spent: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          course_name?: string | null
+          created_at?: string | null
+          difficulty?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          scheduled_block?: number | null
+          scheduled_date?: string | null
+          student_name: string
+          subject?: string | null
+          time_spent?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          course_name?: string | null
+          created_at?: string | null
+          difficulty?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          scheduled_block?: number | null
+          scheduled_date?: string | null
+          student_name?: string
+          subject?: string | null
+          time_spent?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       earn_events: {
         Row: {
           amount: number
