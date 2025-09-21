@@ -166,7 +166,7 @@ const Dashboard = () => {
             {/* Guided Mode Toggle */}
             <Button 
               onClick={() => setShowGuidedMode(true)}
-              className="gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary"
+              className="gap-2"
             >
               <Focus className="w-4 h-4" />
               Start Guided Day
