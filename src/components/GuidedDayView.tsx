@@ -343,7 +343,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                       <FileText className="w-4 h-4 text-primary" />
                       <span className="font-medium">View Assignment Instructions</span>
                     </div>
-                    <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    <ChevronDown className="w-4 h-4 transition-transform duration-200 data-[state=open]:rotate-180" />
                   </Button>
                 </CollapsibleTrigger>
                 
