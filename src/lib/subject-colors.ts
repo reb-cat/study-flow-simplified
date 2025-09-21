@@ -35,7 +35,7 @@ export function getSubjectColorClass(blockType?: string, subject?: string): Subj
   }
   
   // Blue: Travel & Prep blocks
-  if (blockTypeLower.includes('prep') || blockTypeLower.includes('load')) {
+  if (blockTypeLower.includes('prep') || blockTypeLower.includes('load') || subjectLower.includes('travel')) {
     return 'subject-blue';
   }
   
