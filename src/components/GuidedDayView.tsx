@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GuidedDayViewProps {
   onBackToHub: () => void;
@@ -173,8 +174,18 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     });
   };
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = async () => {
+    // Add status update to daily_schedule_status table
+    await supabase.from('daily_schedule_status')
+      .update({ status: 'complete' })
+      .eq('template_block_id', currentBlock.id)
+      .eq('date', effectiveDate);
+      
     if (currentBlock?.assignment) {
+      await supabase.from('assignments')
+        .update({ completed_at: new Date().toISOString() })
+        .eq('id', currentBlock.assignment.id);
+        
       updateAssignment(currentBlock.assignment.id, {
         completed: true
       });
@@ -199,14 +210,26 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     }
   };
 
-  const handleNeedMoreTime = () => {
+  const handleNeedMoreTime = async () => {
+    await supabase.from('daily_schedule_status')
+      .update({ status: 'overtime' })
+      .eq('template_block_id', currentBlock.id)
+      .eq('date', effectiveDate);
+      
+    setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1));
     toast({
       title: "No problem! 💙",
       description: "Take the time you need. You're doing great!"
     });
   };
 
-  const handleStuck = () => {
+  const handleStuck = async () => {
+    await supabase.from('daily_schedule_status')
+      .update({ status: 'stuck' })
+      .eq('template_block_id', currentBlock.id)
+      .eq('date', effectiveDate);
+      
+    setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1));
     toast({
       title: "Help is on the way! 🤝",
       description: "This has been flagged for assistance."
