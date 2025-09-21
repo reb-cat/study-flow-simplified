@@ -21,7 +21,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 }) => {
   // TEST MODE OVERRIDE - Toggle for testing
   const isTestMode = true; // Set to false for production
-  const testDate = '2025-09-22'; // Monday for testing
+  const testDate = '2025-09-22'; // Monday for testing - must have assignments
   
   // Use test date when in test mode, otherwise use provided selectedDate
   const effectiveDate = isTestMode ? testDate : selectedDate;
@@ -257,9 +257,14 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             <ArrowLeft className="w-4 h-4" />
             Back to Hub
           </Button>
-          <p className="text-muted-foreground">
-            Block {currentBlockIndex + 1} of {totalBlocks}
-          </p>
+          <div className="text-right">
+            {isTestMode && (
+              <p className="text-xs text-orange-600 font-medium">TEST MODE: {testDate}</p>
+            )}
+            <p className="text-muted-foreground">
+              Block {currentBlockIndex + 1} of {totalBlocks}
+            </p>
+          </div>
         </div>
 
         {/* Progress Bar */}
