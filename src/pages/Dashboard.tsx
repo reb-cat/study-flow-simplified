@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft, ChevronRight, Play, Square, ExternalLink, Focus, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Focus } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
-import { Assignment } from '@/types';
-import { useSupabaseSchedule, SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
+import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
-import { DayScheduleCard } from '@/components/DayScheduleCard';
+import { OverviewDayCard } from '@/components/OverviewDayCard';
 
 const Dashboard = () => {
   const { 
@@ -21,7 +17,7 @@ const Dashboard = () => {
   } = useApp();
   
   const { getCachedScheduleForDay } = useScheduleCache();
-  const { assignments, updateAssignment: updateSupabaseAssignment } = useAssignments();
+  const { assignments } = useAssignments();
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
@@ -103,32 +99,10 @@ const Dashboard = () => {
     return `${mins}m`;
   }, []);
 
-  const formatTimerTime = useCallback((seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }, []);
-
   // Helper to get day name for database query
   const getDayName = useCallback((date: Date): string => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return dayNames[date.getDay()];
-  }, []);
-
-  const handleToggleComplete = useCallback(async (assignment: any) => {
-    await updateSupabaseAssignment(assignment.id, { 
-      completed_at: assignment.completed_at ? null : new Date().toISOString() 
-    });
-  }, [updateSupabaseAssignment]);
-
-  // Timer functionality simplified for now
-  const handleStartTimer = useCallback((assignmentId: string) => {
-    console.log('Starting timer for assignment:', assignmentId);
-    // TODO: Implement real timer functionality with Supabase
-  }, []);
-
-  const isTimerActive = useCallback((assignmentId: string) => {
-    return false; // TODO: Implement real timer state
   }, []);
 
   const navigateWeek = useCallback((direction: 'prev' | 'next') => {
@@ -186,70 +160,16 @@ const Dashboard = () => {
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {weekDays.map((day, dayIndex) => (
-            <DayScheduleCard 
+            <OverviewDayCard 
               key={dayIndex}
               day={day}
-              dayIndex={dayIndex}
               selectedProfile={selectedProfile}
               assignments={assignments}
               scheduleBlocks={weekSchedules[day.toISOString().split('T')[0]] || []}
               formatDate={formatDate}
-              handleToggleComplete={handleToggleComplete}
-              handleStartTimer={handleStartTimer}
-              isTimerActive={isTimerActive}
-              formatTime={formatTime}
-              formatTimerTime={formatTimerTime}
-              getDayName={getDayName}
             />
           ))}
         </div>
-
-        {/* Weekly Summary */}
-        <Card className="card-elevated">
-          <CardHeader>
-            <CardTitle>Week Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {assignments.filter(a => {
-                    if (!a.scheduled_date) return false;
-                    const scheduled = new Date(a.scheduled_date);
-                    return weekDays.some(day => 
-                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
-                    );
-                  }).filter(a => a.completed_at).length}
-                </div>
-                <p className="text-sm text-muted-foreground">Completed</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-timer">
-                  {assignments.filter(a => {
-                    if (!a.scheduled_date) return false;
-                    const scheduled = new Date(a.scheduled_date);
-                    return weekDays.some(day => 
-                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
-                    );
-                  }).length}
-                </div>
-                <p className="text-sm text-muted-foreground">Total Assignments</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-success">
-                  {formatTime(assignments.filter(a => {
-                    if (!a.scheduled_date) return false;
-                    const scheduled = new Date(a.scheduled_date);
-                    return weekDays.some(day => 
-                      day.toISOString().split('T')[0] === scheduled.toISOString().split('T')[0]
-                    );
-                  }).reduce((total, a) => total + (a.time_spent || 0), 0))}
-                </div>
-                <p className="text-sm text-muted-foreground">Time Spent</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
