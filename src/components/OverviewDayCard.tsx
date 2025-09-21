@@ -11,7 +11,6 @@ interface OverviewDayCardProps {
   assignments: UnifiedAssignment[];
   scheduleBlocks: SupabaseScheduleBlock[];
   formatDate: (date: Date) => string;
-  scheduledAssignmentIds: Set<string>;
 }
 
 export function OverviewDayCard({ 
@@ -19,8 +18,7 @@ export function OverviewDayCard({
   selectedProfile, 
   assignments,
   scheduleBlocks, 
-  formatDate,
-  scheduledAssignmentIds
+  formatDate
 }: OverviewDayCardProps) {
   const dateStr = day.toISOString().split('T')[0];
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
@@ -29,8 +27,7 @@ export function OverviewDayCard({
     assignments,
     scheduleBlocks,
     selectedProfile.displayName,
-    dateStr,
-    scheduledAssignmentIds
+    dateStr
   );
 
   return (

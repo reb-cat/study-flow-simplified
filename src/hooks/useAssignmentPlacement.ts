@@ -16,8 +16,7 @@ export function useAssignmentPlacement(
   assignments: UnifiedAssignment[],
   scheduleBlocks: SupabaseScheduleBlock[],
   studentName: string,
-  selectedDate: string,
-  globalScheduledIds?: Set<string>
+  selectedDate: string
 ): {
   populatedBlocks: PopulatedScheduleBlock[];
   assignmentsWithFamily: AssignmentWithFamily[];
@@ -48,8 +47,8 @@ export function useAssignmentPlacement(
       return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time);
     });
 
-    // Use global tracking if provided, otherwise use local tracking
-    const scheduledAssignments = globalScheduledIds || new Set<string>();
+    // Track which assignments have been scheduled to prevent duplicates
+    const scheduledAssignments = new Set<string>();
     
     // Process blocks and populate with assignments
     const populatedBlocks: PopulatedScheduleBlock[] = [];
@@ -143,7 +142,7 @@ export function useAssignmentPlacement(
       unscheduledCount: unscheduledAssignments.length - scheduledAssignments.size
     };
     
-  }, [assignments, scheduleBlocks, studentName, selectedDate, globalScheduledIds]);
+  }, [assignments, scheduleBlocks, studentName, selectedDate]);
 }
 
 /**
