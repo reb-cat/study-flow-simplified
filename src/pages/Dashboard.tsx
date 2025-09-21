@@ -39,7 +39,7 @@ const Dashboard = () => {
     return new Date(d.setDate(diff));
   };
 
-  const monday = getMonday(currentWeek);
+  const monday = useMemo(() => getMonday(currentWeek), [currentWeek]);
   const weekDays = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) => {
       const day = new Date(monday);
@@ -51,29 +51,22 @@ const Dashboard = () => {
   // Get schedule data for the week - fetch all at once to avoid duplicate requests
   useEffect(() => {
     const fetchWeekSchedule = async () => {
-      console.log('🔍 fetchWeekSchedule called', {
-        selectedProfile: selectedProfile?.displayName,
-        weekDaysLength: weekDays.length,
-        mondayDate: monday.toISOString().split('T')[0]
-      });
-      
-      // Clear previous schedules when week changes
       setWeekSchedules({});
       
-      if (!selectedProfile) {
-        console.log('❌ No selectedProfile, skipping fetch');
-        return;
-      }
+      if (!selectedProfile) return;
       
       try {
-        console.log('📅 Fetching schedule for days:', weekDays.map(d => getDayName(d)));
+        // Calculate weekDays inside effect to avoid dependency issues
+        const weekDaysInEffect = Array.from({ length: 5 }, (_, i) => {
+          const day = new Date(monday);
+          day.setDate(monday.getDate() + i);
+          return day;
+        });
         
         // Fetch all days in parallel to avoid sequential requests
-        const promises = weekDays.map(async (day) => {
+        const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
-          console.log(`🔄 Fetching ${dayName} for ${selectedProfile.displayName}`);
           const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
-          console.log(`✅ Got ${blocks.length} blocks for ${dayName}:`, blocks);
           return { day: day.toISOString().split('T')[0], blocks };
         });
 
@@ -83,16 +76,15 @@ const Dashboard = () => {
           finalWeekData[day] = blocks;
         });
         
-        console.log('📊 Final week data:', finalWeekData);
         setWeekSchedules(finalWeekData);
       } catch (error) {
-        console.error('❌ Error fetching week schedule:', error);
+        console.error('Error fetching week schedule:', error);
         setWeekSchedules({});
       }
     };
 
     fetchWeekSchedule();
-  }, [selectedProfile?.displayName, weekDays, getCachedScheduleForDay]);
+  }, [selectedProfile?.displayName, monday, getCachedScheduleForDay]); // Use monday instead of weekDays
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -120,9 +112,7 @@ const Dashboard = () => {
   // Helper to get day name for database query
   const getDayName = useCallback((date: Date): string => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayName = dayNames[date.getDay()];
-    console.log(`📅 getDayName for ${date.toISOString().split('T')[0]}: ${dayName}`);
-    return dayName;
+    return dayNames[date.getDay()];
   }, []);
 
   const handleToggleComplete = useCallback(async (assignment: any) => {
