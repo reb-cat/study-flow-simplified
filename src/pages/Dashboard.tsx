@@ -6,9 +6,12 @@ import { ChevronLeft, ChevronRight, Focus } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
-import { useAssignments } from '@/hooks/useAssignments';
+import { useAssignments } from '@/hooks/useAssignments';  
 import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
+import { PopulatedScheduleBlock } from '@/types/schedule';
+import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra } from '@/lib/family-detection';
+import { UnifiedAssignment } from '@/types/assignment';
 
 const Dashboard = () => {
   const { 
@@ -22,6 +25,7 @@ const Dashboard = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
   const [weekSchedules, setWeekSchedules] = useState<Record<string, SupabaseScheduleBlock[]>>({});
+  const [weekScheduleWithAssignments, setWeekScheduleWithAssignments] = useState<Record<string, PopulatedScheduleBlock[]>>({});
 
   if (!selectedProfile || !currentUser) {
     return <div>Loading...</div>;
@@ -117,6 +121,181 @@ const Dashboard = () => {
     return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   }, [monday]);
 
+  // Schedule assignments for the entire week at once
+  const scheduleWeekAssignments = useCallback(() => {
+    if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
+      return {};
+    }
+
+    console.log('Running week-wide assignment placement');
+    
+    // Collect all assignment blocks for the week with their day info
+    const allBlocksForWeek: Array<SupabaseScheduleBlock & { dayDate: string; dayName: string }> = [];
+    
+    Object.entries(weekSchedules).forEach(([dayDate, dayBlocks]) => {
+      const date = new Date(dayDate + 'T12:00:00');
+      const dayName = getDayName(date);
+      
+      const assignableBlocks = dayBlocks.filter(block => {
+        const blockType = (block.block_type || '').toLowerCase();
+        return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time);
+      });
+      
+      assignableBlocks.forEach(block => {
+        allBlocksForWeek.push({ ...block, dayDate, dayName });
+      });
+    });
+
+    // Add family detection to assignments
+    const assignmentsWithFamily = assignments.map(assignment => ({
+      ...assignment,
+      detectedFamily: detectFamily(assignment)
+    }));
+
+    // Get unscheduled assignments (no scheduled_date or scheduled_block)
+    const unscheduledAssignments = assignmentsWithFamily.filter(a => 
+      !a.scheduled_date && !a.scheduled_block
+    );
+
+    // Track which assignments have been scheduled to prevent duplicates across the entire week
+    const scheduledAssignments = new Set<string>();
+    const weekAssignmentData: Record<string, PopulatedScheduleBlock[]> = {};
+
+    // Initialize each day's data
+    Object.keys(weekSchedules).forEach(dayDate => {
+      weekAssignmentData[dayDate] = [];
+    });
+
+    // Process blocks and populate with assignments
+    for (const blockWithDay of allBlocksForWeek) {
+      const { dayDate, dayName, ...block } = blockWithDay;
+      const family = getBlockFamily(selectedProfile.displayName, dayName, block.block_number || 0);
+      
+      console.log('Processing block:', {
+        day: dayName,
+        blockNumber: block.block_number,
+        blockType: block.block_type,
+        family
+      });
+      
+      if (!family) {
+        weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: undefined });
+        continue;
+      }
+
+      // Special case: Khalil's Algebra priority
+      if (shouldPrioritizeAlgebra(selectedProfile.displayName, dayName, block.block_number || 0)) {
+        const algebraAssignment = unscheduledAssignments.find(a => 
+          !scheduledAssignments.has(a.id) &&
+          ((a.subject || '').toLowerCase().includes('algebra') || 
+           (a.course_name || '').toLowerCase().includes('algebra'))
+        );
+        
+        if (algebraAssignment) {
+          scheduledAssignments.add(algebraAssignment.id);
+          weekAssignmentData[dayDate].push({ 
+            ...block, 
+            assignment: algebraAssignment,
+            assignedFamily: family
+          });
+          console.log('Assigned algebra to block:', algebraAssignment.title);
+          continue;
+        }
+      }
+
+      // Special case: Study Hall blocks prefer short tasks
+      if (isStudyHallBlock(block.block_type, block.start_time)) {
+        const shortTask = unscheduledAssignments.find(a => 
+          !scheduledAssignments.has(a.id) &&
+          a.detectedFamily === family &&
+          isShortTask(a)
+        );
+        
+        if (shortTask) {
+          scheduledAssignments.add(shortTask.id);
+          weekAssignmentData[dayDate].push({ 
+            ...block, 
+            assignment: shortTask,
+            assignedFamily: family
+          });
+          console.log('Assigned short task to study hall:', shortTask.title);
+          continue;
+        }
+      }
+
+      // Regular assignment matching by family
+      const matchingAssignments = unscheduledAssignments
+        .filter(a => 
+          !scheduledAssignments.has(a.id) && 
+          a.detectedFamily === family
+        )
+        .sort((a, b) => {
+          // Sort by due date (earliest first)
+          if (a.due_date && b.due_date) {
+            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+          }
+          if (a.due_date) return -1;
+          if (b.due_date) return 1;
+          return 0;
+        });
+
+      const selectedAssignment = matchingAssignments[0];
+      
+      if (selectedAssignment) {
+        console.log('Assigned to block:', selectedAssignment.title);
+        scheduledAssignments.add(selectedAssignment.id);
+        weekAssignmentData[dayDate].push({ 
+          ...block, 
+          assignment: selectedAssignment,
+          assignedFamily: family
+        });
+      } else {
+        console.log('No assignment found for block family:', family);
+        weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: family });
+      }
+    }
+
+    // Add all non-assignable blocks back to their respective days
+    Object.entries(weekSchedules).forEach(([dayDate, dayBlocks]) => {
+      const nonAssignableBlocks = dayBlocks.filter(block => {
+        const blockType = (block.block_type || '').toLowerCase();
+        return blockType !== 'assignment' && !isStudyHallBlock(block.block_type, block.start_time);
+      });
+      
+      nonAssignableBlocks.forEach(block => {
+        weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: undefined });
+      });
+      
+      // Sort blocks by start time
+      weekAssignmentData[dayDate].sort((a, b) => {
+        const aTime = typeof a.start_time === 'number' ? a.start_time : 0;
+        const bTime = typeof b.start_time === 'number' ? b.start_time : 0;
+        return aTime - bTime;
+      });
+    });
+
+    return weekAssignmentData;
+  }, [selectedProfile, assignments, weekSchedules, getDayName]);
+
+  // Run assignment placement when schedules or assignments change
+  useEffect(() => {
+    const scheduledWeek = scheduleWeekAssignments();
+    setWeekScheduleWithAssignments(scheduledWeek);
+  }, [scheduleWeekAssignments]);
+
+  // Helper function to identify short tasks suitable for Study Hall
+  const isShortTask = useCallback((assignment: UnifiedAssignment & { detectedFamily: string }): boolean => {
+    const title = (assignment.title || '').toLowerCase();
+    
+    // Keywords that suggest short tasks
+    const shortTaskKeywords = [
+      'quiz', 'check', 'review', 'practice', 'worksheet', 'exercise',
+      'question', 'problem', 'drill', 'vocab', 'vocabulary'
+    ];
+    
+    return shortTaskKeywords.some(keyword => title.includes(keyword));
+  }, []);
+
   // Get today's date for guided mode
   const today = new Date().toISOString().split('T')[0];
 
@@ -159,16 +338,20 @@ const Dashboard = () => {
 
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {weekDays.map((day, dayIndex) => (
-            <OverviewDayCard 
-              key={dayIndex}
-              day={day}
-              selectedProfile={selectedProfile}
-              assignments={assignments}
-              scheduleBlocks={weekSchedules[day.toISOString().split('T')[0]] || []}
-              formatDate={formatDate}
-            />
-          ))}
+          {weekDays.map((day, dayIndex) => {
+            const dayDate = day.toISOString().split('T')[0];
+            return (
+              <OverviewDayCard 
+                key={dayIndex}
+                day={day}
+                selectedProfile={selectedProfile}
+                assignments={assignments}
+                scheduleBlocks={weekSchedules[dayDate] || []}
+                populatedBlocks={weekScheduleWithAssignments[dayDate] || []}
+                formatDate={formatDate}
+              />
+            );
+          })}
         </div>
       </main>
     </div>

@@ -1,15 +1,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { OverviewScheduleBlock } from '@/components/OverviewScheduleBlock';
-import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { UnifiedAssignment } from '@/types/assignment';
+import { PopulatedScheduleBlock } from '@/types/schedule';
 
 interface OverviewDayCardProps {
   day: Date;
   selectedProfile: any;
   assignments: UnifiedAssignment[];
   scheduleBlocks: SupabaseScheduleBlock[];
+  populatedBlocks: PopulatedScheduleBlock[];
   formatDate: (date: Date) => string;
 }
 
@@ -17,18 +18,12 @@ export function OverviewDayCard({
   day, 
   selectedProfile, 
   assignments,
-  scheduleBlocks, 
+  scheduleBlocks,
+  populatedBlocks,
   formatDate
 }: OverviewDayCardProps) {
   const dateStr = day.toISOString().split('T')[0];
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
-
-  const { populatedBlocks } = useAssignmentPlacement(
-    assignments,
-    scheduleBlocks,
-    selectedProfile.displayName,
-    dateStr
-  );
 
   return (
     <Card className="card-elevated h-fit">
