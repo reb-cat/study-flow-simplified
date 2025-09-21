@@ -244,35 +244,41 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Light mode - vibrant but subtle 25% opacity */
+  /* Light mode - vibrant but subtle 20% opacity */
   .schedule-block-home {
-    background: rgba(16, 185, 129, 0.25);   /* Teal-green 25% */
-    border-color: rgba(16, 185, 129, 0.25);
+    background: rgba(16, 185, 129, 0.2);   /* Teal-green 20% */
+    border-color: rgba(16, 185, 129, 0.2);
+    font-weight: 600;  /* Semi-bold */
   }
 
   .schedule-block-location {
-    background: rgba(139, 92, 246, 0.25);   /* Purple 25% */
-    border-color: rgba(139, 92, 246, 0.25);
+    background: rgba(139, 92, 246, 0.2);   /* Purple 20% */
+    border-color: rgba(139, 92, 246, 0.2);
+    font-weight: 600;  /* Semi-bold */
   }
 
   .schedule-block-special {
-    background: rgba(251, 146, 60, 0.25);   /* Orange 25% */
-    border-color: rgba(251, 146, 60, 0.25);
+    background: rgba(251, 146, 60, 0.2);   /* Orange 20% */
+    border-color: rgba(251, 146, 60, 0.2);
+    font-weight: 600;  /* Semi-bold */
   }
 
   .schedule-block-prep {
-    background: rgba(14, 165, 233, 0.25);   /* Sky blue 25% */
-    border-color: rgba(14, 165, 233, 0.25);
+    background: rgba(14, 165, 233, 0.2);   /* Sky blue 20% */
+    border-color: rgba(14, 165, 233, 0.2);
+    font-weight: 600;  /* Semi-bold */
   }
 
   .schedule-block-travel {
-    background: rgba(6, 182, 212, 0.25);    /* Cyan 25% */
-    border-color: rgba(6, 182, 212, 0.25);
+    background: rgba(6, 182, 212, 0.2);    /* Cyan 20% */
+    border-color: rgba(6, 182, 212, 0.2);
+    font-weight: 600;  /* Semi-bold */
   }
 
   .schedule-block-movement {
-    background: rgba(236, 72, 153, 0.25);   /* Pink 25% */
-    border-color: rgba(236, 72, 153, 0.25);
+    background: rgba(236, 72, 153, 0.2);   /* Pink 20% */
+    border-color: rgba(236, 72, 153, 0.2);
+    font-weight: 600;  /* Semi-bold */
   }
 
   /* Dark mode - 60% transparency */
