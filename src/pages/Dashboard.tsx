@@ -150,7 +150,6 @@ const Dashboard = () => {
               dayIndex={dayIndex}
               selectedProfile={selectedProfile}
               assignments={assignments}
-              getScheduleForDay={getScheduleForDay}
               formatDate={formatDate}
               handleToggleComplete={handleToggleComplete}
               handleStartTimer={handleStartTimer}

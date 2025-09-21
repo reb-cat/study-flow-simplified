@@ -25,22 +25,29 @@ export function useSupabaseSchedule() {
     setIsLoading(true);
     setError(null);
 
-    const { data, error: fetchError } = await supabase
-      .from('schedule_template')
-      .select('*')
-      .eq('student_name', studentName)
-      .eq('weekday', dayName)
-      .order('start_time');
-      
-    setIsLoading(false);
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('schedule_template')
+        .select('*')
+        .eq('student_name', studentName)
+        .eq('weekday', dayName)
+        .order('start_time');
+        
+      setIsLoading(false);
 
-    if (fetchError) {
-      console.error('Failed to fetch schedule:', fetchError);
-      setError(fetchError.message);
+      if (fetchError) {
+        console.error('Failed to fetch schedule:', fetchError);
+        setError(fetchError.message);
+        return [];
+      }
+      
+      return data || []; // This has the REAL schedule
+    } catch (err) {
+      setIsLoading(false);
+      console.error('Network error fetching schedule:', err);
+      setError('Network error - please try again');
       return [];
     }
-    
-    return data || []; // This has the REAL schedule
   };
 
   return {

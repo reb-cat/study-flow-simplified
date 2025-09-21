@@ -4,13 +4,14 @@ import { ScheduleBlockDisplay } from '@/components/ScheduleBlockDisplay';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { SupabaseAssignment } from '@/hooks/useSupabaseAssignments';
+import { useScheduleCache } from '@/hooks/useScheduleCache';
 
 interface DayScheduleCardProps {
   day: Date;
   dayIndex: number;
   selectedProfile: any;
   assignments: SupabaseAssignment[];
-  getScheduleForDay: (studentName: string, dayName: string) => Promise<SupabaseScheduleBlock[]>;
+  // Removed getScheduleForDay - now using cached version
   formatDate: (date: Date) => string;
   handleToggleComplete: (assignment: any) => void;
   handleStartTimer: (assignmentId: string) => void;
@@ -25,7 +26,6 @@ export function DayScheduleCard({
   dayIndex, 
   selectedProfile, 
   assignments, 
-  getScheduleForDay, 
   formatDate,
   handleToggleComplete,
   handleStartTimer,
@@ -35,20 +35,18 @@ export function DayScheduleCard({
   getDayName
 }: DayScheduleCardProps) {
   const [scheduleBlocks, setScheduleBlocks] = useState<SupabaseScheduleBlock[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { getCachedScheduleForDay, isLoading, error } = useScheduleCache();
 
-  // Fetch schedule data for this day
+  // Fetch schedule data for this day with caching
   useEffect(() => {
     const fetchSchedule = async () => {
-      setIsLoading(true);
       const dayName = getDayName(day);
-      const blocks = await getScheduleForDay(selectedProfile.displayName, dayName);
+      const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
       setScheduleBlocks(blocks);
-      setIsLoading(false);
     };
 
     fetchSchedule();
-  }, [day, selectedProfile.displayName, getScheduleForDay, getDayName]);
+  }, [day, selectedProfile.displayName, getCachedScheduleForDay, getDayName]);
 
   const dateStr = day.toISOString().split('T')[0];
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
@@ -71,6 +69,24 @@ export function DayScheduleCard({
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
             Loading schedule...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="card-elevated h-fit">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">
+            {formatDate(day)}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-destructive py-8">
+            <p className="text-sm">Failed to load schedule</p>
+            <p className="text-xs text-muted-foreground mt-2">{error}</p>
           </div>
         </CardContent>
       </Card>
