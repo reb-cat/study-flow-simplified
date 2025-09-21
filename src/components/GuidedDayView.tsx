@@ -428,7 +428,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                 variant="outline" 
                 onClick={handleStuck} 
                 size="lg" 
-                className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[120px]"
+                className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold"
               >
                 <AlertTriangle className="w-6 h-6" />
                 I'm Stuck - Need Help
