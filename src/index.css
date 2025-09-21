@@ -271,8 +271,8 @@
   }
 
   .dark .schedule-block-movement {
-    background: rgba(13, 174, 151, 0.6);  /* Teal green - 60% opacity */
-    border-color: rgba(13, 174, 151, 0.6);
+    background: rgba(130, 198, 39, 0.6);  /* Yellow-green - 60% opacity */
+    border-color: rgba(130, 198, 39, 0.6);
   }
 
   /* Make ALL text bold in dark mode for readability */
