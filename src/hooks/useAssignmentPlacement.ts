@@ -24,11 +24,17 @@ export function useAssignmentPlacement(
 } {
   
   return useMemo(() => {
+    console.log('Processing assignments:', assignments);
+    
     // Add family detection to assignments
-    const assignmentsWithFamily: AssignmentWithFamily[] = assignments.map(assignment => ({
-      ...assignment,
-      detectedFamily: detectFamily(assignment)
-    }));
+    const assignmentsWithFamily: AssignmentWithFamily[] = assignments.map(assignment => {
+      const family = detectFamily(assignment);
+      console.log(`Assignment "${assignment.title}" detected as family:`, family);
+      return {
+        ...assignment,
+        detectedFamily: family
+      };
+    });
 
     // Get unscheduled assignments (no scheduled_date or scheduled_block)
     const unscheduledAssignments = assignmentsWithFamily.filter(a => 
@@ -48,6 +54,10 @@ export function useAssignmentPlacement(
     const populatedBlocks: PopulatedScheduleBlock[] = assignableBlocks.map(block => {
       const dayName = getDayName(selectedDate);
       const family = getBlockFamily(studentName, dayName, block.block_number || 0);
+      
+      console.log('Block type:', block.block_type);
+      console.log('Block family:', family);
+      console.log('Student:', studentName, 'Day:', dayName, 'Block:', block.block_number);
       
       if (!family) return { ...block, assignment: undefined, assignedFamily: undefined };
 
@@ -106,6 +116,7 @@ export function useAssignmentPlacement(
       const selectedAssignment = matchingAssignments[0];
       
       if (selectedAssignment) {
+        console.log('Assigned to block:', selectedAssignment.title);
         scheduledAssignments.add(selectedAssignment.id);
         return { 
           ...block, 
@@ -114,6 +125,7 @@ export function useAssignmentPlacement(
         };
       }
 
+      console.log('No assignment found for block family:', family);
       return { ...block, assignment: undefined, assignedFamily: family };
     });
 

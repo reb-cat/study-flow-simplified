@@ -29,6 +29,7 @@ export function useSupabaseAssignments(userId?: string) {
   const fetchAssignments = async (targetUserId?: string) => {
     if (!targetUserId) return;
 
+    console.log('Fetching assignments for user:', targetUserId);
     setIsLoading(true);
     setError(null);
 
@@ -37,6 +38,9 @@ export function useSupabaseAssignments(userId?: string) {
       .select('*')
       .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
+
+    console.log('Assignments fetched:', data);
+    console.log('Fetch error:', fetchError);
 
     setIsLoading(false);
 
