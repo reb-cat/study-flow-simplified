@@ -244,56 +244,34 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Dark mode - Gradients with white base for better contrast */
-  .dark .schedule-block {
-    background: rgba(255, 255, 255, 0.05); /* 5% white base */
-  }
-
+  /* Dark mode - YOUR EXACT COLORS with 70% transparency */
   .dark .schedule-block-prep {
-    background: linear-gradient(
-      hsl(var(--color-prep) / 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    border-color: hsl(var(--color-prep) / 0.4);
+    background-color: hsl(var(--color-prep) / 0.7);
+    border-color: hsl(var(--color-prep) / 0.8);
   }
 
   .dark .schedule-block-location {
-    background: linear-gradient(
-      hsl(var(--color-location) / 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    border-color: hsl(var(--color-location) / 0.4);
+    background-color: hsl(var(--color-location) / 0.7);
+    border-color: hsl(var(--color-location) / 0.8);
   }
 
   .dark .schedule-block-home {
-    background: linear-gradient(
-      hsl(var(--color-home) / 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    border-color: hsl(var(--color-home) / 0.4);
+    background-color: hsl(var(--color-home) / 0.7);
+    border-color: hsl(var(--color-home) / 0.8);
   }
 
   .dark .schedule-block-special {
-    background: linear-gradient(
-      hsl(var(--color-special) / 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    border-color: hsl(var(--color-special) / 0.4);
+    background-color: hsl(var(--color-special) / 0.7);
+    border-color: hsl(var(--color-special) / 0.8);
   }
 
   .dark .schedule-block-travel {
-    background: linear-gradient(
-      hsl(var(--color-travel) / 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    border-color: hsl(var(--color-travel) / 0.4);
+    background-color: hsl(var(--color-travel) / 0.7);
+    border-color: hsl(var(--color-travel) / 0.8);
   }
 
   .dark .schedule-block-movement {
-    background: linear-gradient(
-      hsl(var(--color-movement) / 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    border-color: hsl(var(--color-movement) / 0.4);
+    background-color: hsl(var(--color-movement) / 0.7);
+    border-color: hsl(var(--color-movement) / 0.8);
   }
 }
