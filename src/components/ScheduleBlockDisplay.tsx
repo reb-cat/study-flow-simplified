@@ -14,19 +14,6 @@ interface ScheduleBlockDisplayProps {
 export function ScheduleBlockDisplay({ block, assignedFamily, children }: ScheduleBlockDisplayProps) {
   const colorClass = getSubjectColorClass(block.subject || assignedFamily);
   
-  const shortenSubjectName = (name: string) => {
-    const shortNames: Record<string, string> = {
-      'American Literature': 'American Lit',
-      'British Literature': 'British Lit',
-      'World Literature': 'World Lit',
-      'Mathematics': 'Math',
-      'Physical Education': 'PE',
-      'Social Studies': 'Social St',
-      'Language Arts': 'Lang Arts',
-    };
-    return shortNames[name] || name;
-  };
-  
   return (
     <div className="space-y-2">
       <div className={`flex items-center gap-3 text-sm font-medium rounded-lg px-3 py-2 transition-all duration-200 ${colorClass || 'bg-card border border-border/50'}`}>
@@ -34,7 +21,7 @@ export function ScheduleBlockDisplay({ block, assignedFamily, children }: Schedu
           {convertTo12Hour(block.start_time)}
         </span>
         <span className="text-foreground font-semibold flex-1 min-w-0">
-          {shortenSubjectName(block.subject || block.block_name)}
+          {block.subject || block.block_name}
         </span>
       </div>
       
