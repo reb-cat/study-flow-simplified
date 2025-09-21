@@ -2,48 +2,44 @@
 import { AssignmentFamily } from './family-detection';
 
 export type SubjectColorClass = 
-  | 'location-travel' 
-  | 'location-coop' 
-  | 'location-online' 
-  | 'location-home'
+  | 'subject-math' 
+  | 'subject-language' 
+  | 'subject-science' 
+  | 'subject-history' 
+  | 'subject-arts' 
+  | 'subject-practical'
   | '';
 
 /**
- * Maps subjects to location-based color classes for visual organization
+ * Maps assignment families to EF-friendly color classes for visual organization
  */
 export function getSubjectColorClass(family?: AssignmentFamily | string): SubjectColorClass {
   if (!family) return '';
   
   const familyLower = family.toLowerCase();
   
-  // Travel activities
-  if (familyLower.includes('travel') || familyLower.includes('field trip') || familyLower.includes('outing')) {
-    return 'location-travel';
+  if (familyLower.includes('math') || familyLower.includes('algebra') || familyLower.includes('geometry')) {
+    return 'subject-math';
   }
   
-  // Co-op activities
-  if (familyLower.includes('co-op') || familyLower.includes('coop') || familyLower.includes('cooperative')) {
-    return 'location-coop';
+  if (familyLower.includes('language') || familyLower.includes('english') || familyLower.includes('writing')) {
+    return 'subject-language';
   }
   
-  // Online activities
-  if (familyLower.includes('online') || familyLower.includes('zoom') || familyLower.includes('virtual') || familyLower.includes('video')) {
-    return 'location-online';
+  if (familyLower.includes('science') || familyLower.includes('biology') || familyLower.includes('chemistry') || familyLower.includes('physics')) {
+    return 'subject-science';
   }
   
-  // At-home activities (assignments, Bible, etc.)
-  if (familyLower.includes('assignment') || familyLower.includes('bible') || familyLower.includes('devotion') || 
-      familyLower.includes('homework') || familyLower.includes('study') || familyLower.includes('reading')) {
-    return 'location-home';
+  if (familyLower.includes('history') || familyLower.includes('social') || familyLower.includes('geography')) {
+    return 'subject-history';
   }
   
-  // Default based on subject type for remaining items
-  if (familyLower.includes('math') || familyLower.includes('geometry') || familyLower.includes('algebra')) {
-    return 'location-home';
+  if (familyLower.includes('arts') || familyLower.includes('art') || familyLower.includes('music') || familyLower.includes('drama')) {
+    return 'subject-arts';
   }
   
-  if (familyLower.includes('literature') || familyLower.includes('english') || familyLower.includes('writing')) {
-    return 'location-home';
+  if (familyLower.includes('practical') || familyLower.includes('pe') || familyLower.includes('physical') || familyLower.includes('life')) {
+    return 'subject-practical';
   }
   
   return '';
