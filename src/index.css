@@ -244,6 +244,37 @@
     border-color: hsl(var(--color-movement));
   }
 
+  /* Light mode - vibrant but subtle 15% opacity */
+  .schedule-block-home {
+    background: rgba(16, 185, 129, 0.15);   /* Teal-green 15% */
+    border-color: rgba(16, 185, 129, 0.15);
+  }
+
+  .schedule-block-location {
+    background: rgba(139, 92, 246, 0.15);   /* Purple 15% */
+    border-color: rgba(139, 92, 246, 0.15);
+  }
+
+  .schedule-block-special {
+    background: rgba(251, 146, 60, 0.15);   /* Orange 15% */
+    border-color: rgba(251, 146, 60, 0.15);
+  }
+
+  .schedule-block-prep {
+    background: rgba(14, 165, 233, 0.15);   /* Sky blue 15% */
+    border-color: rgba(14, 165, 233, 0.15);
+  }
+
+  .schedule-block-travel {
+    background: rgba(6, 182, 212, 0.15);    /* Cyan 15% */
+    border-color: rgba(6, 182, 212, 0.15);
+  }
+
+  .schedule-block-movement {
+    background: rgba(236, 72, 153, 0.15);   /* Pink 15% */
+    border-color: rgba(236, 72, 153, 0.15);
+  }
+
   /* Dark mode - 60% transparency */
   .dark .schedule-block-home {
     background: rgba(34, 197, 94, 0.6);   /* Green - 60% opacity */
