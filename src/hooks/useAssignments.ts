@@ -9,25 +9,32 @@ import { UnifiedAssignment } from '@/types/assignment';
 export function useAssignments() {
   const { currentUser, isDemo } = useApp();
   
+  console.log('🏠 useAssignments - currentUser:', currentUser?.id, 'isDemo:', isDemo);
+  
   // For demo users, use demo assignments table
-  const demoResult = useDemoAssignments(
-    isDemo && currentUser ? currentUser.id : undefined
-  );
+  const demoUserId = isDemo && currentUser ? currentUser.id : undefined;
+  const realUserId = !isDemo && currentUser ? currentUser.id : undefined;
+  
+  console.log('🎭 Demo userId:', demoUserId, '🏢 Real userId:', realUserId);
+  
+  const demoResult = useDemoAssignments(demoUserId);
   
   // For real users, use real assignments table  
-  const realResult = useSupabaseAssignments(
-    !isDemo && currentUser ? currentUser.id : undefined
-  );
+  const realResult = useSupabaseAssignments(realUserId);
 
   // Return appropriate result based on demo mode
   if (isDemo) {
+    const mappedAssignments = demoResult.assignments.map(a => ({
+      ...a,
+      user_id: a.student_name, // Map for compatibility
+      canvas_url: null,
+      canvas_id: null
+    })) as UnifiedAssignment[];
+    
+    console.log('🎭 Demo assignments mapped:', mappedAssignments.length, mappedAssignments);
+    
     return {
-      assignments: demoResult.assignments.map(a => ({
-        ...a,
-        user_id: a.student_name, // Map for compatibility
-        canvas_url: null,
-        canvas_id: null
-      })) as UnifiedAssignment[],
+      assignments: mappedAssignments,
       isLoading: demoResult.isLoading,
       error: demoResult.error,
       refetch: demoResult.refetch,
@@ -35,6 +42,8 @@ export function useAssignments() {
     };
   }
 
+  console.log('🏢 Real assignments:', realResult.assignments?.length || 0, realResult.assignments);
+  
   return {
     assignments: realResult.assignments as UnifiedAssignment[],
     isLoading: realResult.isLoading,
