@@ -189,25 +189,27 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       updateAssignment(currentBlock.assignment.id, {
         completed: true
       });
-      toast({
-        title: "Assignment complete! 🌟",
-        description: "Excellent work! Moving to next block."
-      });
-      // Auto-advance to next block
-      setTimeout(() => {
-        if (currentBlockIndex < totalBlocks - 1) {
-          setCurrentBlockIndex(prev => prev + 1);
-          setLocalTimerRunning(false);
-        } else {
-          // All done!
-          toast({
-            title: "All blocks complete! 🎊",
-            description: "Amazing work today!"
-          });
-          onBackToHub();
-        }
-      }, 1000);
     }
+    
+    toast({
+      title: "Block complete! 🌟",
+      description: "Excellent work! Moving to next block."
+    });
+    
+    // Auto-advance to next block for ALL block types
+    setTimeout(() => {
+      if (currentBlockIndex < totalBlocks - 1) {
+        setCurrentBlockIndex(prev => prev + 1);
+        setLocalTimerRunning(false);
+      } else {
+        // All done!
+        toast({
+          title: "All blocks complete! 🎊",
+          description: "Amazing work today!"
+        });
+        onBackToHub();
+      }
+    }, 1000);
   };
 
   const handleNeedMoreTime = async () => {
