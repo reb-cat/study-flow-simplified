@@ -11,8 +11,8 @@ export type SubjectColorClass =
 
 /**
  * Maps block types and subjects to activity-based color classes
- * Blue: Prep/Load
- * Purple: Co-op, Lunch  
+ * Blue: Travel, Prep/Load (checked first to override other matches)
+ * Purple: Co-op, Lunch, Study Hall
  * Green: Assignment, Bible
  * Orange: Forensics, Tutoring, Algebra, Language Fundamentals
  * Yellow: Movement & breaks
@@ -20,6 +20,11 @@ export type SubjectColorClass =
 export function getSubjectColorClass(blockType?: string, subject?: string): SubjectColorClass {
   const blockTypeLower = blockType?.toLowerCase() || '';
   const subjectLower = subject?.toLowerCase() || '';
+  
+  // Blue: Travel & Prep blocks (check first to override other matches)
+  if (blockTypeLower.includes('prep') || blockTypeLower.includes('load') || subjectLower.includes('travel')) {
+    return 'subject-blue';
+  }
   
   // Orange: Special subjects that need attention (override block_type)
   if (subjectLower.includes('forensics') || 
@@ -33,11 +38,6 @@ export function getSubjectColorClass(blockType?: string, subject?: string): Subj
   // Yellow: Movement & break blocks - energetic "get up and move!" color
   if (subjectLower.includes('movement')) {
     return 'subject-yellow';
-  }
-  
-  // Blue: Travel & Prep blocks
-  if (blockTypeLower.includes('prep') || blockTypeLower.includes('load') || subjectLower.includes('travel')) {
-    return 'subject-blue';
   }
   
   // Purple: Co-op time blocks (location-based)
