@@ -47,11 +47,13 @@ export function useAssignmentPlacement(
       return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time);
     });
 
-    // Create a map to track which assignments have been scheduled
+    // Track which assignments have been scheduled to prevent duplicates
     const scheduledAssignments = new Set<string>();
     
     // Process blocks and populate with assignments
-    const populatedBlocks: PopulatedScheduleBlock[] = assignableBlocks.map(block => {
+    const populatedBlocks: PopulatedScheduleBlock[] = [];
+    
+    for (const block of assignableBlocks) {
       const dayName = getDayName(selectedDate);
       const family = getBlockFamily(studentName, dayName, block.block_number || 0);
       
@@ -59,7 +61,10 @@ export function useAssignmentPlacement(
       console.log('Block family:', family);
       console.log('Student:', studentName, 'Day:', dayName, 'Block:', block.block_number);
       
-      if (!family) return { ...block, assignment: undefined, assignedFamily: undefined };
+      if (!family) {
+        populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: undefined });
+        continue;
+      }
 
       // Special case: Khalil's Algebra priority
       if (shouldPrioritizeAlgebra(studentName, dayName, block.block_number || 0)) {
@@ -71,11 +76,12 @@ export function useAssignmentPlacement(
         
         if (algebraAssignment) {
           scheduledAssignments.add(algebraAssignment.id);
-          return { 
+          populatedBlocks.push({ 
             ...block, 
             assignment: algebraAssignment,
             assignedFamily: family
-          };
+          });
+          continue;
         }
       }
 
@@ -89,11 +95,12 @@ export function useAssignmentPlacement(
         
         if (shortTask) {
           scheduledAssignments.add(shortTask.id);
-          return { 
+          populatedBlocks.push({ 
             ...block, 
             assignment: shortTask,
             assignedFamily: family
-          };
+          });
+          continue;
         }
       }
 
@@ -118,16 +125,16 @@ export function useAssignmentPlacement(
       if (selectedAssignment) {
         console.log('Assigned to block:', selectedAssignment.title);
         scheduledAssignments.add(selectedAssignment.id);
-        return { 
+        populatedBlocks.push({ 
           ...block, 
           assignment: selectedAssignment,
           assignedFamily: family
-        };
+        });
+      } else {
+        console.log('No assignment found for block family:', family);
+        populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
       }
-
-      console.log('No assignment found for block family:', family);
-      return { ...block, assignment: undefined, assignedFamily: family };
-    });
+    }
 
     return {
       populatedBlocks,
