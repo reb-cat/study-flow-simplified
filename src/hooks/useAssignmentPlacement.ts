@@ -41,7 +41,7 @@ export function useAssignmentPlacement(
     // Get Assignment and Study Hall blocks for processing
     const assignableBlocks = scheduleBlocks.filter(block => {
       const blockType = (block.block_type || '').toLowerCase();
-      return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time);
+      return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name);
     });
 
     // Track which assignments have been scheduled to prevent duplicates
@@ -79,7 +79,7 @@ export function useAssignmentPlacement(
       }
 
       // Special case: Study Hall blocks prefer short tasks
-      if (isStudyHallBlock(block.block_type, block.start_time)) {
+      if (isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name)) {
         const shortTask = unscheduledAssignments.find(a => 
           !scheduledAssignments.has(a.id) &&
           a.detectedFamily === family &&

@@ -132,8 +132,15 @@ export function getBlockFamily(studentName: string, dayName: string, blockNumber
 /**
  * Check if this is a Study Hall block during co-op time
  */
-export function isStudyHallBlock(blockType?: string, startTime?: string): boolean {
+export function isStudyHallBlock(blockType?: string, startTime?: string, subject?: string, blockName?: string): boolean {
   const blockTypeLower = (blockType || '').toLowerCase();
+  const subjectLower = (subject || '').toLowerCase();
+  const blockNameLower = (blockName || '').toLowerCase();
+  
+  // Study Hall blocks can be identified by subject or block name
+  if (subjectLower === 'study hall' || blockNameLower === 'study hall') {
+    return true;
+  }
   
   // Study Hall blocks during co-op time (typically afternoon)
   if (blockTypeLower === 'study hall') {
