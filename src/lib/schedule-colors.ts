@@ -1,47 +1,36 @@
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 
-export function getBlockColor(block: SupabaseScheduleBlock): string {
+export function getScheduleBlockClassName(block: SupabaseScheduleBlock): string {
   const blockType = block.block_type;
   const subject = block.subject || block.block_name || '';
   
-  // Blue category - Prep/Load
-  if (blockType === 'Prep/Load' || blockType === 'Prep') return 'prep';
+  // Bible blocks → green background
+  if (blockType === 'Bible') return 'schedule-block schedule-block-home';
   
-  // Purple category - Location-based (Co-op, Lunch)
-  if (blockType === 'Lunch') return 'location';
-  if (blockType === 'Co-op' && !isSpecialClass(subject)) return 'location';
+  // Assignment blocks → green background  
+  if (blockType === 'Assignment') return 'schedule-block schedule-block-home';
   
-  // Orange category - Special classes (check subject for Co-op blocks)
+  // Special subjects → orange background (check first for Co-op blocks)
   if (subject.includes('Forensics') || 
       subject.includes('Tutoring') || 
       subject.includes('Algebra') || 
       subject.includes('LF') ||
       subject.includes('Language Fundamentals')) {
-    return 'special';
+    return 'schedule-block schedule-block-special';
   }
   
-  // Green category - Home work (Assignment, Bible)
-  if (blockType === 'Bible' || blockType === 'Assignment') return 'home';
+  // Co-op blocks → purple background (unless special subject above)
+  if (blockType === 'Co-op') return 'schedule-block schedule-block-location';
   
-  // Travel gets its own shade of blue
-  if (blockType === 'Travel') return 'travel';
+  // Lunch → purple background
+  if (blockType === 'Lunch') return 'schedule-block schedule-block-location';
   
-  // Movement gets yellow
-  if (blockType === 'Movement') return 'movement';
+  // Travel → blue background
+  if (blockType === 'Travel') return 'schedule-block schedule-block-travel';
   
-  // Default
-  return 'home';
-}
-
-function isSpecialClass(subject: string): boolean {
-  return subject.includes('Forensics') || 
-         subject.includes('Tutoring') || 
-         subject.includes('Algebra') || 
-         subject.includes('LF') ||
-         subject.includes('Language Fundamentals');
-}
-
-export function getScheduleBlockClassName(block: SupabaseScheduleBlock): string {
-  const colorCategory = getBlockColor(block);
-  return `schedule-block schedule-block-${colorCategory}`;
+  // Movement → yellow background
+  if (blockType === 'Movement') return 'schedule-block schedule-block-movement';
+  
+  // Default - no special styling
+  return '';
 }

@@ -18,9 +18,6 @@ export function ScheduleBlockDisplay({ block, assignedFamily, children }: Schedu
     <div className={`space-y-2 p-3 ${blockClassName}`}>
       <div className="text-xs font-medium text-foreground/80">
         <span>{convertTo12Hour(block.start_time)}–{convertTo12Hour(block.end_time)} • {block.subject || block.block_name}</span>
-        {assignedFamily && (
-          <span className="ml-2 text-foreground/60">({assignedFamily})</span>
-        )}
       </div>
       
       {block.block_type === 'Assignment' && !children && (
