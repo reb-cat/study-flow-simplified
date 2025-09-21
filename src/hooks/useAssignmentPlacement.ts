@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { UnifiedAssignment } from '@/types/assignment';
-import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra } from '@/lib/family-detection';
+import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra, STUDY_HALL_FALLBACK } from '@/lib/family-detection';
 
 interface AssignmentWithFamily extends UnifiedAssignment {
   detectedFamily: string;
@@ -92,6 +92,15 @@ export function useAssignmentPlacement(
             ...block, 
             assignment: shortTask,
             assignedFamily: family
+          });
+          continue;
+        } else {
+          // Study Hall fallback when no short assignments available
+          populatedBlocks.push({ 
+            ...block, 
+            assignment: undefined,
+            assignedFamily: family,
+            fallback: STUDY_HALL_FALLBACK
           });
           continue;
         }

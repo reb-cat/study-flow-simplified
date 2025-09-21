@@ -31,7 +31,7 @@ export function OverviewScheduleBlock({ block, assignment }: OverviewScheduleBlo
     if ((block as any).fallback) {
       return (block as any).fallback;
     }
-    if (block.block_type === 'Assignment') {
+    if (block.block_type === 'Assignment' || block.block_type === 'Study Hall') {
       return 'No assignment scheduled';
     }
     return block.subject || block.block_name;

@@ -11,6 +11,9 @@ export const FALLBACKS: Record<AssignmentFamily, string[]> = {
   Composition: ['Journal entry']
 };
 
+// Study Hall specific fallback
+export const STUDY_HALL_FALLBACK = 'Review notes';
+
 // Block family assignments for each student and day
 export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, AssignmentFamily>>> = {
   "Abigail": {
