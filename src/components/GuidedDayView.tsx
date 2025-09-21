@@ -395,17 +395,15 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                     {currentBlock.blockType?.toLowerCase() === 'assignment' ? 'Done!' : 'Mark Complete'}
                   </Button>
                   
-                  {currentBlock.blockType?.toLowerCase() === 'assignment' && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleNeedMoreTime} 
-                      size="lg" 
-                      className="gap-3 border-2 py-4 text-base font-semibold"
-                    >
-                      <Clock className="w-6 h-6" />
-                      More Time
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    onClick={handleNeedMoreTime} 
+                    size="lg" 
+                    className="gap-3 border-2 py-4 text-base font-semibold"
+                  >
+                    <Clock className="w-6 h-6" />
+                    More Time
+                  </Button>
                 </div>
 
                 {/* Stuck Button - Only for assignments */}
