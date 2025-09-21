@@ -4,6 +4,9 @@ export function getScheduleBlockClassName(block: SupabaseScheduleBlock): string 
   const blockType = block.block_type;
   const subject = block.subject || block.block_name || '';
   
+  // Prep/Load → blue background
+  if (blockType === 'Prep/Load' || blockType === 'Prep') return 'schedule-block schedule-block-prep';
+  
   // Bible blocks → green background
   if (blockType === 'Bible') return 'schedule-block schedule-block-home';
   
