@@ -51,16 +51,29 @@ const Dashboard = () => {
   // Get schedule data for the week - fetch all at once to avoid duplicate requests
   useEffect(() => {
     const fetchWeekSchedule = async () => {
+      console.log('🔍 fetchWeekSchedule called', {
+        selectedProfile: selectedProfile?.displayName,
+        weekDaysLength: weekDays.length,
+        mondayDate: monday.toISOString().split('T')[0]
+      });
+      
       // Clear previous schedules when week changes
       setWeekSchedules({});
       
-      if (!selectedProfile) return;
+      if (!selectedProfile) {
+        console.log('❌ No selectedProfile, skipping fetch');
+        return;
+      }
       
       try {
+        console.log('📅 Fetching schedule for days:', weekDays.map(d => getDayName(d)));
+        
         // Fetch all days in parallel to avoid sequential requests
         const promises = weekDays.map(async (day) => {
           const dayName = getDayName(day);
+          console.log(`🔄 Fetching ${dayName} for ${selectedProfile.displayName}`);
           const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
+          console.log(`✅ Got ${blocks.length} blocks for ${dayName}:`, blocks);
           return { day: day.toISOString().split('T')[0], blocks };
         });
 
@@ -70,9 +83,10 @@ const Dashboard = () => {
           finalWeekData[day] = blocks;
         });
         
+        console.log('📊 Final week data:', finalWeekData);
         setWeekSchedules(finalWeekData);
       } catch (error) {
-        console.error('Error fetching week schedule:', error);
+        console.error('❌ Error fetching week schedule:', error);
         setWeekSchedules({});
       }
     };
@@ -106,7 +120,9 @@ const Dashboard = () => {
   // Helper to get day name for database query
   const getDayName = useCallback((date: Date): string => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return dayNames[date.getDay()];
+    const dayName = dayNames[date.getDay()];
+    console.log(`📅 getDayName for ${date.toISOString().split('T')[0]}: ${dayName}`);
+    return dayName;
   }, []);
 
   const handleToggleComplete = useCallback(async (assignment: any) => {
