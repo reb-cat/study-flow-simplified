@@ -9,7 +9,7 @@ import { UnifiedAssignment } from '@/types/assignment';
 export function useAssignments() {
   const { currentUser, isDemo } = useApp();
   
-  // For demo users, ONLY use demo_assignments table
+  // For demo users, use demo assignments table
   const demoResult = useDemoAssignments(
     isDemo && currentUser ? currentUser.id : undefined
   );
@@ -21,20 +21,17 @@ export function useAssignments() {
 
   // Return appropriate result based on demo mode
   if (isDemo) {
-    // Demo mode - ONLY use demo_assignments table
-    const mappedAssignments = demoResult.assignments.map(a => ({
-      ...a,
-      user_id: a.student_name, // Map for compatibility
-      canvas_url: null,
-      canvas_id: null
-    })) as UnifiedAssignment[];
-    
     return {
-      assignments: mappedAssignments,
+      assignments: demoResult.assignments.map(a => ({
+        ...a,
+        user_id: a.student_name, // Map for compatibility
+        canvas_url: null,
+        canvas_id: null
+      })) as UnifiedAssignment[],
       isLoading: demoResult.isLoading,
       error: demoResult.error,
       refetch: demoResult.refetch,
-      updateAssignment: undefined // Demo data is read-only
+      updateAssignment: undefined // Demo data is read-only for now
     };
   }
 
