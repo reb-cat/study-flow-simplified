@@ -405,7 +405,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               <Button 
                 onClick={handleMarkComplete} 
                 size="lg" 
-                className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4 min-w-[160px]"
+                className="gap-2 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
               >
                 <CheckCircle className="w-6 h-6" />
                 Done!
@@ -415,7 +415,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                 variant="outline" 
                 onClick={handleNeedMoreTime} 
                 size="lg" 
-                className="gap-3 border-2 py-4 text-base font-semibold min-w-[160px]"
+                className="gap-2 border-2 py-4 text-base font-semibold"
               >
                 <Clock className="w-6 h-6" />
                 More Time
