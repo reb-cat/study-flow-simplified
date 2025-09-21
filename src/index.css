@@ -140,13 +140,13 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
     
-    /* Schedule Block Colors - Dark mode (vibrant with transparency) */
-    --color-prep: 188 94% 43%;       /* Vibrant cyan/teal */
-    --color-location: 256 87% 66%;   /* Vibrant purple */
-    --color-home: 160 84% 39%;       /* Vibrant green */
-    --color-special: 27 96% 61%;     /* Vibrant orange */
-    --color-travel: 217 91% 60%;     /* Vibrant blue */
-    --color-movement: 46 95% 53%;    /* Vibrant yellow */
+    /* Schedule Block Colors - Dark mode (VIBRANT saturated colors) */
+    --color-prep: 188 100% 43%;      /* Vibrant cyan like the button */
+    --color-location: 256 92% 66%;   /* Vibrant purple */
+    --color-home: 160 90% 39%;       /* Vibrant green */
+    --color-special: 27 100% 61%;    /* Vibrant orange */
+    --color-travel: 217 95% 60%;     /* Vibrant blue */
+    --color-movement: 46 100% 53%;   /* Vibrant yellow */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -244,28 +244,34 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Dark mode with transparency */
+  /* Dark mode with transparency - VIBRANT colors like the button */
   .dark .schedule-block-prep {
-    background-color: hsl(var(--color-prep) / 0.15);
+    background-color: hsl(var(--color-prep) / 0.2);
+    border-color: hsl(var(--color-prep) / 0.3);
   }
 
   .dark .schedule-block-location {
-    background-color: hsl(var(--color-location) / 0.15);
+    background-color: hsl(var(--color-location) / 0.2);
+    border-color: hsl(var(--color-location) / 0.3);
   }
 
   .dark .schedule-block-home {
-    background-color: hsl(var(--color-home) / 0.15);
+    background-color: hsl(var(--color-home) / 0.2);
+    border-color: hsl(var(--color-home) / 0.3);
   }
 
   .dark .schedule-block-special {
-    background-color: hsl(var(--color-special) / 0.15);
+    background-color: hsl(var(--color-special) / 0.2);
+    border-color: hsl(var(--color-special) / 0.3);
   }
 
   .dark .schedule-block-travel {
-    background-color: hsl(var(--color-travel) / 0.15);
+    background-color: hsl(var(--color-travel) / 0.2);
+    border-color: hsl(var(--color-travel) / 0.3);
   }
 
   .dark .schedule-block-movement {
-    background-color: hsl(var(--color-movement) / 0.15);
+    background-color: hsl(var(--color-movement) / 0.2);
+    border-color: hsl(var(--color-movement) / 0.3);
   }
 }
