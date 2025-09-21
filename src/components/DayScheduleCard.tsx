@@ -11,7 +11,7 @@ interface DayScheduleCardProps {
   dayIndex: number;
   selectedProfile: any;
   assignments: SupabaseAssignment[];
-  // Removed getScheduleForDay - now using cached version
+  scheduleBlocks: SupabaseScheduleBlock[]; // Pre-fetched schedule blocks
   formatDate: (date: Date) => string;
   handleToggleComplete: (assignment: any) => void;
   handleStartTimer: (assignmentId: string) => void;
@@ -25,7 +25,8 @@ export function DayScheduleCard({
   day, 
   dayIndex, 
   selectedProfile, 
-  assignments, 
+  assignments,
+  scheduleBlocks, // Now passed as prop
   formatDate,
   handleToggleComplete,
   handleStartTimer,
@@ -34,19 +35,7 @@ export function DayScheduleCard({
   formatTimerTime,
   getDayName
 }: DayScheduleCardProps) {
-  const [scheduleBlocks, setScheduleBlocks] = useState<SupabaseScheduleBlock[]>([]);
-  const { getCachedScheduleForDay, isLoading, error } = useScheduleCache();
-
-  // Fetch schedule data for this day with caching
-  useEffect(() => {
-    const fetchSchedule = async () => {
-      const dayName = getDayName(day);
-      const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
-      setScheduleBlocks(blocks);
-    };
-
-    fetchSchedule();
-  }, [day, selectedProfile.displayName, getCachedScheduleForDay, getDayName]);
+  // No more local state or fetching needed
 
   const dateStr = day.toISOString().split('T')[0];
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
@@ -58,40 +47,7 @@ export function DayScheduleCard({
     dateStr
   );
 
-  if (isLoading) {
-    return (
-      <Card className="card-elevated h-fit">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">
-            {formatDate(day)}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground py-8">
-            Loading schedule...
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="card-elevated h-fit">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">
-            {formatDate(day)}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-destructive py-8">
-            <p className="text-sm">Failed to load schedule</p>
-            <p className="text-xs text-muted-foreground mt-2">{error}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // No loading/error states needed since data is pre-fetched
 
   return (
     <Card className="card-elevated h-fit">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,9 @@ import { ChevronLeft, ChevronRight, Play, Square, ExternalLink, Focus, Calendar 
 import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { Assignment } from '@/types';
-import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
+import { useSupabaseSchedule, SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { useSupabaseAssignments } from '@/hooks/useSupabaseAssignments';
+import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { DayScheduleCard } from '@/components/DayScheduleCard';
 
 const Dashboard = () => {
@@ -19,11 +20,12 @@ const Dashboard = () => {
     currentUser 
   } = useApp();
   
-  const { getScheduleForDay } = useSupabaseSchedule();
+  const { getCachedScheduleForDay } = useScheduleCache();
   const { assignments, updateAssignment: updateSupabaseAssignment } = useSupabaseAssignments(currentUser?.id);
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
+  const [weekSchedules, setWeekSchedules] = useState<Record<string, SupabaseScheduleBlock[]>>({});
 
   if (!selectedProfile || !currentUser) {
     return <div>Loading...</div>;
@@ -43,6 +45,33 @@ const Dashboard = () => {
     day.setDate(monday.getDate() + i);
     return day;
   });
+
+  // Get schedule data for the week - fetch all at once to avoid duplicate requests
+  useEffect(() => {
+    const fetchWeekSchedule = async () => {
+      // Clear previous schedules when week changes
+      setWeekSchedules({});
+      
+      // Fetch all days in parallel to avoid sequential requests
+      const promises = weekDays.map(async (day) => {
+        const dayName = getDayName(day);
+        const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
+        return { day: day.toISOString().split('T')[0], blocks };
+      });
+
+      const results = await Promise.all(promises);
+      const finalWeekData: Record<string, SupabaseScheduleBlock[]> = {};
+      results.forEach(({ day, blocks }) => {
+        finalWeekData[day] = blocks;
+      });
+      
+      setWeekSchedules(finalWeekData);
+    };
+
+    if (selectedProfile) {
+      fetchWeekSchedule();
+    }
+  }, [selectedProfile, getCachedScheduleForDay, currentWeek]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -150,6 +179,7 @@ const Dashboard = () => {
               dayIndex={dayIndex}
               selectedProfile={selectedProfile}
               assignments={assignments}
+              scheduleBlocks={weekSchedules[day.toISOString().split('T')[0]] || []}
               formatDate={formatDate}
               handleToggleComplete={handleToggleComplete}
               handleStartTimer={handleStartTimer}
