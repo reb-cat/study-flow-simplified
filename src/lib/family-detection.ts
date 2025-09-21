@@ -3,6 +3,14 @@
 
 export type AssignmentFamily = 'Analytical' | 'Humanities' | 'Composition' | 'Creative';
 
+// Fallback activities for when no assignment is available
+export const FALLBACKS: Record<AssignmentFamily, string[]> = {
+  Creative: ['Map Sketch', 'Science Diagram', 'Narration Art'],
+  Analytical: ['Review problems'],
+  Humanities: ['Free reading'],
+  Composition: ['Journal entry']
+};
+
 // Block family assignments for each student and day
 export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, AssignmentFamily>>> = {
   "Abigail": {

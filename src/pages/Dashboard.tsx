@@ -10,7 +10,7 @@ import { useAssignments } from '@/hooks/useAssignments';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
 import { PopulatedScheduleBlock } from '@/types/schedule';
-import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra } from '@/lib/family-detection';
+import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra, FALLBACKS } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 
 const Dashboard = () => {
@@ -250,8 +250,16 @@ const Dashboard = () => {
           assignedFamily: family
         });
       } else {
-        console.log('No assignment found for block family:', family);
-        weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: family });
+        // Use existing fallback system
+        const fallbacks = FALLBACKS[family];
+        const fallback = Array.isArray(fallbacks) ? fallbacks[0] : fallbacks;
+        console.log('No assignment found, using fallback:', fallback);
+        weekAssignmentData[dayDate].push({ 
+          ...block, 
+          assignment: undefined, 
+          assignedFamily: family,
+          fallback: fallback
+        });
       }
     }
 

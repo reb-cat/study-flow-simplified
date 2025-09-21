@@ -6,4 +6,5 @@ import { UnifiedAssignment } from '@/types/assignment';
 export interface PopulatedScheduleBlock extends SupabaseScheduleBlock {
   assignment?: UnifiedAssignment;
   assignedFamily?: AssignmentFamily;
+  fallback?: string;
 }

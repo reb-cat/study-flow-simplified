@@ -28,6 +28,9 @@ export function OverviewScheduleBlock({ block, assignment }: OverviewScheduleBlo
     if (assignment) {
       return assignment.title;
     }
+    if ((block as any).fallback) {
+      return (block as any).fallback;
+    }
     if (block.block_type === 'Assignment') {
       return 'No assignment scheduled';
     }
@@ -35,6 +38,9 @@ export function OverviewScheduleBlock({ block, assignment }: OverviewScheduleBlo
   };
 
   const getTitleClassName = () => {
+    if ((block as any).fallback) {
+      return 'text-muted-foreground italic';
+    }
     if (!assignment && block.block_type === 'Assignment') {
       return 'text-muted-foreground/60 italic';
     }
