@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
@@ -40,11 +40,13 @@ const Dashboard = () => {
   };
 
   const monday = getMonday(currentWeek);
-  const weekDays = Array.from({ length: 5 }, (_, i) => {
-    const day = new Date(monday);
-    day.setDate(monday.getDate() + i);
-    return day;
-  });
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 5 }, (_, i) => {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      return day;
+    });
+  }, [monday]);
 
   // Get schedule data for the week - fetch all at once to avoid duplicate requests
   useEffect(() => {
@@ -52,26 +54,31 @@ const Dashboard = () => {
       // Clear previous schedules when week changes
       setWeekSchedules({});
       
-      // Fetch all days in parallel to avoid sequential requests
-      const promises = weekDays.map(async (day) => {
-        const dayName = getDayName(day);
-        const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
-        return { day: day.toISOString().split('T')[0], blocks };
-      });
-
-      const results = await Promise.all(promises);
-      const finalWeekData: Record<string, SupabaseScheduleBlock[]> = {};
-      results.forEach(({ day, blocks }) => {
-        finalWeekData[day] = blocks;
-      });
+      if (!selectedProfile) return;
       
-      setWeekSchedules(finalWeekData);
+      try {
+        // Fetch all days in parallel to avoid sequential requests
+        const promises = weekDays.map(async (day) => {
+          const dayName = getDayName(day);
+          const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
+          return { day: day.toISOString().split('T')[0], blocks };
+        });
+
+        const results = await Promise.all(promises);
+        const finalWeekData: Record<string, SupabaseScheduleBlock[]> = {};
+        results.forEach(({ day, blocks }) => {
+          finalWeekData[day] = blocks;
+        });
+        
+        setWeekSchedules(finalWeekData);
+      } catch (error) {
+        console.error('Error fetching week schedule:', error);
+        setWeekSchedules({});
+      }
     };
 
-    if (selectedProfile) {
-      fetchWeekSchedule();
-    }
-  }, [selectedProfile, getCachedScheduleForDay, currentWeek]);
+    fetchWeekSchedule();
+  }, [selectedProfile?.displayName, weekDays, getCachedScheduleForDay]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -97,10 +104,10 @@ const Dashboard = () => {
   };
 
   // Helper to get day name for database query
-  const getDayName = (date: Date): string => {
+  const getDayName = useCallback((date: Date): string => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return dayNames[date.getDay()];
-  };
+  }, []);
 
   const handleToggleComplete = async (assignment: any) => {
     await updateSupabaseAssignment(assignment.id, { 
