@@ -4,6 +4,9 @@ export function getScheduleBlockClassName(block: SupabaseScheduleBlock): string 
   const blockType = block.block_type;
   const subject = block.subject || block.block_name || '';
   
+  // Study Hall → purple background (check first before other block types)
+  if (blockType === 'Study Hall' || subject.includes('Study Hall')) return 'schedule-block schedule-block-location';
+  
   // Prep/Load → blue background
   if (blockType === 'Prep/Load' || blockType === 'Prep') return 'schedule-block schedule-block-prep';
   
@@ -27,9 +30,6 @@ export function getScheduleBlockClassName(block: SupabaseScheduleBlock): string 
   
   // Lunch → purple background
   if (blockType === 'Lunch') return 'schedule-block schedule-block-location';
-  
-  // Study Hall → purple background
-  if (blockType === 'Study Hall' || subject.includes('Study Hall')) return 'schedule-block schedule-block-location';
   
   // Travel → blue background
   if (blockType === 'Travel') return 'schedule-block schedule-block-travel';
