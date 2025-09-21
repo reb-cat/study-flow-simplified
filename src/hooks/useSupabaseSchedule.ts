@@ -31,7 +31,7 @@ export function useSupabaseSchedule() {
         .select('*')
         .eq('student_name', studentName)
         .eq('weekday', dayName)
-        .order('start_time');
+        .order('start_time::time');
         
       setIsLoading(false);
 
