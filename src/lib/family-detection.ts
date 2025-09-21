@@ -146,6 +146,94 @@ export function isStudyHallBlock(blockType?: string, startTime?: string): boolea
 }
 
 /**
+ * Check if assignment requires special resources (lab, kitchen, camera, etc.)
+ */
+export function requiresSpecialResources(assignment: { title?: string; subject?: string | null; course_name?: string | null }): boolean {
+  const title = (assignment.title || '').toLowerCase();
+  const course = (assignment.course_name || assignment.subject || '').toLowerCase();
+  
+  // Resource keywords that suggest special equipment/location needed
+  const resourceKeywords = [
+    'lab', 'laboratory', 'experiment', 'kitchen', 'baking', 'cooking',
+    'camera', 'photo', 'video', 'record', 'film', 'studio',
+    'interview', 'presentation', 'group project', 'field trip',
+    'microscope', 'dissect', 'chemicals'
+  ];
+  
+  return resourceKeywords.some(keyword => 
+    title.includes(keyword) || course.includes(keyword)
+  );
+}
+
+/**
+ * Estimate assignment duration in minutes based on title and difficulty
+ */
+export function estimateAssignmentMinutes(assignment: { title?: string; difficulty?: string; subject?: string | null }): number {
+  const title = (assignment.title || '').toLowerCase();
+  const difficulty = (assignment.difficulty || '').toLowerCase();
+  const subject = (assignment.subject || '').toLowerCase();
+  
+  // Quick tasks (5-15 minutes)
+  if (title.includes('quiz') || title.includes('vocabulary') || title.includes('drill')) {
+    return 10;
+  }
+  
+  // Short tasks (15-25 minutes)
+  if (title.includes('worksheet') || title.includes('practice') || title.includes('review') || title.includes('check')) {
+    return 20;
+  }
+  
+  // Reading tasks vary by difficulty
+  if (title.includes('read') || title.includes('chapter') || title.includes('pages')) {
+    if (difficulty === 'easy') return 20;
+    if (difficulty === 'hard') return 45;
+    return 30; // medium default
+  }
+  
+  // Math problems
+  if (subject.includes('math') || subject.includes('algebra') || subject.includes('geometry')) {
+    if (title.includes('problem set') || title.includes('worksheet')) {
+      return difficulty === 'hard' ? 35 : 25;
+    }
+  }
+  
+  // Writing tasks (typically longer)
+  if (title.includes('essay') || title.includes('write') || title.includes('draft')) {
+    return 60; // Too long for Study Hall
+  }
+  
+  // Default based on difficulty
+  if (difficulty === 'easy') return 20;
+  if (difficulty === 'hard') return 45;
+  return 30; // medium default
+}
+
+/**
+ * Get Study Hall priority score (lower = higher priority)
+ */
+export function getStudyHallPriority(assignment: { title?: string; subject?: string | null; course_name?: string | null }): number {
+  const title = (assignment.title || '').toLowerCase();
+  const course = (assignment.course_name || assignment.subject || '').toLowerCase();
+  
+  // Priority 1: Reading tasks
+  if (title.includes('read') || title.includes('chapter') || title.includes('pages')) {
+    return 1;
+  }
+  
+  // Priority 2: Short problem sets and worksheets
+  if (title.includes('worksheet') || title.includes('practice') || title.includes('problem set') || title.includes('drill')) {
+    return 2;
+  }
+  
+  // Priority 3: Review and catch-up tasks
+  if (title.includes('review') || title.includes('quiz') || title.includes('check') || title.includes('vocabulary')) {
+    return 3;
+  }
+  
+  return 4; // Other tasks (lowest priority)
+}
+
+/**
  * Special rules for Khalil's Algebra priority
  */
 export function shouldPrioritizeAlgebra(studentName: string, dayName: string, blockNumber: number): boolean {

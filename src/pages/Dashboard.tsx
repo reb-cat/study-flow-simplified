@@ -10,7 +10,7 @@ import { useAssignments } from '@/hooks/useAssignments';
 import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
 import { PopulatedScheduleBlock } from '@/types/schedule';
-import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra, FALLBACKS } from '@/lib/family-detection';
+import { detectFamily, getBlockFamily, isStudyHallBlock, shouldPrioritizeAlgebra, FALLBACKS, requiresSpecialResources, estimateAssignmentMinutes, getStudyHallPriority } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 
 const Dashboard = () => {
@@ -203,22 +203,49 @@ const Dashboard = () => {
         }
       }
 
-      // Special case: Study Hall blocks prefer short tasks
+      // Special case: Study Hall blocks get first pick of appropriate tasks
       if (isStudyHallBlock(block.block_type, block.start_time)) {
-        const shortTask = unscheduledAssignments.find(a => 
-          !scheduledAssignments.has(a.id) &&
-          a.detectedFamily === family &&
-          isShortTask(a)
-        );
+        const studyHallCandidates = unscheduledAssignments
+          .filter(a => 
+            !scheduledAssignments.has(a.id) &&
+            estimateAssignmentMinutes(a) <= 25 &&
+            !requiresSpecialResources(a)
+          )
+          .sort((a, b) => {
+            // Sort by Study Hall priority (1=Reading, 2=Problems, 3=Review)
+            const priorityA = getStudyHallPriority(a);
+            const priorityB = getStudyHallPriority(b);
+            if (priorityA !== priorityB) return priorityA - priorityB;
+            
+            // Then by due date (earliest first)
+            if (a.due_date && b.due_date) {
+              return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+            }
+            if (a.due_date) return -1;
+            if (b.due_date) return 1;
+            return 0;
+          });
         
-        if (shortTask) {
-          scheduledAssignments.add(shortTask.id);
+        const studyHallTask = studyHallCandidates[0];
+        
+        if (studyHallTask) {
+          scheduledAssignments.add(studyHallTask.id);
           weekAssignmentData[dayDate].push({ 
             ...block, 
-            assignment: shortTask,
+            assignment: studyHallTask,
             assignedFamily: family
           });
-          console.log('Assigned short task to study hall:', shortTask.title);
+          console.log('Assigned Study Hall task:', studyHallTask.title, 'Priority:', getStudyHallPriority(studyHallTask));
+          continue;
+        } else {
+          // Fallback for Study Hall when no suitable assignments
+          weekAssignmentData[dayDate].push({ 
+            ...block, 
+            assignment: undefined,
+            assignedFamily: family,
+            fallback: 'Review notes'
+          });
+          console.log('No suitable Study Hall tasks, using fallback');
           continue;
         }
       }
