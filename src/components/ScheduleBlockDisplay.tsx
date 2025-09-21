@@ -2,7 +2,6 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { convertTo12Hour } from '@/lib/utils';
-import { getSubjectColorClass } from '@/lib/subject-colors';
 
 interface ScheduleBlockDisplayProps {
   block: SupabaseScheduleBlock;
@@ -12,28 +11,19 @@ interface ScheduleBlockDisplayProps {
 
 // Display exactly what comes from the database
 export function ScheduleBlockDisplay({ block, assignedFamily, children }: ScheduleBlockDisplayProps) {
-  const colorClass = getSubjectColorClass(block.block_type, block.subject || assignedFamily);
-  
   return (
     <div className="space-y-2">
-      <div className={`flex items-center gap-3 text-sm font-medium rounded-lg px-3 py-2 transition-all duration-200 ${colorClass || 'bg-card border border-border/50'}`}>
-        <span className="text-foreground/90 whitespace-nowrap text-xs">
-          {convertTo12Hour(block.start_time)}
-        </span>
-        <span className="text-foreground font-semibold flex-1 min-w-0">
-          {block.subject || block.block_name}
-        </span>
+      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+        <span>{convertTo12Hour(block.start_time)}–{convertTo12Hour(block.end_time)} • {block.subject || block.block_name}</span>
       </div>
       
       {block.block_type === 'Assignment' && !children && (
-        <div className="text-sm text-muted-foreground italic p-3 bg-muted/30 rounded-lg border border-dashed border-border">
-          Assignment block - ready for content
+        <div className="text-sm text-muted-foreground italic p-2 bg-muted/50 rounded">
+          Assignment block - needs population
         </div>
       )}
       
-      <div className="pl-2">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

@@ -70,32 +70,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Activity-based colors for schedule blocks
-        "blue-family": {
-          DEFAULT: "hsl(var(--blue-family))",
-          light: "hsl(var(--blue-family-light))",
-        },
-        "purple-family": {
-          DEFAULT: "hsl(var(--purple-family))",
-          light: "hsl(var(--purple-family-light))",
-        },
-        "green-family": {
-          DEFAULT: "hsl(var(--green-family))",
-          light: "hsl(var(--green-family-light))",
-        },
-        "orange-family": {
-          DEFAULT: "hsl(var(--orange-family))",
-          light: "hsl(var(--orange-family-light))",
-        },
-        "yellow-family": {
-          DEFAULT: "hsl(var(--yellow-family))",
-          light: "hsl(var(--yellow-family-light))",
-        },
-        // Calming backgrounds
-        "bg-soft": "hsl(var(--bg-soft))",
-        "bg-warm": "hsl(var(--bg-warm))",
-        "bg-cool": "hsl(var(--bg-cool))",
-        "bg-neutral": "hsl(var(--bg-neutral))",
       },
       borderRadius: {
         lg: "var(--radius-lg)",

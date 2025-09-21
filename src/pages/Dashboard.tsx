@@ -152,44 +152,39 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-bg-soft">
+    <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="layout-breathe max-w-7xl mx-auto">
+      <main className="p-6 max-w-7xl mx-auto space-y-6">
         {/* Dashboard Header */}
-        <div className="ef-section bg-bg-warm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-hierarchy-1">Week of {getWeekRange()}</h1>
-              <p className="text-muted-foreground">Your weekly learning journey</p>
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Week of {getWeekRange()}</h1>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* Guided Mode Toggle */}
+            <Button 
+              onClick={() => setShowGuidedMode(true)}
+              className="gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary"
+            >
+              <Focus className="w-4 h-4" />
+              Start Guided Day
+            </Button>
             
-            <div className="flex items-center gap-3">
-              {/* Guided Mode Toggle */}
-              <Button 
-                onClick={() => setShowGuidedMode(true)}
-                className="gap-2 bg-gradient-primary text-white hover:shadow-lg transition-all duration-200"
-              >
-                <Focus className="w-4 h-4" />
-                Start Guided Day
-              </Button>
-              
-              <div className="flex gap-1">
-                <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+              <ChevronLeft className="w-4 h-4" />
+              Previous Week
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+              Next Week
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
         {/* Weekly Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {weekDays.map((day, dayIndex) => (
             <DayScheduleCard 
               key={dayIndex}
@@ -210,17 +205,14 @@ const Dashboard = () => {
         </div>
 
         {/* Weekly Summary */}
-        <Card className="ef-card bg-bg-cool">
+        <Card className="card-elevated">
           <CardHeader>
-            <CardTitle className="text-hierarchy-2 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Week Summary
-            </CardTitle>
+            <CardTitle>Week Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center ef-section bg-success-light border-success/20">
-                <div className="text-3xl font-bold text-success mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
                   {assignments.filter(a => {
                     if (!a.scheduled_date) return false;
                     const scheduled = new Date(a.scheduled_date);
@@ -229,10 +221,10 @@ const Dashboard = () => {
                     );
                   }).filter(a => a.completed_at).length}
                 </div>
-                <p className="text-sm font-medium text-success">Completed</p>
+                <p className="text-sm text-muted-foreground">Completed</p>
               </div>
-              <div className="text-center ef-section bg-timer-light border-timer/20">
-                <div className="text-3xl font-bold text-timer mb-2">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-timer">
                   {assignments.filter(a => {
                     if (!a.scheduled_date) return false;
                     const scheduled = new Date(a.scheduled_date);
@@ -241,10 +233,10 @@ const Dashboard = () => {
                     );
                   }).length}
                 </div>
-                <p className="text-sm font-medium text-timer">Total Assignments</p>
+                <p className="text-sm text-muted-foreground">Total Assignments</p>
               </div>
-              <div className="text-center ef-section bg-primary-light border-primary/20">
-                <div className="text-3xl font-bold text-primary mb-2">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-success">
                   {formatTime(assignments.filter(a => {
                     if (!a.scheduled_date) return false;
                     const scheduled = new Date(a.scheduled_date);
@@ -253,7 +245,7 @@ const Dashboard = () => {
                     );
                   }).reduce((total, a) => total + (a.time_spent || 0), 0))}
                 </div>
-                <p className="text-sm font-medium text-primary">Time Spent</p>
+                <p className="text-sm text-muted-foreground">Time Spent</p>
               </div>
             </div>
           </CardContent>

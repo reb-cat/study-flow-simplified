@@ -20,11 +20,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 84% 4.9%;
 
-    /* Brand colors - Blue primary */
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
-    --primary-hover: 217 91% 55%;
-    --primary-light: 217 91% 96%;
+    /* Brand colors - Accessible teal primary */
+    --primary: 185 84% 31%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 185 84% 26%;
+    --primary-light: 185 84% 96%;
 
     /* Success & completion - Accessible green */
     --success: 142 76% 36%;
@@ -54,24 +54,6 @@
     --border: 220 13% 91%;
     --input: 0 0% 100%;
     --ring: 217 91% 60%;
-
-    /* Activity-based colors for schedule blocks */
-    --blue-family: 217 91% 60%;
-    --blue-family-light: 217 91% 96%;
-    --purple-family: 275 85% 60%;
-    --purple-family-light: 275 85% 96%;
-    --green-family: 142 76% 36%;
-    --green-family-light: 142 76% 96%;
-    --orange-family: 25 95% 50%;
-    --orange-family-light: 25 95% 90%;
-    --yellow-family: 45 95% 55%;
-    --yellow-family-light: 45 95% 96%;
-
-    /* Calming background variations */
-    --bg-soft: 220 20% 98%;
-    --bg-warm: 35 25% 98%;
-    --bg-cool: 200 25% 98%;
-    --bg-neutral: 0 0% 98%;
 
     /* Design system */
     --radius: 0.75rem;
@@ -121,10 +103,10 @@
     --popover: 220 13% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 65%;
+    --primary: 185 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 60%;
-    --primary-light: 217 91% 20%;
+    --primary-hover: 185 84% 65%;
+    --primary-light: 185 84% 15%;
 
     --success: 142 76% 50%;
     --success-foreground: 0 0% 100%;
@@ -149,24 +131,6 @@
     --border: 217 32% 25%;
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
-
-    /* Dark mode activity-based colors */
-    --blue-family: 200 74% 58%;
-    --blue-family-light: 200 74% 15%;
-    --purple-family: 268 72% 50%;
-    --purple-family-light: 268 72% 15%;
-    --green-family: 142 71% 56%;
-    --green-family-light: 142 71% 15%;
-    --orange-family: 25 100% 71%;
-    --orange-family-light: 25 100% 20%;
-    --yellow-family: 63 100% 70%;
-    --yellow-family-light: 63 100% 15%;
-
-    /* Dark calming backgrounds */
-    --bg-soft: 220 13% 8%;
-    --bg-warm: 35 15% 8%;
-    --bg-cool: 200 15% 8%;
-    --bg-neutral: 0 0% 8%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -207,41 +171,6 @@
 }
 
 @layer components {
-  /* EF-friendly spacing and visual hierarchy */
-  .ef-container {
-    @apply p-6 space-y-6 bg-bg-soft;
-  }
-  
-  .ef-card {
-    @apply bg-card border border-border/50 rounded-lg p-4 shadow-sm;
-    @apply transition-all duration-200 hover:shadow-md;
-  }
-  
-  .ef-section {
-    @apply space-y-4 p-4 rounded-lg border border-border/30;
-  }
-
-  /* Activity-based styling */
-  .subject-blue {
-    @apply bg-blue-family-light border-l-4 border-blue-family;
-  }
-  
-  .subject-purple {
-    @apply bg-purple-family-light border-l-4 border-purple-family;
-  }
-  
-  .subject-green {
-    @apply bg-green-family-light border-l-4 border-green-family;
-  }
-  
-  .subject-orange {
-    @apply bg-orange-family-light border-l-4 border-orange-family;
-  }
-  
-  .subject-yellow {
-    @apply bg-yellow-family-light border-l-4 border-yellow-family;
-  }
-
   /* Status badges */
   .status-todo {
     @apply bg-muted text-muted-foreground border border-border;
@@ -262,22 +191,5 @@
   
   .card-interactive {
     @apply card-elevated hover:shadow transition-all duration-200 cursor-pointer;
-  }
-
-  /* Reduced density layouts */
-  .layout-breathe {
-    @apply space-y-8 p-8;
-  }
-  
-  .text-hierarchy-1 {
-    @apply text-2xl font-semibold text-foreground mb-6;
-  }
-  
-  .text-hierarchy-2 {
-    @apply text-lg font-medium text-foreground/90 mb-4;
-  }
-  
-  .text-hierarchy-3 {
-    @apply text-base font-medium text-foreground/80 mb-3;
   }
 }
