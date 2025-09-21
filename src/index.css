@@ -278,13 +278,20 @@
   /* Make ALL text bold in dark mode for readability */
   .dark .schedule-block {
     font-weight: 600;  /* Semi-bold - makes text pop against colors */
+    color: #FFFFFF;    /* Pure white text */
   }
 
   .dark .schedule-block .text-xs {
     font-weight: 700;  /* Bold for time stamps */
+    color: #FFFFFF;    /* Pure white text */
   }
 
   .dark .schedule-block .text-sm {
     font-weight: 600;  /* Semi-bold for subject names */
+    color: #FFFFFF;    /* Pure white text */
+  }
+
+  .dark .schedule-block * {
+    color: #FFFFFF !important;  /* Force all text to pure white */
   }
 }
