@@ -244,34 +244,34 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Dark mode - YOUR EXACT COLORS with transparency */
+  /* Dark mode - YOUR EXACT COLORS with 50% transparency */
   .dark .schedule-block-prep {
-    background-color: hsl(var(--color-prep) / 0.2);
-    border-color: hsl(var(--color-prep) / 0.3);
+    background-color: hsl(var(--color-prep) / 0.5);
+    border-color: hsl(var(--color-prep) / 0.6);
   }
 
   .dark .schedule-block-location {
-    background-color: hsl(var(--color-location) / 0.2);
-    border-color: hsl(var(--color-location) / 0.3);
+    background-color: hsl(var(--color-location) / 0.5);
+    border-color: hsl(var(--color-location) / 0.6);
   }
 
   .dark .schedule-block-home {
-    background-color: hsl(var(--color-home) / 0.2);
-    border-color: hsl(var(--color-home) / 0.3);
+    background-color: hsl(var(--color-home) / 0.5);
+    border-color: hsl(var(--color-home) / 0.6);
   }
 
   .dark .schedule-block-special {
-    background-color: hsl(var(--color-special) / 0.2);
-    border-color: hsl(var(--color-special) / 0.3);
+    background-color: hsl(var(--color-special) / 0.5);
+    border-color: hsl(var(--color-special) / 0.6);
   }
 
   .dark .schedule-block-travel {
-    background-color: hsl(var(--color-travel) / 0.25);
-    border-color: hsl(var(--color-travel) / 0.35);
+    background-color: hsl(var(--color-travel) / 0.5);
+    border-color: hsl(var(--color-travel) / 0.6);
   }
 
   .dark .schedule-block-movement {
-    background-color: hsl(var(--color-movement) / 0.2);
-    border-color: hsl(var(--color-movement) / 0.3);
+    background-color: hsl(var(--color-movement) / 0.5);
+    border-color: hsl(var(--color-movement) / 0.6);
   }
 }
