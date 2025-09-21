@@ -84,7 +84,7 @@ const Dashboard = () => {
     };
 
     fetchWeekSchedule();
-  }, [selectedProfile?.displayName, monday, getCachedScheduleForDay]); // Use monday instead of weekDays
+  }, [selectedProfile?.displayName, currentWeek]); // Removed getCachedScheduleForDay to prevent infinite loops
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 

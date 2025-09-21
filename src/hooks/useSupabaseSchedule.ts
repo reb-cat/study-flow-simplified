@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SupabaseScheduleBlock {
@@ -21,7 +21,7 @@ export function useSupabaseSchedule() {
   const [error, setError] = useState<string | null>(null);
 
   // This is the ONLY way to get schedule data
-  const getScheduleForDay = async (studentName: string, dayName: string): Promise<SupabaseScheduleBlock[]> => {
+  const getScheduleForDay = useCallback(async (studentName: string, dayName: string): Promise<SupabaseScheduleBlock[]> => {
     setIsLoading(true);
     setError(null);
 
@@ -48,7 +48,7 @@ export function useSupabaseSchedule() {
       setError('Network error - please try again');
       return [];
     }
-  };
+  }, []);
 
   return {
     getScheduleForDay,
