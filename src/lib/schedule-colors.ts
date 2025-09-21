@@ -28,6 +28,9 @@ export function getScheduleBlockClassName(block: SupabaseScheduleBlock): string 
   // Lunch → purple background
   if (blockType === 'Lunch') return 'schedule-block schedule-block-location';
   
+  // Study Hall → purple background
+  if (blockType === 'Study Hall' || subject.includes('Study Hall')) return 'schedule-block schedule-block-location';
+  
   // Travel → blue background
   if (blockType === 'Travel') return 'schedule-block schedule-block-travel';
   
