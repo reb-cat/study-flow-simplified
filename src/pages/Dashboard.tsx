@@ -9,7 +9,6 @@ import { ChevronLeft, ChevronRight, Play, Square, ExternalLink, Focus, Calendar 
 import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { Assignment } from '@/types';
-import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 
 const Dashboard = () => {
   const { 
@@ -23,7 +22,6 @@ const Dashboard = () => {
     currentUser 
   } = useApp();
   
-  const { populateAssignmentBlocks } = useAssignmentPlacement();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
 
@@ -152,17 +150,8 @@ const Dashboard = () => {
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {weekDays.map((day, dayIndex) => {
-            const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
+            const dayAssignments = getAssignmentsForDay(day);
             const daySchedule = getScheduleForDay(day);
-            const dayName = day.toLocaleDateString('en-US', { weekday: 'long' });
-            
-            // Populate assignment blocks using family detection
-            const populatedBlocks = populateAssignmentBlocks(
-              profileAssignments, 
-              daySchedule, 
-              selectedProfile.displayName, 
-              dayName
-            );
             
             return (
               <Card key={dayIndex} className="card-elevated h-fit">
@@ -172,45 +161,55 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Schedule Blocks with Auto-Populated Assignments */}
-                  {populatedBlocks.map((block) => (
+                  {/* Schedule Blocks */}
+                  {daySchedule.map((block) => (
                     <div key={block.id} className="space-y-2">
                       <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
                         Block {block.blockNumber}: {block.startTime}–{block.endTime} • {block.subject}
-                        {block.assignment && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {block.assignment.detectedFamily}
-                          </Badge>
-                        )}
                       </div>
                       
-                      {/* Assignment for this block */}
-                      {block.assignment && (
+                      {/* Assignments for this block */}
+                      {dayAssignments
+                        .filter(a => a.scheduledBlock === block.blockNumber)
+                        .map((assignment) => (
+                          <AssignmentCard
+                            key={assignment.id}
+                            assignment={assignment}
+                            onToggleComplete={handleToggleComplete}
+                            onStartTimer={handleStartTimer}
+                            isTimerActive={isTimerActive(assignment.id)}
+                            activeTimer={activeTimer}
+                            formatTime={formatTime}
+                            formatTimerTime={formatTimerTime}
+                          />
+                        ))}
+                    </div>
+                  ))}
+
+                  {/* Unscheduled assignments for this day */}
+                  {dayAssignments
+                    .filter(a => !a.scheduledBlock)
+                    .map((assignment) => (
+                      <div key={assignment.id} className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">
+                          Unscheduled
+                        </div>
                         <AssignmentCard
-                          key={block.assignment.id}
-                          assignment={block.assignment}
+                          assignment={assignment}
                           onToggleComplete={handleToggleComplete}
                           onStartTimer={handleStartTimer}
-                          isTimerActive={isTimerActive(block.assignment.id)}
+                          isTimerActive={isTimerActive(assignment.id)}
                           activeTimer={activeTimer}
                           formatTime={formatTime}
                           formatTimerTime={formatTimerTime}
                         />
-                      )}
-                      
-                      {/* Empty state for blocks without assignments */}
-                      {!block.assignment && block.blockType === 'assignment' && (
-                        <div className="text-xs text-muted-foreground italic p-2 bg-muted/30 rounded">
-                          No assignment scheduled
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
+                      </div>
+                    ))}
+
                   {/* Empty state */}
-                  {populatedBlocks.length === 0 && (
+                  {dayAssignments.length === 0 && (
                     <p className="text-center text-muted-foreground text-sm py-8">
-                      No schedule blocks
+                      No assignments scheduled
                     </p>
                   )}
                 </CardContent>

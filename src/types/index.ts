@@ -18,7 +18,6 @@ export interface Assignment {
   canvasId?: string;
   canvasUrl?: string;
   createdAt: string;
-  detectedFamily?: string; // Added for family-based scheduling
 }
 
 export interface ScheduleTemplate {
