@@ -74,13 +74,13 @@
     /* Transitions */
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Schedule Block Colors - Light mode (subtle tints) */
-    --color-prep: 200 60% 95%;       /* Light blue - Prep/Load */
-    --color-location: 263 40% 95%;   /* Light purple - Co-op, Lunch */
-    --color-home: 145 50% 95%;       /* Light green - Assignment, Bible */
-    --color-special: 25 70% 95%;     /* Light orange - Special classes */
-    --color-travel: 200 60% 92%;     /* Slightly darker blue - Travel */
-    --color-movement: 50 70% 95%;    /* Light yellow - Movement */
+    /* Schedule Block Colors - Light mode (less transparent) */
+    --color-prep: 200 60% 85%;       /* Light blue - Prep/Load */
+    --color-location: 263 40% 85%;   /* Light purple - Co-op, Lunch */
+    --color-home: 145 50% 85%;       /* Light green - Assignment, Bible */
+    --color-special: 25 70% 85%;     /* Light orange - Special classes */
+    --color-travel: 200 60% 82%;     /* Slightly darker blue - Travel */
+    --color-movement: 50 70% 85%;    /* Light yellow - Movement */
 
     --sidebar-background: 0 0% 98%;
 
