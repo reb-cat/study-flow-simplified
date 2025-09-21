@@ -13,13 +13,8 @@ interface ScheduleBlockDisplayProps {
 export function ScheduleBlockDisplay({ block, assignedFamily, children }: ScheduleBlockDisplayProps) {
   return (
     <div className="space-y-2">
-      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded flex items-center justify-between">
+      <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
         <span>{convertTo12Hour(block.start_time)}–{convertTo12Hour(block.end_time)} • {block.subject || block.block_name}</span>
-        {assignedFamily && block.block_type === 'Assignment' && (
-          <Badge variant="outline" className="text-xs">
-            {assignedFamily}
-          </Badge>
-        )}
       </div>
       
       {block.block_type === 'Assignment' && !children && (
