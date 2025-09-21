@@ -27,30 +27,16 @@ export function useSupabaseAssignments(userId?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAssignments = async (targetUserId?: string) => {
-    if (!targetUserId) {
-      console.log('❌ fetchAssignments called with no targetUserId');
-      return;
-    }
+    if (!targetUserId) return;
 
-    console.log('🔍 Fetching assignments for user:', targetUserId);
     setIsLoading(true);
     setError(null);
-
-    // First, get ALL assignments to see what's in the DB
-    const { data: allData, error: allError } = await supabase
-      .from('assignments')
-      .select('*');
-    
-    console.log('📊 ALL assignments in DB:', allData?.length || 0, allData);
 
     const { data, error: fetchError } = await supabase
       .from('assignments')
       .select('*')
       .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
-
-    console.log('🎯 Filtered assignments for user', targetUserId + ':', data?.length || 0, data);
-    console.log('❌ Fetch error:', fetchError);
 
     setIsLoading(false);
 

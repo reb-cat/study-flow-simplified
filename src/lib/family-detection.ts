@@ -80,25 +80,19 @@ export function detectFamily(assignment: { title?: string; subject?: string | nu
   const title = (assignment.title || '').toLowerCase();
   const course = (assignment.course_name || assignment.subject || '').toLowerCase();
   
-  console.log('🔍 detectFamily - Assignment:', assignment.title, 'Course:', assignment.course_name, 'Subject:', assignment.subject);
-  console.log('🔍 detectFamily - Processing title:', title, 'course:', course);
-  
   // Keywords override course defaults
   if (title.includes('create') || title.includes('sketch') || title.includes('map') || 
       title.includes('diagram') || title.includes('poster') || title.includes('draw')) {
-    console.log('🎯 detectFamily - Detected Creative for:', assignment.title);
     return "Creative";
   }
   
   if (title.includes('essay') || title.includes('write') || title.includes('draft') || 
       title.includes('response') || title.includes('dbq')) {
-    console.log('🎯 detectFamily - Detected Composition for:', assignment.title);
     return "Composition";
   }
   
   if (title.includes('read') || title.includes('chapter') || title.includes('pages')) {
     if (course.includes('history')) {
-      console.log('🎯 detectFamily - Detected Humanities (reading history) for:', assignment.title);
       return "Humanities";
     }
   }
@@ -106,27 +100,22 @@ export function detectFamily(assignment: { title?: string; subject?: string | nu
   // Course defaults
   if (course.includes('algebra') || course.includes('geometry') || course.includes('math') || 
       course.includes('science') || course.includes('chemistry') || course.includes('physics')) {
-    console.log('🎯 detectFamily - Detected Analytical (math/science) for:', assignment.title);
     return "Analytical";
   }
   
   if (course.includes('history') || course.includes('literature') || course.includes('social')) {
-    console.log('🎯 detectFamily - Detected Humanities (history/lit) for:', assignment.title);
     return "Humanities";
   }
   
   if (course.includes('english') || course.includes('grammar') || course.includes('writing')) {
-    console.log('🎯 detectFamily - Detected Composition (english/grammar) for:', assignment.title);
     return "Composition";
   }
   
   if (course.includes('art') || course.includes('photo') || course.includes('music') || 
       course.includes('baking') || course.includes('creative')) {
-    console.log('🎯 detectFamily - Detected Creative (art/photo) for:', assignment.title);
     return "Creative";
   }
   
-  console.log('🎯 detectFamily - Default Analytical for:', assignment.title);
   return "Analytical"; // default fallback
 }
 

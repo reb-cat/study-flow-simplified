@@ -27,12 +27,8 @@ export function useDemoAssignments(studentName?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchDemoAssignments = async (targetStudentName?: string) => {
-    if (!targetStudentName) {
-      console.log('❌ Demo: fetchDemoAssignments called with no targetStudentName');
-      return;
-    }
+    if (!targetStudentName) return;
 
-    console.log('🎭 Demo: Fetching assignments for student:', targetStudentName);
     setIsLoading(true);
     setError(null);
 
@@ -41,9 +37,6 @@ export function useDemoAssignments(studentName?: string) {
       .select('*')
       .eq('student_name', targetStudentName)
       .order('created_at', { ascending: false });
-
-    console.log('🎭 Demo: assignments fetched:', data?.length || 0, data);
-    console.log('❌ Demo: fetch error:', fetchError);
 
     setIsLoading(false);
 
