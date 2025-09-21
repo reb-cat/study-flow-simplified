@@ -141,12 +141,12 @@
     --ring: 217 91% 65%;
     
     /* Schedule Block Colors - Dark mode (vibrant with transparency) */
-    --color-prep: 200 70% 60%;       /* Bright blue #47b2e2 */
-    --color-location: 263 61% 51%;   /* Bright purple #6d28d9 */
-    --color-home: 145 55% 62%;       /* Bright green #3ddd7c */
-    --color-special: 28 100% 72%;    /* Bright orange #ffb26e */
-    --color-travel: 200 70% 50%;     /* Deeper blue for travel */
-    --color-movement: 65 100% 70%;   /* Bright yellow #efff68 */
+    --color-prep: 188 94% 43%;       /* Vibrant cyan/teal */
+    --color-location: 256 87% 66%;   /* Vibrant purple */
+    --color-home: 160 84% 39%;       /* Vibrant green */
+    --color-special: 27 96% 61%;     /* Vibrant orange */
+    --color-travel: 217 91% 60%;     /* Vibrant blue */
+    --color-movement: 46 95% 53%;    /* Vibrant yellow */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
