@@ -140,13 +140,13 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
     
-    /* Schedule Block Colors - Dark mode (updated colors) */
-    --color-prep: 199 73% 58%;       /* #47b2e2 blue - works well */
-    --color-location: 263 69% 50%;   /* #6d28d9 purple - works well */
-    --color-home: 142 70% 55%;       /* #3ddd7c green - works well */
-    --color-special: 0 84% 60%;      /* #ef4444 red - replaced orange */
-    --color-travel: 199 73% 58%;     /* #47b2e2 blue - works well */
-    --color-movement: 326 81% 60%;   /* #ec4899 pink - replaced yellow */
+    /* Schedule Block Colors - Dark mode (YOUR EXACT COLORS) */
+    --color-prep: 199 73% 58%;       /* #47b2e2 blue */
+    --color-location: 263 69% 50%;   /* #6d28d9 purple */
+    --color-home: 142 70% 55%;       /* #3ddd7c green */
+    --color-special: 28 100% 72%;    /* #ffb26e orange */
+    --color-travel: 199 73% 58%;     /* #47b2e2 blue */
+    --color-movement: 66 100% 70%;   /* #efff68 yellow */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -244,34 +244,56 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Dark mode - YOUR EXACT COLORS with 70% transparency */
+  /* Dark mode - Gradients with white base for better contrast */
+  .dark .schedule-block {
+    background: rgba(255, 255, 255, 0.05); /* 5% white base */
+  }
+
   .dark .schedule-block-prep {
-    background-color: hsl(var(--color-prep) / 0.7);
-    border-color: hsl(var(--color-prep) / 0.8);
+    background: linear-gradient(
+      hsl(var(--color-prep) / 0.3),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-color: hsl(var(--color-prep) / 0.4);
   }
 
   .dark .schedule-block-location {
-    background-color: hsl(var(--color-location) / 0.7);
-    border-color: hsl(var(--color-location) / 0.8);
+    background: linear-gradient(
+      hsl(var(--color-location) / 0.3),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-color: hsl(var(--color-location) / 0.4);
   }
 
   .dark .schedule-block-home {
-    background-color: hsl(var(--color-home) / 0.7);
-    border-color: hsl(var(--color-home) / 0.8);
+    background: linear-gradient(
+      hsl(var(--color-home) / 0.3),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-color: hsl(var(--color-home) / 0.4);
   }
 
   .dark .schedule-block-special {
-    background-color: hsl(var(--color-special) / 0.7);
-    border-color: hsl(var(--color-special) / 0.8);
+    background: linear-gradient(
+      hsl(var(--color-special) / 0.3),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-color: hsl(var(--color-special) / 0.4);
   }
 
   .dark .schedule-block-travel {
-    background-color: hsl(var(--color-travel) / 0.7);
-    border-color: hsl(var(--color-travel) / 0.8);
+    background: linear-gradient(
+      hsl(var(--color-travel) / 0.3),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-color: hsl(var(--color-travel) / 0.4);
   }
 
   .dark .schedule-block-movement {
-    background-color: hsl(var(--color-movement) / 0.7);
-    border-color: hsl(var(--color-movement) / 0.8);
+    background: linear-gradient(
+      hsl(var(--color-movement) / 0.3),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-color: hsl(var(--color-movement) / 0.4);
   }
 }
