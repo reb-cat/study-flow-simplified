@@ -24,7 +24,6 @@ export function useAssignments() {
     return {
       assignments: demoResult.assignments.map(a => ({
         ...a,
-        user_id: a.student_name, // Map for compatibility
         canvas_url: null,
         canvas_id: null
       })) as UnifiedAssignment[],

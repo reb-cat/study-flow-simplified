@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface DemoAssignmentData {
   id: string;
-  student_name: string;
+  user_id: string;
   title: string;
   subject: string | null;
   course_name: string | null;
@@ -21,13 +21,13 @@ export interface DemoAssignmentData {
 /**
  * Hook to fetch demo assignment data from the separate demo_assignments table
  */
-export function useDemoAssignments(studentName?: string) {
+export function useDemoAssignments(userId?: string) {
   const [assignments, setAssignments] = useState<DemoAssignmentData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDemoAssignments = async (targetStudentName?: string) => {
-    if (!targetStudentName) return;
+  const fetchDemoAssignments = async (targetUserId?: string) => {
+    if (!targetUserId) return;
 
     setIsLoading(true);
     setError(null);
@@ -35,7 +35,7 @@ export function useDemoAssignments(studentName?: string) {
     const { data, error: fetchError } = await supabase
       .from('demo_assignments')
       .select('*')
-      .eq('student_name', targetStudentName)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
 
     setIsLoading(false);
@@ -50,15 +50,15 @@ export function useDemoAssignments(studentName?: string) {
   };
 
   useEffect(() => {
-    if (studentName) {
-      fetchDemoAssignments(studentName);
+    if (userId) {
+      fetchDemoAssignments(userId);
     }
-  }, [studentName]);
+  }, [userId]);
 
   return {
     assignments,
     isLoading,
     error,
-    refetch: () => fetchDemoAssignments(studentName)
+    refetch: () => fetchDemoAssignments(userId)
   };
 }
