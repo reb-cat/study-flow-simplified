@@ -1,63 +1,81 @@
-// Activity-based color mapping for schedule blocks
+// EF-friendly subject color mapping
 import { AssignmentFamily } from './family-detection';
 
-export type ActivityColorClass = 
-  | 'activity-travel' 
-  | 'activity-coop' 
-  | 'activity-assignments' 
-  | 'activity-online'
+export type SubjectColorClass = 
+  | 'location-travel' 
+  | 'location-coop' 
+  | 'location-online' 
+  | 'location-home'
   | '';
 
 /**
- * Maps schedule blocks to activity-based color classes for visual organization
+ * Maps subjects to location-based color classes for visual organization
  */
-export function getSubjectColorClass(subject?: string, blockName?: string): ActivityColorClass {
-  if (!subject && !blockName) return '';
+export function getSubjectColorClass(family?: AssignmentFamily | string): SubjectColorClass {
+  if (!family) return '';
   
-  const content = `${subject || ''} ${blockName || ''}`.toLowerCase();
+  const familyLower = family.toLowerCase();
   
-  // Travel & Prep (Color/Shade 1)
-  if (content.includes('travel') || content.includes('prep') || content.includes('drive') || content.includes('commute')) {
-    return 'activity-travel';
+  // Travel activities
+  if (familyLower.includes('travel') || familyLower.includes('field trip') || familyLower.includes('outing')) {
+    return 'location-travel';
   }
   
-  // Co-op time blocks (Color/Shade 2)  
-  if (content.includes('co-op') || content.includes('coop') || content.includes('group') || content.includes('class time') || content.includes('lunch')) {
-    return 'activity-coop';
+  // Co-op activities
+  if (familyLower.includes('co-op') || familyLower.includes('coop') || familyLower.includes('cooperative')) {
+    return 'location-coop';
   }
   
-  // Online Class (Color/Shade 4)
-  if (content.includes('online') || content.includes('zoom') || content.includes('virtual') || content.includes('webinar')) {
-    return 'activity-online';
+  // Online activities
+  if (familyLower.includes('online') || familyLower.includes('zoom') || familyLower.includes('virtual') || familyLower.includes('video')) {
+    return 'location-online';
   }
   
-  // Assignments + Bible (Color/Shade 3) - catch-all for at-home activities
-  if (content.includes('assignment') || content.includes('bible') || content.includes('study') || 
-      content.includes('homework') || content.includes('reading') || content.includes('writing') ||
-      content.includes('math') || content.includes('literature') || content.includes('geometry') ||
-      content.includes('history') || content.includes('science') || content.includes('english')) {
-    return 'activity-assignments';
+  // At-home activities (assignments, Bible, etc.)
+  if (familyLower.includes('assignment') || familyLower.includes('bible') || familyLower.includes('devotion') || 
+      familyLower.includes('homework') || familyLower.includes('study') || familyLower.includes('reading')) {
+    return 'location-home';
+  }
+  
+  // Default based on subject type for remaining items
+  if (familyLower.includes('math') || familyLower.includes('geometry') || familyLower.includes('algebra')) {
+    return 'location-home';
+  }
+  
+  if (familyLower.includes('literature') || familyLower.includes('english') || familyLower.includes('writing')) {
+    return 'location-home';
   }
   
   return '';
 }
 
 /**
- * Get an activity-specific background color for better visual organization
+ * Get a subject-specific background color for better visual organization
  */
 export function getSubjectBackground(subject?: string): string {
-  const activityClass = getSubjectColorClass(subject);
+  if (!subject) return 'bg-card';
   
-  switch (activityClass) {
-    case 'activity-travel':
-      return 'bg-travel-light';
-    case 'activity-coop':
-      return 'bg-coop-light';
-    case 'activity-assignments':
-      return 'bg-assignments-light';
-    case 'activity-online':
-      return 'bg-online-light';
-    default:
-      return 'bg-card';
+  const subjectLower = subject.toLowerCase();
+  
+  if (subjectLower.includes('math') || subjectLower.includes('algebra')) {
+    return 'bg-math-family-light';
   }
+  
+  if (subjectLower.includes('english') || subjectLower.includes('language')) {
+    return 'bg-language-family-light';
+  }
+  
+  if (subjectLower.includes('science') || subjectLower.includes('biology')) {
+    return 'bg-science-family-light';
+  }
+  
+  if (subjectLower.includes('history') || subjectLower.includes('social')) {
+    return 'bg-history-family-light';
+  }
+  
+  if (subjectLower.includes('art') || subjectLower.includes('music')) {
+    return 'bg-arts-family-light';
+  }
+  
+  return 'bg-card';
 }

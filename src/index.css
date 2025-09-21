@@ -55,15 +55,19 @@
     --input: 0 0% 100%;
     --ring: 217 91% 60%;
 
-    /* Activity-based colors */
-    --travel: 200 85% 45%;
-    --travel-light: 200 85% 96%;
-    --coop: 142 60% 45%;
-    --coop-light: 142 60% 96%;
-    --assignments: 25 75% 55%;
-    --assignments-light: 25 75% 96%;
-    --online: 275 85% 60%;
-    --online-light: 275 85% 96%;
+    /* Subject family colors - EF-friendly color coding */
+    --math-family: 275 85% 60%;
+    --math-family-light: 275 85% 96%;
+    --language-family: 142 60% 45%;
+    --language-family-light: 142 60% 96%;
+    --science-family: 200 85% 55%;
+    --science-family-light: 200 85% 96%;
+    --history-family: 25 75% 55%;
+    --history-family-light: 25 75% 96%;
+    --arts-family: 320 65% 60%;
+    --arts-family-light: 320 65% 96%;
+    --practical-family: 45 80% 50%;
+    --practical-family-light: 45 80% 96%;
 
     /* Calming background variations */
     --bg-soft: 220 20% 98%;
@@ -148,15 +152,19 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
 
-    /* Dark mode activity colors */
-    --travel: 200 70% 65%;
-    --travel-light: 200 70% 15%;
-    --coop: 142 50% 55%;
-    --coop-light: 142 50% 15%;
-    --assignments: 25 65% 60%;
-    --assignments-light: 25 65% 15%;
-    --online: 275 70% 65%;
-    --online-light: 275 70% 15%;
+    /* Dark mode subject families */
+    --math-family: 275 70% 65%;
+    --math-family-light: 275 70% 15%;
+    --language-family: 142 50% 55%;
+    --language-family-light: 142 50% 15%;
+    --science-family: 200 70% 65%;
+    --science-family-light: 200 70% 15%;
+    --history-family: 25 65% 60%;
+    --history-family-light: 25 65% 15%;
+    --arts-family: 320 55% 65%;
+    --arts-family-light: 320 55% 15%;
+    --practical-family: 45 70% 60%;
+    --practical-family-light: 45 70% 15%;
 
     /* Dark calming backgrounds */
     --bg-soft: 220 13% 8%;
@@ -217,21 +225,37 @@
     @apply space-y-4 p-4 rounded-lg border border-border/30;
   }
 
-  /* Activity-based styling */
-  .activity-travel {
-    @apply bg-travel-light border-l-4 border-travel text-travel;
+  /* Location-based styling for schedule blocks */
+  .location-travel {
+    @apply bg-blue-50 text-blue-900 border-l-4 border-blue-400;
   }
   
-  .activity-coop {
-    @apply bg-coop-light border-l-4 border-coop text-coop;
+  .location-coop {
+    @apply bg-green-50 text-green-900 border-l-4 border-green-400;
   }
   
-  .activity-assignments {
-    @apply bg-assignments-light border-l-4 border-assignments text-assignments;
+  .location-online {
+    @apply bg-purple-50 text-purple-900 border-l-4 border-purple-400;
   }
   
-  .activity-online {
-    @apply bg-online-light border-l-4 border-online text-online;
+  .location-home {
+    @apply bg-orange-50 text-orange-900 border-l-4 border-orange-400;
+  }
+
+  .dark .location-travel {
+    @apply bg-blue-950/50 text-blue-200 border-blue-500;
+  }
+  
+  .dark .location-coop {
+    @apply bg-green-950/50 text-green-200 border-green-500;
+  }
+  
+  .dark .location-online {
+    @apply bg-purple-950/50 text-purple-200 border-purple-500;
+  }
+  
+  .dark .location-home {
+    @apply bg-orange-950/50 text-orange-200 border-orange-500;
   }
 
   /* Status badges */
