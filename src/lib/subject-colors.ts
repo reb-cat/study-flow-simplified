@@ -39,8 +39,8 @@ export function getSubjectColorClass(blockType?: string, subject?: string): Subj
     return 'subject-blue';
   }
   
-  // Purple: Co-op time blocks
-  if (blockTypeLower.includes('co-op') || blockTypeLower.includes('lunch')) {
+  // Purple: Co-op time blocks (location-based)
+  if (blockTypeLower.includes('co-op') || blockTypeLower.includes('lunch') || subjectLower.includes('study hall')) {
     return 'subject-purple';
   }
   
