@@ -21,10 +21,10 @@
     --popover-foreground: 222 84% 4.9%;
 
     /* Brand colors - Orange primary */
-    --primary: 25 100% 71%;
+    --primary: 28 40% 72%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 25 100% 65%;
-    --primary-light: 25 100% 96%;
+    --primary-hover: 28 40% 67%;
+    --primary-light: 28 40% 96%;
 
     /* Success & completion - Accessible green */
     --success: 142 76% 36%;
@@ -121,10 +121,10 @@
     --popover: 220 13% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 25 100% 71%;
+    --primary: 28 40% 72%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 25 100% 65%;
-    --primary-light: 25 100% 20%;
+    --primary-hover: 28 40% 67%;
+    --primary-light: 28 40% 20%;
 
     --success: 142 76% 50%;
     --success-foreground: 0 0% 100%;
