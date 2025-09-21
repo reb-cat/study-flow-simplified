@@ -36,6 +36,9 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
       7: "Creative",
       8: "Analytical"
     },
+    "Thursday": {
+      5: "Humanities"     // Block 5 (10:20-11:20) Study Hall
+    },
     "Friday": {
       2: "Analytical",
       3: "Humanities",
@@ -65,6 +68,10 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
       5: "Humanities",
       6: "Composition",
       7: "Creative"
+    },
+    "Thursday": {
+      3: "Humanities",    // Block 3 (10:15-11:15) Study Hall
+      4: "Creative"       // Block 4 (11:50-12:50) Study Hall
     },
     "Friday": {
       2: "Analytical",
