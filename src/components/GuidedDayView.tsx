@@ -8,6 +8,7 @@ import { CircularTimer } from './CircularTimer';
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, BookOpen, ArrowLeft, AlertTriangle, Target, ExternalLink } from 'lucide-react';
 import { Assignment } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 interface GuidedDayViewProps {
   onBackToHub: () => void;
   selectedDate: string;
@@ -56,13 +57,30 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
   const daySchedule = getScheduleForStudent(selectedProfile.displayName, weekday);
 
-  // Get assignments for today
+  // Use assignment placement hook to populate Assignment blocks
+  const { populatedBlocks } = useAssignmentPlacement(
+    profileAssignments,
+    daySchedule,
+    selectedProfile.displayName,
+    selectedDate
+  );
+
+  // Get assignments for today (including newly populated ones)
   const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === selectedDate);
 
   // Build guided blocks combining schedule and assignments
   const guidedBlocks = daySchedule.map(block => {
-    const blockAssignments = todaysAssignments.filter(a => a.scheduledBlock === block.blockNumber);
-    const assignment = blockAssignments[0]; // Take first assignment for this block
+    // First check if this block was populated by assignment placement
+    const populatedBlock = populatedBlocks.find(p => p.id === block.id);
+    let assignment = null;
+
+    if (populatedBlock?.assignment) {
+      assignment = populatedBlock.assignment;
+    } else {
+      // Fallback to existing scheduled assignments
+      const blockAssignments = todaysAssignments.filter(a => a.scheduledBlock === block.blockNumber);
+      assignment = blockAssignments[0] || null;
+    }
 
     return {
       id: block.id,
@@ -71,7 +89,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       endTime: block.endTime,
       subject: block.subject,
       blockType: block.blockType,
-      assignment: assignment || null,
+      assignment: assignment,
       duration: calculateBlockDuration(block.startTime, block.endTime)
     };
   }).filter(block => {
