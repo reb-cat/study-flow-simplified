@@ -140,13 +140,13 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
     
-    /* Schedule Block Colors - Dark mode (BRIGHT colors that pop) */
-    --color-prep: 188 85% 53%;       /* Bright cyan */
-    --color-location: 271 92% 65%;   /* Bright purple */
-    --color-home: 142 70% 58%;       /* Bright green */
-    --color-special: 27 96% 61%;     /* Bright orange */
-    --color-travel: 213 93% 60%;     /* Bright blue */
-    --color-movement: 43 96% 56%;    /* Bright amber */
+    /* Schedule Block Colors - Dark mode (SOLID vibrant colors) */
+    --color-prep: 176 58% 19%;       /* Deep teal */
+    --color-location: 261 66% 35%;   /* Deep purple */
+    --color-home: 160 66% 18%;       /* Deep emerald green */
+    --color-special: 19 75% 28%;     /* Deep burnt orange */
+    --color-travel: 224 64% 33%;     /* Deep blue */
+    --color-movement: 39 73% 26%;    /* Deep amber */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -244,34 +244,40 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Dark mode with transparency - BRIGHT colors that pop */
+  /* Dark mode - SOLID vibrant colors */
   .dark .schedule-block-prep {
-    background-color: hsl(var(--color-prep) / 0.25);
-    border-color: hsl(var(--color-prep) / 0.5);
+    background-color: hsl(var(--color-prep));
+    border-color: hsl(var(--color-prep));
+    color: #e5e7eb; /* Light gray text */
   }
 
   .dark .schedule-block-location {
-    background-color: hsl(var(--color-location) / 0.25);
-    border-color: hsl(var(--color-location) / 0.5);
+    background-color: hsl(var(--color-location));
+    border-color: hsl(var(--color-location));
+    color: #e5e7eb; /* Light gray text */
   }
 
   .dark .schedule-block-home {
-    background-color: hsl(var(--color-home) / 0.25);
-    border-color: hsl(var(--color-home) / 0.5);
+    background-color: hsl(var(--color-home));
+    border-color: hsl(var(--color-home));
+    color: #e5e7eb; /* Light gray text */
   }
 
   .dark .schedule-block-special {
-    background-color: hsl(var(--color-special) / 0.25);
-    border-color: hsl(var(--color-special) / 0.5);
+    background-color: hsl(var(--color-special));
+    border-color: hsl(var(--color-special));
+    color: #e5e7eb; /* Light gray text */
   }
 
   .dark .schedule-block-travel {
-    background-color: hsl(var(--color-travel) / 0.25);
-    border-color: hsl(var(--color-travel) / 0.5);
+    background-color: hsl(var(--color-travel));
+    border-color: hsl(var(--color-travel));
+    color: #e5e7eb; /* Light gray text */
   }
 
   .dark .schedule-block-movement {
-    background-color: hsl(var(--color-movement) / 0.25);
-    border-color: hsl(var(--color-movement) / 0.5);
+    background-color: hsl(var(--color-movement));
+    border-color: hsl(var(--color-movement));
+    color: #e5e7eb; /* Light gray text */
   }
 }
