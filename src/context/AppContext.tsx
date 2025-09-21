@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUser } from '@/types';
 import { generateDemoData } from '@/lib/demo-data';
 
@@ -78,22 +78,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  // Save data to localStorage whenever state changes
+  // Save data to localStorage whenever state changes (debounced to avoid excessive writes)
   useEffect(() => {
-    const data = {
-      profiles,
-      assignments,
-      scheduleTemplate,
-      timerSessions,
-      currentUser,
-      selectedProfile,
-      activeTimer,
-      isDemo,
-    };
-    localStorage.setItem('mission-hub-data', JSON.stringify(data));
+    const timeoutId = setTimeout(() => {
+      const data = {
+        profiles,
+        assignments,
+        scheduleTemplate,
+        timerSessions,
+        currentUser,
+        selectedProfile,
+        activeTimer,
+        isDemo,
+      };
+      localStorage.setItem('mission-hub-data', JSON.stringify(data));
+    }, 1000); // Debounce saves by 1 second
+
+    return () => clearTimeout(timeoutId);
   }, [profiles, assignments, scheduleTemplate, timerSessions, currentUser, selectedProfile, activeTimer, isDemo]);
 
-  // Timer tick effect
+  // Timer tick effect - Fixed dependency array to prevent infinite loops
   useEffect(() => {
     if (!activeTimer) return;
 
@@ -106,19 +110,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       });
 
-      // Auto-save every minute
+      // Auto-save every minute - moved assignment lookup inside interval to avoid stale closure
       if (activeTimer.elapsedTime % 60 === 0) {
-        const assignment = assignments.find(a => a.id === activeTimer.assignmentId);
-        if (assignment) {
-          updateAssignment(assignment.id, {
-            timeSpent: assignment.timeSpent + 1
-          });
-        }
+        setAssignments(prevAssignments => {
+          const assignment = prevAssignments.find(a => a.id === activeTimer.assignmentId);
+          if (assignment) {
+            return prevAssignments.map(a => 
+              a.id === activeTimer.assignmentId 
+                ? { ...a, timeSpent: a.timeSpent + 1 }
+                : a
+            );
+          }
+          return prevAssignments;
+        });
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeTimer, assignments]);
+  }, [activeTimer?.assignmentId]); // Only depend on assignment ID, not full activeTimer object
 
   const initializeDemoData = () => {
     console.log('Initializing demo data...'); // Debug
@@ -217,9 +226,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAssignments(prev => [...prev, newAssignment]);
   };
 
-  const updateAssignment = (id: string, updates: Partial<Assignment>) => {
+  const updateAssignment = useCallback((id: string, updates: Partial<Assignment>) => {
     setAssignments(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
-  };
+  }, []);
 
   const deleteAssignment = (id: string) => {
     setAssignments(prev => prev.filter(a => a.id !== id));

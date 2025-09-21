@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -26,83 +26,92 @@ const MissionHub = () => {
     return <div>Loading...</div>;
   }
 
-  // Get Monday of current week
-  const getMonday = (date: Date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    return new Date(d.setDate(diff));
-  };
+  // Memoize expensive calculations
+  const { monday, weekDays } = useMemo(() => {
+    // Get Monday of current week
+    const getMonday = (date: Date) => {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      return new Date(d.setDate(diff));
+    };
 
-  const monday = getMonday(currentWeek);
-  const weekDays = Array.from({ length: 5 }, (_, i) => {
-    const day = new Date(monday);
-    day.setDate(monday.getDate() + i);
-    return day;
-  });
+    const monday = getMonday(currentWeek);
+    const weekDays = Array.from({ length: 5 }, (_, i) => {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      return day;
+    });
 
-  const formatDate = (date: Date) => {
+    return { monday, weekDays };
+  }, [currentWeek]);
+
+  // Memoize utility functions
+  const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       month: 'numeric', 
       day: 'numeric' 
     });
-  };
+  }, []);
 
-  const formatTime = (minutes: number) => {
+  const formatTime = useCallback((minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours > 0) {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
-  };
+  }, []);
 
-  const formatTimerTime = (seconds: number) => {
+  const formatTimerTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
+  const profileAssignments = useMemo(() => 
+    getAssignmentsForProfile(selectedProfile.id), 
+    [getAssignmentsForProfile, selectedProfile.id]
+  );
 
-  const getAssignmentsForDay = (date: Date) => {
+  const getAssignmentsForDay = useCallback((date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     return profileAssignments.filter(a => a.scheduledDate === dateStr);
-  };
+  }, [profileAssignments]);
 
-  const getScheduleForDay = (date: Date) => {
+  const getScheduleForDay = useCallback((date: Date) => {
     const weekday = date.getDay() === 0 ? 7 : date.getDay(); // Convert Sunday=0 to 7, Monday=1
     return getScheduleForStudent(selectedProfile.displayName, weekday);
-  };
+  }, [getScheduleForStudent, selectedProfile.displayName]);
 
-  const handleToggleComplete = (assignment: Assignment) => {
+  const handleToggleComplete = useCallback((assignment: Assignment) => {
     updateAssignment(assignment.id, { completed: !assignment.completed });
-  };
+  }, [updateAssignment]);
 
-  const handleStartTimer = (assignmentId: string) => {
+  const handleStartTimer = useCallback((assignmentId: string) => {
     if (activeTimer?.assignmentId === assignmentId) {
       pauseTimer();
     } else {
       startTimer(assignmentId, selectedProfile.id);
     }
-  };
+  }, [activeTimer?.assignmentId, pauseTimer, startTimer, selectedProfile.id]);
 
-  const isTimerActive = (assignmentId: string) => {
+  const isTimerActive = useCallback((assignmentId: string) => {
     return activeTimer?.assignmentId === assignmentId;
-  };
+  }, [activeTimer?.assignmentId]);
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
+  const navigateWeek = useCallback((direction: 'prev' | 'next') => {
     const newWeek = new Date(currentWeek);
     newWeek.setDate(currentWeek.getDate() + (direction === 'prev' ? -7 : 7));
     setCurrentWeek(newWeek);
-  };
+  }, [currentWeek]);
 
-  const getWeekRange = () => {
+  const getWeekRange = useCallback(() => {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  };
+  }, [monday]);
 
   return (
     <div className="min-h-screen bg-background">

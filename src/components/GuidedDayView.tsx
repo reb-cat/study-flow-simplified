@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,57 +34,61 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const [localTimerRunning, setLocalTimerRunning] = useState(false);
   const [localTimeRemaining, setLocalTimeRemaining] = useState<number | null>(null);
 
-  // Helper function - defined early to avoid hoisting issues
-  const calculateBlockDuration = (startTime: string, endTime: string): number => {
+  // Helper function - memoized to avoid recreation
+  const calculateBlockDuration = useCallback((startTime: string, endTime: string): number => {
     const [startHour, startMin] = startTime.split(':').map(Number);
     const [endHour, endMin] = endTime.split(':').map(Number);
     const startMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
     return Math.max(1, endMinutes - startMinutes);
-  };
+  }, []);
 
-  const formatTime = (minutes: number) => {
+  const formatTime = useCallback((minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours > 0) {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
-  };
+  }, []);
 
   if (!selectedProfile) {
     return <div>Loading...</div>;
   }
 
-  // Get today's schedule and assignments
-  const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
-  const selectedDateObj = new Date(selectedDate + 'T12:00:00');
-  const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
-  const daySchedule = getScheduleForStudent(selectedProfile.displayName, weekday);
+  // Memoize expensive calculations
+  const { profileAssignments, selectedDateObj, weekday, daySchedule, todaysAssignments } = useMemo(() => {
+    const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
+    const selectedDateObj = new Date(selectedDate + 'T12:00:00');
+    const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
+    const daySchedule = getScheduleForStudent(selectedProfile.displayName, weekday);
+    const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === selectedDate);
+    
+    return { profileAssignments, selectedDateObj, weekday, daySchedule, todaysAssignments };
+  }, [selectedProfile.id, selectedDate, selectedProfile.displayName, getAssignmentsForProfile, getScheduleForStudent]);
 
-  // Get assignments for today
-  const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === selectedDate);
+  // Build guided blocks combining schedule and assignments - memoized
+  const guidedBlocks = useMemo(() => {
+    return daySchedule.map(block => {
+      const blockAssignments = todaysAssignments.filter(a => a.scheduledBlock === block.blockNumber);
+      const assignment = blockAssignments[0]; // Take first assignment for this block
 
-  // Build guided blocks combining schedule and assignments  
-  const guidedBlocks = daySchedule.map(block => {
-    const blockAssignments = todaysAssignments.filter(a => a.scheduledBlock === block.blockNumber);
-    const assignment = blockAssignments[0]; // Take first assignment for this block
-
-    return {
-      id: block.id,
-      blockNumber: block.blockNumber,
-      startTime: block.startTime,
-      endTime: block.endTime,
-      subject: block.subject,
-      blockType: block.blockType,
-      assignment: assignment || null,
-      duration: calculateBlockDuration(block.startTime, block.endTime)
-    };
-  }).filter(block => {
-    const blockType = block.blockType?.toLowerCase() || '';
-    // Only show assignment blocks and important activities
-    return blockType === 'assignment' || blockType === 'bible' || ['lunch', 'movement'].includes(blockType);
-  });
+      return {
+        id: block.id,
+        blockNumber: block.blockNumber,
+        startTime: block.startTime,
+        endTime: block.endTime,
+        subject: block.subject,
+        blockType: block.blockType,
+        assignment: assignment || null,
+        duration: calculateBlockDuration(block.startTime, block.endTime)
+      };
+    }).filter(block => {
+      const blockType = block.blockType?.toLowerCase() || '';
+      // Only show assignment blocks and important activities
+      return blockType === 'assignment' || blockType === 'bible' || ['lunch', 'movement'].includes(blockType);
+    });
+  }, [daySchedule, todaysAssignments, calculateBlockDuration]);
 
   const currentBlock = guidedBlocks[currentBlockIndex];
   const totalBlocks = guidedBlocks.length;

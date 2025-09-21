@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { SupabaseScheduleBlock, useSupabaseSchedule } from './useSupabaseSchedule';
 
 /**
@@ -53,10 +53,13 @@ export function useScheduleCache() {
     pendingRequests.clear();
   }, []);
 
-  return {
+  // Memoize the return object to prevent unnecessary re-renders
+  const memoizedReturn = useMemo(() => ({
     getCachedScheduleForDay,
     clearCache,
     isLoading,
     error
-  };
+  }), [getCachedScheduleForDay, clearCache, isLoading, error]);
+
+  return memoizedReturn;
 }

@@ -80,28 +80,28 @@ const Dashboard = () => {
     fetchWeekSchedule();
   }, [selectedProfile?.displayName, weekDays, getCachedScheduleForDay]);
 
-  const formatDate = (date: Date) => {
+  const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       month: 'numeric', 
       day: 'numeric' 
     });
-  };
+  }, []);
 
-  const formatTime = (minutes: number) => {
+  const formatTime = useCallback((minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours > 0) {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
-  };
+  }, []);
 
-  const formatTimerTime = (seconds: number) => {
+  const formatTimerTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
   // Helper to get day name for database query
   const getDayName = useCallback((date: Date): string => {
@@ -109,33 +109,33 @@ const Dashboard = () => {
     return dayNames[date.getDay()];
   }, []);
 
-  const handleToggleComplete = async (assignment: any) => {
+  const handleToggleComplete = useCallback(async (assignment: any) => {
     await updateSupabaseAssignment(assignment.id, { 
       completed_at: assignment.completed_at ? null : new Date().toISOString() 
     });
-  };
+  }, [updateSupabaseAssignment]);
 
   // Timer functionality simplified for now
-  const handleStartTimer = (assignmentId: string) => {
+  const handleStartTimer = useCallback((assignmentId: string) => {
     console.log('Starting timer for assignment:', assignmentId);
     // TODO: Implement real timer functionality with Supabase
-  };
+  }, []);
 
-  const isTimerActive = (assignmentId: string) => {
+  const isTimerActive = useCallback((assignmentId: string) => {
     return false; // TODO: Implement real timer state
-  };
+  }, []);
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
+  const navigateWeek = useCallback((direction: 'prev' | 'next') => {
     const newWeek = new Date(currentWeek);
     newWeek.setDate(currentWeek.getDate() + (direction === 'prev' ? -7 : 7));
     setCurrentWeek(newWeek);
-  };
+  }, [currentWeek]);
 
-  const getWeekRange = () => {
+  const getWeekRange = useCallback(() => {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  };
+  }, [monday]);
 
   // Get today's date for guided mode
   const today = new Date().toISOString().split('T')[0];
