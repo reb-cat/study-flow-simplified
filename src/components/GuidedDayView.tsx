@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CircularTimer } from './CircularTimer';
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, BookOpen, ArrowLeft, AlertTriangle, Target, ExternalLink } from 'lucide-react';
-import { Assignment } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
+import { useAssignments } from '@/hooks/useAssignments';
+import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
 
 interface GuidedDayViewProps {
   onBackToHub: () => void;
@@ -28,14 +29,16 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   
   const {
     selectedProfile,
-    getAssignmentsForProfile,
-    getScheduleForStudent,
     updateAssignment,
     startTimer,
     pauseTimer,
     stopTimer,
     activeTimer
   } = useApp();
+  
+  // Get unified assignments and schedule data
+  const { assignments: profileAssignments } = useAssignments();
+  const { getScheduleForDay } = useSupabaseSchedule();
   
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [localTimerRunning, setLocalTimerRunning] = useState(false);
@@ -63,39 +66,54 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     return <div>Loading...</div>;
   }
 
-  // Memoize expensive calculations
-  const { profileAssignments, selectedDateObj, weekday, daySchedule, todaysAssignments } = useMemo(() => {
-    const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
+  // Memoize expensive calculations with assignment placement
+  const { selectedDateObj, weekday } = useMemo(() => {
     const selectedDateObj = new Date(effectiveDate + 'T12:00:00');
     const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
-    const daySchedule = getScheduleForStudent(selectedProfile.displayName, weekday);
-    const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === effectiveDate);
     
-    return { profileAssignments, selectedDateObj, weekday, daySchedule, todaysAssignments };
-  }, [selectedProfile.id, effectiveDate, selectedProfile.displayName, getAssignmentsForProfile, getScheduleForStudent]);
+    return { selectedDateObj, weekday };
+  }, [selectedProfile.id, effectiveDate, selectedProfile.displayName]);
+  
+  // Get schedule data asynchronously
+  const [scheduleBlocks, setScheduleBlocks] = useState<any[]>([]);
+  useEffect(() => {
+    if (selectedProfile?.displayName) {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const selectedDateObj = new Date(effectiveDate + 'T12:00:00');
+      const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
+      const dayName = dayNames[weekday === 7 ? 0 : weekday];
+      
+      getScheduleForDay(selectedProfile.displayName, dayName)
+        .then(schedule => setScheduleBlocks(schedule))
+        .catch(err => console.error('Failed to load schedule:', err));
+    }
+  }, [selectedProfile?.displayName, effectiveDate, getScheduleForDay]);
 
-  // Build guided blocks combining schedule and assignments - memoized
+  // Use assignment placement logic to populate blocks with assignments
+  const { populatedBlocks } = useAssignmentPlacement(
+    profileAssignments,
+    scheduleBlocks,
+    selectedProfile.displayName,
+    effectiveDate
+  );
+
+  // Build guided blocks from populated blocks - memoized
   const guidedBlocks = useMemo(() => {
-    return daySchedule.map(block => {
-      const blockAssignments = todaysAssignments.filter(a => a.scheduledBlock === block.blockNumber);
-      const assignment = blockAssignments[0]; // Take first assignment for this block
-
-      return {
-        id: block.id,
-        blockNumber: block.blockNumber,
-        startTime: block.startTime,
-        endTime: block.endTime,
-        subject: block.subject,
-        blockType: block.blockType,
-        assignment: assignment || null,
-        duration: calculateBlockDuration(block.startTime, block.endTime)
-      };
-    }).filter(block => {
-      const blockType = block.blockType?.toLowerCase() || '';
+    return populatedBlocks.filter(block => {
+      const blockType = block.block_type?.toLowerCase() || '';
       // Only show assignment blocks and important activities
       return blockType === 'assignment' || blockType === 'bible' || ['lunch', 'movement'].includes(blockType);
-    });
-  }, [daySchedule, todaysAssignments, calculateBlockDuration]);
+    }).map(block => ({
+      id: block.id,
+      blockNumber: block.block_number,
+      startTime: block.start_time,
+      endTime: block.end_time,
+      subject: block.subject,
+      blockType: block.block_type,
+      assignment: block.assignment || null,
+      duration: calculateBlockDuration(block.start_time, block.end_time)
+    }));
+  }, [populatedBlocks, calculateBlockDuration]);
 
   const currentBlock = guidedBlocks[currentBlockIndex];
   const totalBlocks = guidedBlocks.length;
@@ -321,15 +339,15 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                     </p>
                   )}
                   
-                  {currentBlock.assignment.dueDate && (
+                  {currentBlock.assignment.due_date && (
                     <p className="text-base">
-                      <strong>Due:</strong> {new Date(currentBlock.assignment.dueDate).toLocaleDateString()}
+                      <strong>Due:</strong> {new Date(currentBlock.assignment.due_date).toLocaleDateString()}
                     </p>
                   )}
 
-                  {currentBlock.assignment.canvasUrl && (
+                  {currentBlock.assignment.canvas_url && (
                     <Button variant="outline" size="sm" asChild className="gap-2">
-                      <a href={currentBlock.assignment.canvasUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={currentBlock.assignment.canvas_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-3 h-3" />
                         Open in Canvas
                       </a>
