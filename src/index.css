@@ -20,11 +20,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 84% 4.9%;
 
-    /* Brand colors - Accessible teal primary */
-    --primary: 185 84% 31%;
+    /* Brand colors - Custom teal primary */
+    --primary: 184 80% 37%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 185 84% 26%;
-    --primary-light: 185 84% 96%;
+    --primary-hover: 184 80% 32%;
+    --primary-light: 184 80% 96%;
 
     /* Success & completion - Accessible green */
     --success: 142 76% 36%;
@@ -111,10 +111,10 @@
     --popover: 220 13% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 185 84% 60%;
+    --primary: 184 80% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 185 84% 65%;
-    --primary-light: 185 84% 15%;
+    --primary-hover: 184 80% 55%;
+    --primary-light: 184 80% 15%;
 
     --success: 142 76% 50%;
     --success-foreground: 0 0% 100%;
