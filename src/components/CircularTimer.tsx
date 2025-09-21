@@ -135,9 +135,7 @@ export function CircularTimer({
                 {extraTime > 0 && <div className="text-sm text-muted-foreground mt-1">
                     +{extraTime} min extra
                   </div>}
-                <div className="text-xs text-muted-foreground mt-1">
-                  {Math.round(progress)}% remaining
-                </div>
+                
               </>}
           </div>
         </div>
