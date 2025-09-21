@@ -99,6 +99,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
   // Build guided blocks from ALL populated blocks - NO FILTERING
   const guidedBlocks = useMemo(() => {
+    console.log('GuidedDayView - Raw scheduleBlocks:', scheduleBlocks.length);
+    console.log('GuidedDayView - populatedBlocks:', populatedBlocks.length, populatedBlocks);
+    
     return populatedBlocks.map(block => ({
       id: block.id,
       blockNumber: block.block_number,
@@ -111,7 +114,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       fallback: block.fallback,
       duration: calculateBlockDuration(block.start_time, block.end_time)
     }));
-  }, [populatedBlocks, calculateBlockDuration]);
+  }, [populatedBlocks, calculateBlockDuration, scheduleBlocks.length]);
 
   const currentBlock = guidedBlocks[currentBlockIndex];
   const totalBlocks = guidedBlocks.length;

@@ -138,23 +138,28 @@ export function useAssignmentPlacement(
       }
     }
 
-    // Second pass: Add fallbacks for any remaining Study Hall blocks that weren't processed
+    // Second pass: Add ALL remaining blocks (Co-op, Travel, Prep/Load, Bible, Lunch, Movement, etc.)
     for (const block of scheduleBlocks) {
       const alreadyProcessed = populatedBlocks.find(p => p.id === block.id);
-      if (!alreadyProcessed && isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name)) {
-        const dayName = getDayName(selectedDate);
-        const family = getBlockFamily(studentName, dayName, block.block_number || 0);
+      if (!alreadyProcessed) {
+        // Add non-assignable blocks as-is (Co-op, Travel, Prep/Load, Bible, Lunch, Movement)
         populatedBlocks.push({
           ...block,
           assignment: undefined,
-          assignedFamily: family,
-          fallback: STUDY_HALL_FALLBACK
+          assignedFamily: undefined
         });
       }
     }
 
     return {
-      populatedBlocks,
+      populatedBlocks: populatedBlocks.sort((a, b) => {
+        // Sort by start_time to ensure proper chronological order
+        const timeToMinutes = (timeStr: string) => {
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          return hours * 60 + minutes;
+        };
+        return timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
+      }),
       assignmentsWithFamily,
       unscheduledCount: unscheduledAssignments.length - scheduledAssignments.size
     };
