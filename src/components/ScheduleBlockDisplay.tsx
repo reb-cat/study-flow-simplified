@@ -18,7 +18,7 @@ export function ScheduleBlockDisplay({ block, assignedFamily, children }: Schedu
     <div className="space-y-3">
       <div className={`text-sm font-medium rounded-lg p-3 transition-all duration-200 ${colorClass || 'bg-card border border-border/50'}`}>
         <span className="text-foreground/90">
-          {convertTo12Hour(block.start_time)}–{convertTo12Hour(block.end_time)}
+          {convertTo12Hour(block.start_time)}
         </span>
         <span className="ml-3 text-foreground font-semibold">
           {block.subject || block.block_name}
