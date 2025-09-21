@@ -150,17 +150,17 @@
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
 
-    /* Dark mode activity-based colors - much brighter and more vibrant */
-    --blue-family: 217 91% 75%;
-    --blue-family-light: 217 50% 20%;
-    --purple-family: 275 85% 75%;
-    --purple-family-light: 275 50% 20%;
-    --green-family: 142 76% 65%;
-    --green-family-light: 142 50% 20%;
-    --orange-family: 25 95% 75%;
-    --orange-family-light: 25 60% 20%;
-    --yellow-family: 45 90% 75%;
-    --yellow-family-light: 45 60% 20%;
+    /* Dark mode activity-based colors - bright and vibrant */
+    --blue-family: 217 100% 80%;
+    --blue-family-light: 217 70% 25%;
+    --purple-family: 275 100% 80%;
+    --purple-family-light: 275 70% 25%;
+    --green-family: 142 100% 75%;
+    --green-family-light: 142 70% 25%;
+    --orange-family: 25 100% 71%;
+    --orange-family-light: 25 70% 25%;
+    --yellow-family: 45 100% 80%;
+    --yellow-family-light: 45 70% 25%;
 
     /* Dark calming backgrounds */
     --bg-soft: 220 13% 8%;
