@@ -55,6 +55,26 @@
     --input: 0 0% 100%;
     --ring: 217 91% 60%;
 
+    /* Subject family colors - EF-friendly color coding */
+    --math-family: 275 85% 60%;
+    --math-family-light: 275 85% 96%;
+    --language-family: 142 60% 45%;
+    --language-family-light: 142 60% 96%;
+    --science-family: 200 85% 55%;
+    --science-family-light: 200 85% 96%;
+    --history-family: 25 75% 55%;
+    --history-family-light: 25 75% 96%;
+    --arts-family: 320 65% 60%;
+    --arts-family-light: 320 65% 96%;
+    --practical-family: 45 80% 50%;
+    --practical-family-light: 45 80% 96%;
+
+    /* Calming background variations */
+    --bg-soft: 220 20% 98%;
+    --bg-warm: 35 25% 98%;
+    --bg-cool: 200 25% 98%;
+    --bg-neutral: 0 0% 98%;
+
     /* Design system */
     --radius: 0.75rem;
     --radius-sm: 0.5rem;
@@ -131,6 +151,26 @@
     --border: 217 32% 25%;
     --input: 217 32% 20%;
     --ring: 217 91% 65%;
+
+    /* Dark mode subject families */
+    --math-family: 275 70% 65%;
+    --math-family-light: 275 70% 15%;
+    --language-family: 142 50% 55%;
+    --language-family-light: 142 50% 15%;
+    --science-family: 200 70% 65%;
+    --science-family-light: 200 70% 15%;
+    --history-family: 25 65% 60%;
+    --history-family-light: 25 65% 15%;
+    --arts-family: 320 55% 65%;
+    --arts-family-light: 320 55% 15%;
+    --practical-family: 45 70% 60%;
+    --practical-family-light: 45 70% 15%;
+
+    /* Dark calming backgrounds */
+    --bg-soft: 220 13% 8%;
+    --bg-warm: 35 15% 8%;
+    --bg-cool: 200 15% 8%;
+    --bg-neutral: 0 0% 8%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -171,6 +211,45 @@
 }
 
 @layer components {
+  /* EF-friendly spacing and visual hierarchy */
+  .ef-container {
+    @apply p-6 space-y-6 bg-bg-soft;
+  }
+  
+  .ef-card {
+    @apply bg-card border border-border/50 rounded-lg p-4 shadow-sm;
+    @apply transition-all duration-200 hover:shadow-md;
+  }
+  
+  .ef-section {
+    @apply space-y-4 p-4 rounded-lg border border-border/30;
+  }
+
+  /* Subject family styling */
+  .subject-math {
+    @apply bg-math-family-light border-l-4 border-math-family;
+  }
+  
+  .subject-language {
+    @apply bg-language-family-light border-l-4 border-language-family;
+  }
+  
+  .subject-science {
+    @apply bg-science-family-light border-l-4 border-science-family;
+  }
+  
+  .subject-history {
+    @apply bg-history-family-light border-l-4 border-history-family;
+  }
+  
+  .subject-arts {
+    @apply bg-arts-family-light border-l-4 border-arts-family;
+  }
+  
+  .subject-practical {
+    @apply bg-practical-family-light border-l-4 border-practical-family;
+  }
+
   /* Status badges */
   .status-todo {
     @apply bg-muted text-muted-foreground border border-border;
@@ -191,5 +270,22 @@
   
   .card-interactive {
     @apply card-elevated hover:shadow transition-all duration-200 cursor-pointer;
+  }
+
+  /* Reduced density layouts */
+  .layout-breathe {
+    @apply space-y-8 p-8;
+  }
+  
+  .text-hierarchy-1 {
+    @apply text-2xl font-semibold text-foreground mb-6;
+  }
+  
+  .text-hierarchy-2 {
+    @apply text-lg font-medium text-foreground/90 mb-4;
+  }
+  
+  .text-hierarchy-3 {
+    @apply text-base font-medium text-foreground/80 mb-3;
   }
 }

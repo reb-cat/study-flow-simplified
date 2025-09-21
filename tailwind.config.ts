@@ -70,6 +70,36 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Subject family colors for EF-friendly design
+        "math-family": {
+          DEFAULT: "hsl(var(--math-family))",
+          light: "hsl(var(--math-family-light))",
+        },
+        "language-family": {
+          DEFAULT: "hsl(var(--language-family))",
+          light: "hsl(var(--language-family-light))",
+        },
+        "science-family": {
+          DEFAULT: "hsl(var(--science-family))",
+          light: "hsl(var(--science-family-light))",
+        },
+        "history-family": {
+          DEFAULT: "hsl(var(--history-family))",
+          light: "hsl(var(--history-family-light))",
+        },
+        "arts-family": {
+          DEFAULT: "hsl(var(--arts-family))",
+          light: "hsl(var(--arts-family-light))",
+        },
+        "practical-family": {
+          DEFAULT: "hsl(var(--practical-family))",
+          light: "hsl(var(--practical-family-light))",
+        },
+        // Calming backgrounds
+        "bg-soft": "hsl(var(--bg-soft))",
+        "bg-warm": "hsl(var(--bg-warm))",
+        "bg-cool": "hsl(var(--bg-cool))",
+        "bg-neutral": "hsl(var(--bg-neutral))",
       },
       borderRadius: {
         lg: "var(--radius-lg)",
