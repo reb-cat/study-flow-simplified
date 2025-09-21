@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,9 @@ const Dashboard = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
   const [weekSchedules, setWeekSchedules] = useState<Record<string, SupabaseScheduleBlock[]>>({});
+  
+  // Track scheduled assignments globally across all days to prevent duplicates
+  const scheduledAssignmentIds = useRef(new Set<string>());
 
   if (!selectedProfile || !currentUser) {
     return <div>Loading...</div>;
@@ -48,6 +51,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchWeekSchedule = async () => {
       setWeekSchedules({});
+      // Reset scheduled assignments when week changes
+      scheduledAssignmentIds.current.clear();
       
       if (!selectedProfile) return;
       
@@ -167,6 +172,7 @@ const Dashboard = () => {
               assignments={assignments}
               scheduleBlocks={weekSchedules[day.toISOString().split('T')[0]] || []}
               formatDate={formatDate}
+              scheduledAssignmentIds={scheduledAssignmentIds.current}
             />
           ))}
         </div>
