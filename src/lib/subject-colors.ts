@@ -25,7 +25,8 @@ export function getSubjectColorClass(blockType?: string, subject?: string): Subj
   if (subjectLower.includes('forensics') || 
       subjectLower.includes('tutoring') || 
       subjectLower.includes('algebra') ||
-      subjectLower.includes('language fundamentals')) {
+      subjectLower.includes('language fundamentals') ||
+      subjectLower.includes('lf')) {
     return 'subject-orange';
   }
   
