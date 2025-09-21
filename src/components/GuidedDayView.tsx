@@ -8,6 +8,8 @@ import { CircularTimer } from './CircularTimer';
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, BookOpen, ArrowLeft, AlertTriangle, Target, ExternalLink } from 'lucide-react';
 import { Assignment } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
+
 interface GuidedDayViewProps {
   onBackToHub: () => void;
   selectedDate: string;
@@ -26,6 +28,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     stopTimer,
     activeTimer
   } = useApp();
+  
+  const { populateAssignmentBlocks } = useAssignmentPlacement();
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [localTimerRunning, setLocalTimerRunning] = useState(false);
   const [localTimeRemaining, setLocalTimeRemaining] = useState<number | null>(null);
@@ -55,15 +59,20 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const selectedDateObj = new Date(selectedDate + 'T12:00:00');
   const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
   const daySchedule = getScheduleForStudent(selectedProfile.displayName, weekday);
-
-  // Get assignments for today
-  const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === selectedDate);
+  
+  // Get day name for family patterns
+  const dayName = selectedDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  
+  // Populate assignment blocks using family detection
+  const populatedBlocks = populateAssignmentBlocks(
+    profileAssignments, 
+    daySchedule, 
+    selectedProfile.displayName, 
+    dayName
+  );
 
   // Build guided blocks combining schedule and assignments
-  const guidedBlocks = daySchedule.map(block => {
-    const blockAssignments = todaysAssignments.filter(a => a.scheduledBlock === block.blockNumber);
-    const assignment = blockAssignments[0]; // Take first assignment for this block
-
+  const guidedBlocks = populatedBlocks.map(block => {
     return {
       id: block.id,
       blockNumber: block.blockNumber,
@@ -71,7 +80,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       endTime: block.endTime,
       subject: block.subject,
       blockType: block.blockType,
-      assignment: assignment || null,
+      assignment: block.assignment || null,
       duration: calculateBlockDuration(block.startTime, block.endTime)
     };
   }).filter(block => {
