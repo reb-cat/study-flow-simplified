@@ -24,8 +24,8 @@ export const insertDemoAssignments = async () => {
 
   // Insert all demo assignments
   const { error } = await supabase
-    .from('demo_assignments')
-    .insert(DEMO_ASSIGNMENTS);
+    .from('demo_assignments' as any)
+    .insert(DEMO_ASSIGNMENTS as any);
     
   if (error) {
     console.error('Error inserting demo assignments:', error);
