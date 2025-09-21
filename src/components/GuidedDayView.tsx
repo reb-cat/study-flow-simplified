@@ -97,13 +97,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     effectiveDate
   );
 
-  // Build guided blocks from populated blocks - memoized
+  // Build guided blocks from ALL populated blocks - NO FILTERING
   const guidedBlocks = useMemo(() => {
-    return populatedBlocks.filter(block => {
-      const blockType = block.block_type?.toLowerCase() || '';
-      // Only show assignment blocks and important activities
-      return blockType === 'assignment' || blockType === 'bible' || ['lunch', 'movement'].includes(blockType);
-    }).map(block => ({
+    return populatedBlocks.map(block => ({
       id: block.id,
       blockNumber: block.block_number,
       startTime: block.start_time,
@@ -111,6 +107,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       subject: block.subject,
       blockType: block.block_type,
       assignment: block.assignment || null,
+      assignedFamily: block.assignedFamily,
+      fallback: block.fallback,
       duration: calculateBlockDuration(block.start_time, block.end_time)
     }));
   }, [populatedBlocks, calculateBlockDuration]);
@@ -221,9 +219,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       case 'assignment':
         return Target;
       case 'lunch':
-        return Clock;
       case 'movement':
         return Clock;
+      case 'co-op':
+      case 'travel':
+      case 'prep/load':
+        return ChevronRight;
       default:
         return Clock;
     }
@@ -239,6 +240,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         return 'text-green-600';
       case 'movement':
         return 'text-blue-600';
+      case 'co-op':
+        return 'text-orange-600';
+      case 'travel':
+      case 'prep/load':
+        return 'text-slate-600';
       default:
         return 'text-muted-foreground';
     }
@@ -302,7 +308,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               </Badge>
             </div>
             <h1 className="text-3xl font-bold">
-              {currentBlock.assignment?.title || currentBlock.subject}
+              {currentBlock.assignment?.title || currentBlock.fallback || currentBlock.subject}
             </h1>
             <p className="text-muted-foreground">
               {currentBlock.blockType} • {formatTime(currentBlock.duration)}
@@ -345,6 +351,13 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
                     </p>
                   )}
 
+                  {(currentBlock.assignment as any).instructions && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Instructions:</p>
+                      <p className="text-sm bg-background/50 p-3 rounded border">{(currentBlock.assignment as any).instructions}</p>
+                    </div>
+                  )}
+
                   {currentBlock.assignment.canvas_url && (
                     <Button variant="outline" size="sm" asChild className="gap-2">
                       <a href={currentBlock.assignment.canvas_url} target="_blank" rel="noopener noreferrer">
@@ -357,40 +370,78 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               </Card>
             )}
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button 
-                onClick={handleMarkComplete} 
-                size="lg" 
-                className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
-              >
-                <CheckCircle className="w-6 h-6" />
-                Done!
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={handleNeedMoreTime} 
-                size="lg" 
-                className="gap-3 border-2 py-4 text-base font-semibold"
-              >
-                <Clock className="w-6 h-6" />
-                More Time
-              </Button>
-            </div>
+            {/* Non-Assignment Block Info */}
+            {!currentBlock.assignment && currentBlock.fallback && (
+              <Card className="bg-muted/30 border-none">
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground italic">{currentBlock.fallback}</p>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Stuck Button - Separate for emphasis */}
-            <div className="flex justify-center">
-              <Button 
-                variant="outline" 
-                onClick={handleStuck} 
-                size="lg" 
-                className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[200px]"
-              >
-                <AlertTriangle className="w-6 h-6" />
-                I'm Stuck - Need Help
-              </Button>
-            </div>
+            {/* Action Buttons - Different for different block types */}
+            {(currentBlock.blockType?.toLowerCase() === 'assignment' || currentBlock.blockType?.toLowerCase() === 'bible' || currentBlock.blockType?.toLowerCase() === 'movement') && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button 
+                    onClick={handleMarkComplete} 
+                    size="lg" 
+                    className="gap-3 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
+                  >
+                    <CheckCircle className="w-6 h-6" />
+                    {currentBlock.blockType?.toLowerCase() === 'assignment' ? 'Done!' : 'Mark Complete'}
+                  </Button>
+                  
+                  {currentBlock.blockType?.toLowerCase() === 'assignment' && (
+                    <Button 
+                      variant="outline" 
+                      onClick={handleNeedMoreTime} 
+                      size="lg" 
+                      className="gap-3 border-2 py-4 text-base font-semibold"
+                    >
+                      <Clock className="w-6 h-6" />
+                      More Time
+                    </Button>
+                  )}
+                </div>
+
+                {/* Stuck Button - Only for assignments */}
+                {currentBlock.blockType?.toLowerCase() === 'assignment' && (
+                  <div className="flex justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleStuck} 
+                      size="lg" 
+                      className="gap-3 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold min-w-[200px]"
+                    >
+                      <AlertTriangle className="w-6 h-6" />
+                      I'm Stuck - Need Help
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Simple Continue for Co-op, Travel, Prep/Load blocks */}
+            {(['co-op', 'travel', 'prep/load', 'lunch'].includes(currentBlock.blockType?.toLowerCase() || '')) && (
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => {
+                    if (currentBlockIndex < totalBlocks - 1) {
+                      setCurrentBlockIndex(prev => prev + 1);
+                      setLocalTimerRunning(false);
+                    } else {
+                      onBackToHub();
+                    }
+                  }}
+                  size="lg" 
+                  className="gap-3 bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold py-4 min-w-[200px]"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                  {currentBlock.blockType?.toLowerCase() === 'co-op' ? 'Attend Class' : 'Continue'}
+                </Button>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="flex justify-between pt-6 border-t border-border/50">
