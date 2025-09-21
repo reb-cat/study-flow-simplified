@@ -225,29 +225,37 @@
     @apply space-y-4 p-4 rounded-lg border border-border/30;
   }
 
-  /* Subject family styling */
-  .subject-math {
-    @apply bg-math-family-light border-l-4 border-math-family;
+  /* Location-based styling for schedule blocks */
+  .location-travel {
+    @apply bg-blue-50 text-blue-900 border-l-4 border-blue-400;
   }
   
-  .subject-language {
-    @apply bg-language-family-light border-l-4 border-language-family;
+  .location-coop {
+    @apply bg-green-50 text-green-900 border-l-4 border-green-400;
   }
   
-  .subject-science {
-    @apply bg-science-family-light border-l-4 border-science-family;
+  .location-online {
+    @apply bg-purple-50 text-purple-900 border-l-4 border-purple-400;
   }
   
-  .subject-history {
-    @apply bg-history-family-light border-l-4 border-history-family;
+  .location-home {
+    @apply bg-orange-50 text-orange-900 border-l-4 border-orange-400;
+  }
+
+  .dark .location-travel {
+    @apply bg-blue-950/50 text-blue-200 border-blue-500;
   }
   
-  .subject-arts {
-    @apply bg-arts-family-light border-l-4 border-arts-family;
+  .dark .location-coop {
+    @apply bg-green-950/50 text-green-200 border-green-500;
   }
   
-  .subject-practical {
-    @apply bg-practical-family-light border-l-4 border-practical-family;
+  .dark .location-online {
+    @apply bg-purple-950/50 text-purple-200 border-purple-500;
+  }
+  
+  .dark .location-home {
+    @apply bg-orange-950/50 text-orange-200 border-orange-500;
   }
 
   /* Status badges */
