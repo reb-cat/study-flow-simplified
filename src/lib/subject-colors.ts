@@ -21,19 +21,21 @@ export function getSubjectColorClass(family?: AssignmentFamily | string): Subjec
     return 'location-travel';
   }
   
-  // Co-op activities
-  if (familyLower.includes('co-op') || familyLower.includes('coop') || familyLower.includes('cooperative')) {
+  // Co-op activities (ALL fixed blocks including Study Hall, Lunch, etc.)
+  if (familyLower.includes('co-op') || familyLower.includes('coop') || familyLower.includes('cooperative') ||
+      familyLower.includes('study hall') || familyLower.includes('lunch') || familyLower.includes('break') ||
+      familyLower.includes('recess') || familyLower.includes('movement') || familyLower.includes('snack')) {
     return 'location-coop';
   }
   
-  // Online activities
+  // Online activities (Zoom classes)
   if (familyLower.includes('online') || familyLower.includes('zoom') || familyLower.includes('virtual') || familyLower.includes('video')) {
     return 'location-online';
   }
   
   // At-home activities (assignments, Bible, etc.)
   if (familyLower.includes('assignment') || familyLower.includes('bible') || familyLower.includes('devotion') || 
-      familyLower.includes('homework') || familyLower.includes('study') || familyLower.includes('reading')) {
+      familyLower.includes('homework') || familyLower.includes('reading')) {
     return 'location-home';
   }
   
