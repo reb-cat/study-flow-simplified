@@ -19,6 +19,13 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   onBackToHub,
   selectedDate
 }) => {
+  // TEST MODE OVERRIDE - Toggle for testing
+  const isTestMode = true; // Set to false for production
+  const testDate = '2025-09-22'; // Monday for testing
+  
+  // Use test date when in test mode, otherwise use provided selectedDate
+  const effectiveDate = isTestMode ? testDate : selectedDate;
+  
   const {
     selectedProfile,
     getAssignmentsForProfile,
@@ -59,13 +66,13 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   // Memoize expensive calculations
   const { profileAssignments, selectedDateObj, weekday, daySchedule, todaysAssignments } = useMemo(() => {
     const profileAssignments = getAssignmentsForProfile(selectedProfile.id);
-    const selectedDateObj = new Date(selectedDate + 'T12:00:00');
+    const selectedDateObj = new Date(effectiveDate + 'T12:00:00');
     const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
     const daySchedule = getScheduleForStudent(selectedProfile.displayName, weekday);
-    const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === selectedDate);
+    const todaysAssignments = profileAssignments.filter(a => a.scheduledDate === effectiveDate);
     
     return { profileAssignments, selectedDateObj, weekday, daySchedule, todaysAssignments };
-  }, [selectedProfile.id, selectedDate, selectedProfile.displayName, getAssignmentsForProfile, getScheduleForStudent]);
+  }, [selectedProfile.id, effectiveDate, selectedProfile.displayName, getAssignmentsForProfile, getScheduleForStudent]);
 
   // Build guided blocks combining schedule and assignments - memoized
   const guidedBlocks = useMemo(() => {
