@@ -244,35 +244,35 @@
     border-color: hsl(var(--color-movement));
   }
 
-  /* Light mode - vibrant but subtle 30% opacity */
+  /* Light mode - vibrant but subtle 25% opacity */
   .schedule-block-home {
-    background: rgba(16, 185, 129, 0.3);   /* Teal-green 30% */
-    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.25);   /* Teal-green 25% */
+    border-color: rgba(16, 185, 129, 0.25);
   }
 
   .schedule-block-location {
-    background: rgba(139, 92, 246, 0.3);   /* Purple 30% */
-    border-color: rgba(139, 92, 246, 0.3);
+    background: rgba(139, 92, 246, 0.25);   /* Purple 25% */
+    border-color: rgba(139, 92, 246, 0.25);
   }
 
   .schedule-block-special {
-    background: rgba(251, 146, 60, 0.3);   /* Orange 30% */
-    border-color: rgba(251, 146, 60, 0.3);
+    background: rgba(251, 146, 60, 0.25);   /* Orange 25% */
+    border-color: rgba(251, 146, 60, 0.25);
   }
 
   .schedule-block-prep {
-    background: rgba(14, 165, 233, 0.3);   /* Sky blue 30% */
-    border-color: rgba(14, 165, 233, 0.3);
+    background: rgba(14, 165, 233, 0.25);   /* Sky blue 25% */
+    border-color: rgba(14, 165, 233, 0.25);
   }
 
   .schedule-block-travel {
-    background: rgba(6, 182, 212, 0.3);    /* Cyan 30% */
-    border-color: rgba(6, 182, 212, 0.3);
+    background: rgba(6, 182, 212, 0.25);    /* Cyan 25% */
+    border-color: rgba(6, 182, 212, 0.25);
   }
 
   .schedule-block-movement {
-    background: rgba(236, 72, 153, 0.3);   /* Pink 30% */
-    border-color: rgba(236, 72, 153, 0.3);
+    background: rgba(236, 72, 153, 0.25);   /* Pink 25% */
+    border-color: rgba(236, 72, 153, 0.25);
   }
 
   /* Dark mode - 60% transparency */
