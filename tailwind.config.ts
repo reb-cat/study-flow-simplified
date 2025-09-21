@@ -81,7 +81,7 @@ export default {
         'gradient-primary': 'var(--gradient-primary)',
         'gradient-success': 'var(--gradient-success)',  
         'gradient-timer': 'var(--gradient-timer)',
-        'gradient-accent': 'var(--gradient-accent)',
+        'gradient-background': 'var(--gradient-background)',
       },
       boxShadow: {
         'sm': 'var(--shadow-sm)',

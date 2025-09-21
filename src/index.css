@@ -34,18 +34,31 @@
     /* Timer & active states - Accessible orange */
     --timer: 25 85% 45%;
     --timer-foreground: 0 0% 100%;
+    --timer-hover: 25 85% 40%;
     --timer-light: 25 85% 96%;
 
     /* Secondary - Muted purple */
     --secondary: 220 14% 96%;
     --secondary-foreground: 220 9% 46%;
     
+    /* Enhanced gradients for modern look */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.08));
+    --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(var(--timer-hover)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success) / 0.15), hsl(var(--success) / 0.08));
+    --gradient-background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--primary) / 0.05));
+
     /* Content hierarchy */
     --muted: 220 14% 96%;
     --muted-foreground: 215 16% 47%;
 
     --accent: 220 14% 96%;
     --accent-foreground: 220 9% 46%;
+
+    /* Enhanced gradients for modern look */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05));
+    --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(var(--timer-hover)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success) / 0.1), hsl(var(--success) / 0.05));
+    --gradient-background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--primary) / 0.02));
 
     /* System colors */
     --destructive: 0 84% 60%;
@@ -122,6 +135,7 @@
 
     --timer: 25 85% 60%;
     --timer-foreground: 0 0% 100%;
+    --timer-hover: 25 85% 65%;
     --timer-light: 25 85% 15%;
 
     --secondary: 220 13% 16%;

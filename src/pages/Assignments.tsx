@@ -59,7 +59,7 @@ const Assignments = () => {
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-primary hover:bg-primary-hover">
+              <Button className="gap-2">
                 <Plus className="w-4 h-4" />
                 Add Assignment
               </Button>
@@ -89,7 +89,7 @@ const Assignments = () => {
 
         {/* Status Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <Card className="bg-gradient-primary border-primary/20">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">{profileAssignments.length}</div>
               <div className="text-sm text-muted-foreground">Total</div>
@@ -101,7 +101,7 @@ const Assignments = () => {
               <div className="text-sm text-muted-foreground">To Do</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20">
+          <Card className="bg-gradient-success border-success/20">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-success">{profileAssignments.filter(a => a.completed).length}</div>
               <div className="text-sm text-muted-foreground">Completed</div>
@@ -133,7 +133,7 @@ const Assignments = () => {
               />
             ))
           ) : (
-            <Card className="bg-gradient-to-br from-muted/20 to-muted/5 border-dashed border-2">
+            <Card className="bg-muted/10 border-dashed border-2">
               <CardContent className="p-12 text-center">
                 <div className="max-w-sm mx-auto">
                   <h3 className="text-xl font-semibold mb-3 text-foreground">
