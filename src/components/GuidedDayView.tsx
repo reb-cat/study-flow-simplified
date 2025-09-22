@@ -183,6 +183,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       : calculateBlockDuration(currentBlock.startTime, currentBlock.endTime);
 
     try {
+      console.log('selectedDate value:', selectedDate, 'type:', typeof selectedDate);
+      console.log('student name:', selectedProfile?.displayName);
+      
       // Add status update to daily_schedule_status table
       const { data, error } = await supabase.from('daily_schedule_status')
         .upsert({ 
