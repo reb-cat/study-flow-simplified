@@ -190,6 +190,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           date: effectiveDate,
           student_name: selectedProfile?.displayName,
           status: 'complete' 
+        }, {
+          onConflict: 'student_name,date,template_block_id'
         });
       
       if (error) {
@@ -243,6 +245,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           date: effectiveDate,
           student_name: selectedProfile?.displayName,
           status: 'overtime' 
+        }, {
+          onConflict: 'student_name,date,template_block_id'
         });
       console.log('More Time database result:', result);
     } catch (error) {
@@ -265,6 +269,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           date: effectiveDate,
           student_name: selectedProfile?.displayName,
           status: 'stuck' 
+        }, {
+          onConflict: 'student_name,date,template_block_id'
         });
       console.log('Stuck database result:', result);
     } catch (error) {
