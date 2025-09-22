@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { OverviewScheduleBlock } from '@/components/OverviewScheduleBlock';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { UnifiedAssignment } from '@/types/assignment';
 import { PopulatedScheduleBlock } from '@/types/schedule';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OverviewDayCardProps {
   day: Date;
@@ -24,6 +25,24 @@ export function OverviewDayCard({
 }: OverviewDayCardProps) {
   const dateStr = day.toISOString().split('T')[0];
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
+  const [blockStatuses, setBlockStatuses] = useState<any[]>([]);
+
+  // Fetch statuses when component loads
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      if (selectedProfile?.displayName) {
+        const { data } = await supabase
+          .from('daily_schedule_status')
+          .select('*')
+          .eq('student_name', `demo-${selectedProfile.displayName.toLowerCase()}`)
+          .eq('date', dateStr);
+        
+        setBlockStatuses(data || []);
+      }
+    };
+
+    fetchStatuses();
+  }, [selectedProfile?.displayName, dateStr]);
 
   return (
     <Card className="card-elevated h-fit">
@@ -44,12 +63,21 @@ export function OverviewDayCard({
           // Pass through fallback for blocks that should have one
           const blockWithFallback = populatedBlock || block;
           
+          // Check for status
+          const status = blockStatuses?.find(s => s.template_block_id === block.id)?.status;
+          
           return (
-            <OverviewScheduleBlock 
-              key={block.id} 
-              block={blockWithFallback}
-              assignment={assignment}
-            />
+            <div key={block.id} className="flex items-center gap-2">
+              <OverviewScheduleBlock 
+                block={blockWithFallback}
+                assignment={assignment}
+              />
+              <div className="flex-shrink-0">
+                {status === 'complete' && <span className="text-green-600">✓</span>}
+                {status === 'overtime' && <span className="text-orange-600">→</span>}
+                {status === 'stuck' && <span className="text-red-600">⚠</span>}
+              </div>
+            </div>
           );
         })}
 
