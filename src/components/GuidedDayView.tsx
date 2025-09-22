@@ -185,9 +185,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     try {
       // Add status update to daily_schedule_status table
       const result = await supabase.from('daily_schedule_status')
-        .update({ status: 'complete' })
-        .eq('template_block_id', currentBlock.id)
-        .eq('date', effectiveDate);
+        .upsert({ 
+          template_block_id: currentBlock.id,
+          date: effectiveDate,
+          student_name: selectedProfile?.displayName,
+          status: 'complete' 
+        });
       console.log('Database result:', result);
       
       if (currentBlock?.assignment) {
@@ -230,9 +233,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     console.log('More Time clicked, currentBlock:', currentBlock);
     try {
       const result = await supabase.from('daily_schedule_status')
-        .update({ status: 'overtime' })
-        .eq('template_block_id', currentBlock.id)
-        .eq('date', effectiveDate);
+        .upsert({ 
+          template_block_id: currentBlock.id,
+          date: effectiveDate,
+          student_name: selectedProfile?.displayName,
+          status: 'overtime' 
+        });
       console.log('More Time database result:', result);
     } catch (error) {
       console.error('More Time database error:', error);
@@ -249,9 +255,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     console.log('Stuck clicked, currentBlock:', currentBlock);
     try {
       const result = await supabase.from('daily_schedule_status')
-        .update({ status: 'stuck' })
-        .eq('template_block_id', currentBlock.id)
-        .eq('date', effectiveDate);
+        .upsert({ 
+          template_block_id: currentBlock.id,
+          date: effectiveDate,
+          student_name: selectedProfile?.displayName,
+          status: 'stuck' 
+        });
       console.log('Stuck database result:', result);
     } catch (error) {
       console.error('Stuck database error:', error);
