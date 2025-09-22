@@ -175,26 +175,34 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleMarkComplete = async () => {
+    console.log('Done clicked, currentBlock:', currentBlock);
+    
     // Calculate time spent (in minutes)
     const timeSpent = localTimeRemaining !== null 
       ? Math.round((calculateBlockDuration(currentBlock.startTime, currentBlock.endTime) - (localTimeRemaining / 60)))
       : calculateBlockDuration(currentBlock.startTime, currentBlock.endTime);
 
-    // Add status update to daily_schedule_status table
-    await supabase.from('daily_schedule_status')
-      .update({ status: 'complete' })
-      .eq('template_block_id', currentBlock.id)
-      .eq('date', effectiveDate);
+    try {
+      // Add status update to daily_schedule_status table
+      const result = await supabase.from('daily_schedule_status')
+        .update({ status: 'complete' })
+        .eq('template_block_id', currentBlock.id)
+        .eq('date', effectiveDate);
+      console.log('Database result:', result);
       
-    if (currentBlock?.assignment) {
-      // Update assignment as completed
-      await supabase.from('assignments')
-        .update({ completed_at: new Date().toISOString() })
-        .eq('id', currentBlock.assignment.id);
-        
-      updateAssignment(currentBlock.assignment.id, {
-        completed: true
-      });
+      if (currentBlock?.assignment) {
+        // Update assignment as completed
+        const assignmentResult = await supabase.from('assignments')
+          .update({ completed_at: new Date().toISOString() })
+          .eq('id', currentBlock.assignment.id);
+        console.log('Assignment update result:', assignmentResult);
+          
+        updateAssignment(currentBlock.assignment.id, {
+          completed: true
+        });
+      }
+    } catch (error) {
+      console.error('Database error:', error);
     }
     
     toast({
@@ -219,10 +227,16 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleNeedMoreTime = async () => {
-    await supabase.from('daily_schedule_status')
-      .update({ status: 'overtime' })
-      .eq('template_block_id', currentBlock.id)
-      .eq('date', effectiveDate);
+    console.log('More Time clicked, currentBlock:', currentBlock);
+    try {
+      const result = await supabase.from('daily_schedule_status')
+        .update({ status: 'overtime' })
+        .eq('template_block_id', currentBlock.id)
+        .eq('date', effectiveDate);
+      console.log('More Time database result:', result);
+    } catch (error) {
+      console.error('More Time database error:', error);
+    }
       
     setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1));
     toast({
@@ -232,10 +246,16 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleStuck = async () => {
-    await supabase.from('daily_schedule_status')
-      .update({ status: 'stuck' })
-      .eq('template_block_id', currentBlock.id)
-      .eq('date', effectiveDate);
+    console.log('Stuck clicked, currentBlock:', currentBlock);
+    try {
+      const result = await supabase.from('daily_schedule_status')
+        .update({ status: 'stuck' })
+        .eq('template_block_id', currentBlock.id)
+        .eq('date', effectiveDate);
+      console.log('Stuck database result:', result);
+    } catch (error) {
+      console.error('Stuck database error:', error);
+    }
       
     setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1));
     toast({
