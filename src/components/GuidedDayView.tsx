@@ -256,19 +256,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
         {/* Current Block Card */}
         <Card className="card-elevated border-primary/20">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <Badge variant="outline" className="text-base font-medium">
-                {currentBlock.startTime} - {currentBlock.endTime}
-              </Badge>
-            </div>
-            <h1 className="text-3xl font-bold">
-              {currentBlock.assignment?.title || currentBlock.subject}
-            </h1>
-            <p className="text-muted-foreground">
-              {currentBlock.blockType} • {formatTime(currentBlock.duration)}
-            </p>
-          </CardHeader>
+          
 
           <CardContent className="space-y-6">
             {/* Timer */}
