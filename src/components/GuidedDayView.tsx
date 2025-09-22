@@ -265,9 +265,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             <h1 className="text-3xl font-bold">
               {currentBlock.assignment?.title || currentBlock.subject}
             </h1>
-            <p className="text-muted-foreground">
-              {currentBlock.blockType} • {formatTime(currentBlock.duration)}
-            </p>
           </CardHeader>
 
           <CardContent className="space-y-6">
