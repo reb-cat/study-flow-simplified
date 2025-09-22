@@ -133,7 +133,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         description: "Focus time has begun!"
       });
     }
-  }, [currentBlockIndex]); // Changed dependency to only trigger when block actually changes
+  }, [currentBlockIndex, currentBlock]); // Ensure it triggers when currentBlock is available
 
   // Real-time countdown - this ensures REAL seconds are counted
   useEffect(() => {
@@ -353,12 +353,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           <CardContent className="space-y-6">
             {/* Timer */}
             <div className="flex justify-center">
-              {currentBlock && localTimeRemaining !== null && (
+              {currentBlock && (
                 <CircularTimer 
                   durationMinutes={currentBlock.duration} 
                   isRunning={localTimerRunning} 
                   onComplete={handleTimerComplete} 
-                  externalTimeRemaining={localTimeRemaining} 
+                  externalTimeRemaining={localTimeRemaining || (currentBlock.duration * 60)} 
                   className="" 
                   hideControls={true} 
                 />
