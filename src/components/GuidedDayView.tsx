@@ -175,6 +175,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleMarkComplete = async () => {
+    // Stop the timer first
+    if (activeTimer && currentBlock?.assignment) {
+      stopTimer();
+    }
+    
     // Calculate time spent (in minutes)
     const timeSpent = localTimeRemaining !== null 
       ? Math.round((calculateBlockDuration(currentBlock.startTime, currentBlock.endTime) - (localTimeRemaining / 60)))
