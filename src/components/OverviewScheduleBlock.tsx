@@ -7,20 +7,21 @@ import { getScheduleBlockClassName } from '@/lib/schedule-colors';
 interface OverviewScheduleBlockProps {
   block: SupabaseScheduleBlock;
   assignment?: UnifiedAssignment;
+  status?: string;
 }
 
-export function OverviewScheduleBlock({ block, assignment }: OverviewScheduleBlockProps) {
+export function OverviewScheduleBlock({ block, assignment, status }: OverviewScheduleBlockProps) {
   const blockClassName = getScheduleBlockClassName(block);
   
   // Status comes from Guided Day actions, stored in database
-  const getStatusIcon = (assignment?: UnifiedAssignment) => {
-    if (!assignment) return '○';  // Empty circle - no assignment
-    
-    // These fields are set by Guided Day mode
-    if (assignment.completed_at) return '✓';  // Checkmark
-    if ((assignment as any).is_stuck) return '⚠';      // Warning triangle  
-    if ((assignment as any).needs_more_time) return '→'; // Arrow
-    
+  const getStatusIcon = () => {
+    if (status === 'complete') return '✓';
+    if (status === 'overtime') return '→';
+    if (status === 'stuck') return '⚠';
+
+    // Fall back to assignment checks for compatibility
+    if (assignment?.completed_at) return '✓';
+
     return '○';  // Empty circle - not started
   };
 
@@ -59,7 +60,7 @@ export function OverviewScheduleBlock({ block, assignment }: OverviewScheduleBlo
         </div>
       </div>
       <div className="text-lg font-mono text-foreground/80">
-        {getStatusIcon(assignment)}
+        {getStatusIcon()}
       </div>
     </div>
   );

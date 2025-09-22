@@ -4,6 +4,7 @@ import { OverviewScheduleBlock } from '@/components/OverviewScheduleBlock';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { UnifiedAssignment } from '@/types/assignment';
 import { PopulatedScheduleBlock } from '@/types/schedule';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OverviewDayCardProps {
   day: Date;
@@ -24,6 +25,24 @@ export function OverviewDayCard({
 }: OverviewDayCardProps) {
   const dateStr = day.toISOString().split('T')[0];
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
+  const [blockStatuses, setBlockStatuses] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    async function fetchStatuses() {
+      const { data } = await supabase
+        .from('daily_schedule_status')
+        .select('*')
+        .or(`student_name.eq.demo-${selectedProfile?.displayName?.toLowerCase()},student_name.ilike.${selectedProfile?.displayName}`)
+        .eq('date', dateStr);
+
+      console.log('Fetched statuses:', data);
+      if (data) setBlockStatuses(data);
+    }
+
+    if (selectedProfile?.displayName) {
+      fetchStatuses();
+    }
+  }, [dateStr, selectedProfile]);
 
   return (
     <Card className="card-elevated h-fit">
@@ -35,20 +54,22 @@ export function OverviewDayCard({
       <CardContent className="space-y-2">
         {scheduleBlocks.map((block) => {
           const populatedBlock = populatedBlocks.find(p => p.id === block.id);
-          const manualAssignment = dayAssignments.find(a => 
+          const manualAssignment = dayAssignments.find(a =>
             a.scheduled_block === block.block_number && !populatedBlock?.assignment
           );
-          
+
           const assignment = populatedBlock?.assignment || manualAssignment;
-          
-          // Pass through fallback for blocks that should have one
           const blockWithFallback = populatedBlock || block;
-          
+
+          // ADD THIS LINE
+          const blockStatus = blockStatuses.find(s => s.template_block_id === block.id);
+
           return (
-            <OverviewScheduleBlock 
-              key={block.id} 
+            <OverviewScheduleBlock
+              key={block.id}
               block={blockWithFallback}
               assignment={assignment}
+              status={blockStatus?.status}
             />
           );
         })}

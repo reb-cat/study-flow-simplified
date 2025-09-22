@@ -13,6 +13,15 @@ import { useAssignments } from '@/hooks/useAssignments';
 import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
 import { supabase } from '@/integrations/supabase/client';
 
+// Helper function to get today's date string
+const getTodayString = () => {
+  return new Date().toISOString().split('T')[0];
+};
+
+// At the top of GuidedDayView
+const TEST_MODE = true; // Toggle for testing
+const testSelectedDate = TEST_MODE ? '2025-09-15' : getTodayString();
+
 interface GuidedDayViewProps {
   onBackToHub: () => void;
   selectedDate: string;
@@ -20,14 +29,11 @@ interface GuidedDayViewProps {
 
 export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   onBackToHub,
-  selectedDate
+  selectedDate: propSelectedDate
 }) => {
-  // TEST MODE OVERRIDE - Toggle for testing
-  const isTestMode = true; // Set to false for production
-  const testDate = '2025-09-22'; // Monday for testing - must have assignments
-  
   // Use test date when in test mode, otherwise use provided selectedDate
-  const effectiveDate = isTestMode ? testDate : selectedDate;
+  const selectedDate = TEST_MODE ? testSelectedDate : propSelectedDate;
+  const effectiveDate = selectedDate;
   
   const {
     selectedProfile,
@@ -90,6 +96,38 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         .catch(err => console.error('Failed to load schedule:', err));
     }
   }, [selectedProfile?.displayName, effectiveDate, getScheduleForDay]);
+
+  // After scheduleBlocks are loaded, check status
+  React.useEffect(() => {
+    async function findStartingBlock() {
+      console.log('Finding starting block for:', selectedDate, selectedProfile?.displayName);
+
+      const { data: statuses } = await supabase
+        .from('daily_schedule_status')
+        .select('*')
+        .eq('student_name', `demo-${selectedProfile?.displayName?.toLowerCase()}`)
+        .eq('date', selectedDate);
+
+      console.log('Found statuses:', statuses);
+
+      if (statuses && statuses.length > 0) {
+        const firstIncomplete = scheduleBlocks.findIndex(block => {
+          const status = statuses.find(s => s.template_block_id === block.id);
+          console.log('Block:', block.id, 'Status:', status?.status);
+          return !status || status.status !== 'complete';
+        });
+
+        console.log('First incomplete index:', firstIncomplete);
+        setCurrentBlockIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
+      } else {
+        setCurrentBlockIndex(0);
+      }
+    }
+
+    if (scheduleBlocks.length > 0) {
+      findStartingBlock();
+    }
+  }, [scheduleBlocks, selectedDate, selectedProfile]);
 
   // Use assignment placement logic to populate blocks with assignments
   const { populatedBlocks } = useAssignmentPlacement(
@@ -360,8 +398,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             Back to Hub
           </Button>
           <div className="text-right">
-            {isTestMode && (
-              <p className="text-xs text-orange-600 font-medium">TEST MODE: {testDate}</p>
+            {TEST_MODE && (
+              <p className="text-xs text-orange-600 font-medium">TEST MODE: {testSelectedDate}</p>
             )}
             <p className="text-muted-foreground">
               Block {currentBlockIndex + 1} of {totalBlocks}
