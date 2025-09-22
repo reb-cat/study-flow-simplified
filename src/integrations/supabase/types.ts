@@ -364,11 +364,11 @@ export type Database = {
           priority: string | null
           scheduled_block: number | null
           scheduled_date: string | null
-          student_name: string
           subject: string | null
           time_spent: number | null
           title: string
           updated_at: string | null
+          user_id: string
         }
         Insert: {
           completed_at?: string | null
@@ -380,11 +380,11 @@ export type Database = {
           priority?: string | null
           scheduled_block?: number | null
           scheduled_date?: string | null
-          student_name: string
           subject?: string | null
           time_spent?: number | null
           title: string
           updated_at?: string | null
+          user_id: string
         }
         Update: {
           completed_at?: string | null
@@ -396,11 +396,11 @@ export type Database = {
           priority?: string | null
           scheduled_block?: number | null
           scheduled_date?: string | null
-          student_name?: string
           subject?: string | null
           time_spent?: number | null
           title?: string
           updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
