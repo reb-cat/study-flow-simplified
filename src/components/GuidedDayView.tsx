@@ -184,14 +184,19 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
     try {
       // Add status update to daily_schedule_status table
-      const result = await supabase.from('daily_schedule_status')
+      const { data, error } = await supabase.from('daily_schedule_status')
         .upsert({ 
           template_block_id: currentBlock.id,
           date: effectiveDate,
           student_name: selectedProfile?.displayName,
           status: 'complete' 
         });
-      console.log('Database result:', result);
+      
+      if (error) {
+        console.error('Upsert failed:', error);
+      } else {
+        console.log('Upsert successful:', data);
+      }
       
       if (currentBlock?.assignment) {
         // Update assignment as completed
