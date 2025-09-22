@@ -175,6 +175,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleMarkComplete = async () => {
+    // Calculate time spent (in minutes)
+    const timeSpent = localTimeRemaining !== null 
+      ? Math.round((calculateBlockDuration(currentBlock.startTime, currentBlock.endTime) - (localTimeRemaining / 60)))
+      : calculateBlockDuration(currentBlock.startTime, currentBlock.endTime);
+
     // Add status update to daily_schedule_status table
     await supabase.from('daily_schedule_status')
       .update({ status: 'complete' })
@@ -182,6 +187,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       .eq('date', effectiveDate);
       
     if (currentBlock?.assignment) {
+      // Update assignment as completed
       await supabase.from('assignments')
         .update({ completed_at: new Date().toISOString() })
         .eq('id', currentBlock.assignment.id);
