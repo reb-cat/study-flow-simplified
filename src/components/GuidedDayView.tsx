@@ -191,7 +191,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         .upsert({ 
           template_block_id: currentBlock.id,
           date: effectiveDate,
-          student_name: selectedProfile?.displayName,
+          student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
           status: 'complete' 
         }, {
           onConflict: 'student_name,date,template_block_id'
@@ -246,7 +246,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         .upsert({ 
           template_block_id: currentBlock.id,
           date: effectiveDate,
-          student_name: selectedProfile?.displayName,
+          student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
           status: 'overtime' 
         }, {
           onConflict: 'student_name,date,template_block_id'
@@ -270,7 +270,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         .upsert({ 
           template_block_id: currentBlock.id,
           date: effectiveDate,
-          student_name: selectedProfile?.displayName,
+          student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
           status: 'stuck' 
         }, {
           onConflict: 'student_name,date,template_block_id'
