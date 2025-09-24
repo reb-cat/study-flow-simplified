@@ -12,27 +12,20 @@ import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
 import { supabase } from '@/integrations/supabase/client';
+import { PopulatedScheduleBlock } from '@/types/schedule';
 
-// Helper function to get today's date string
-const getTodayString = () => {
-  return new Date().toISOString().split('T')[0];
-};
-
-// At the top of GuidedDayView
-const TEST_MODE = true; // Toggle for testing
-const testSelectedDate = TEST_MODE ? '2025-09-15' : getTodayString();
 
 interface GuidedDayViewProps {
-  onBackToHub: () => void;
+  onBackToHub: (needsReload?: boolean) => void;
   selectedDate: string;
+  populatedSchedule?: PopulatedScheduleBlock[];
 }
 
 export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   onBackToHub,
-  selectedDate: propSelectedDate
+  selectedDate,
+  populatedSchedule
 }) => {
-  // Use test date when in test mode, otherwise use provided selectedDate
-  const selectedDate = TEST_MODE ? testSelectedDate : propSelectedDate;
   const effectiveDate = selectedDate;
   
   const {
@@ -49,8 +42,21 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const { getScheduleForDay } = useSupabaseSchedule();
   
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
+
+  // Wrap the setter to track all changes:
+  const trackedSetCurrentBlockIndex = (newIndex: number | ((prev: number) => number)) => {
+    if (typeof newIndex === 'function') {
+      const nextValue = newIndex(currentBlockIndex);
+      console.trace('CHANGING currentBlockIndex from', currentBlockIndex, 'to', nextValue);
+      setCurrentBlockIndex(nextValue);
+    } else {
+      console.trace('CHANGING currentBlockIndex from', currentBlockIndex, 'to', newIndex);
+      setCurrentBlockIndex(newIndex);
+    }
+  };
   const [localTimerRunning, setLocalTimerRunning] = useState(false);
   const [localTimeRemaining, setLocalTimeRemaining] = useState<number | null>(null);
+  const [isRescheduling, setIsRescheduling] = useState(false);
 
   // Helper function - memoized to avoid recreation
   const calculateBlockDuration = useCallback((startTime: string, endTime: string): number => {
@@ -69,6 +75,22 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     }
     return `${mins}m`;
   }, []);
+
+  // Helper function to determine deadline urgency
+  const getDeadlineUrgency = useCallback((dueDate: string | null) => {
+    if (!dueDate) return null;
+
+    const due = new Date(dueDate + 'T12:00:00');
+    const today = new Date(selectedDate + 'T12:00:00');
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (due < today) return { level: 'overdue', text: 'OVERDUE!' };
+    if (due <= tomorrow) return { level: 'critical', text: 'Due Tomorrow!' };
+    if (due <= new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000))
+      return { level: 'warning', text: 'Due Soon' };
+    return null;
+  }, [selectedDate]);
 
   if (!selectedProfile) {
     return <div>Loading...</div>;
@@ -92,42 +114,32 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       const dayName = dayNames[weekday === 7 ? 0 : weekday];
       
       getScheduleForDay(selectedProfile.displayName, dayName)
-        .then(schedule => setScheduleBlocks(schedule))
+        .then(schedule => {
+          console.log('Blocks loaded:', schedule.map(b => ({
+            id: b.id,
+            time: b.start_time,
+            subject: b.subject
+          })));
+
+          // Sort blocks by start time
+          const sortedBlocks = schedule.sort((a, b) => {
+            const timeA = a.start_time.split(':').map(Number);
+            const timeB = b.start_time.split(':').map(Number);
+            return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
+          });
+
+          console.log('Blocks after sorting:', sortedBlocks.map(b => ({
+            id: b.id,
+            time: b.start_time,
+            subject: b.subject
+          })));
+
+          setScheduleBlocks(sortedBlocks);
+        })
         .catch(err => console.error('Failed to load schedule:', err));
     }
   }, [selectedProfile?.displayName, effectiveDate, getScheduleForDay]);
 
-  // After scheduleBlocks are loaded, check status
-  React.useEffect(() => {
-    async function findStartingBlock() {
-      console.log('Finding starting block for:', selectedDate, selectedProfile?.displayName);
-
-      const { data: statuses } = await supabase
-        .from('daily_schedule_status')
-        .select('*')
-        .eq('student_name', `demo-${selectedProfile?.displayName?.toLowerCase()}`)
-        .eq('date', selectedDate);
-
-      console.log('Found statuses:', statuses);
-
-      if (statuses && statuses.length > 0) {
-        const firstIncomplete = scheduleBlocks.findIndex(block => {
-          const status = statuses.find(s => s.template_block_id === block.id);
-          console.log('Block:', block.id, 'Status:', status?.status);
-          return !status || status.status !== 'complete';
-        });
-
-        console.log('First incomplete index:', firstIncomplete);
-        setCurrentBlockIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
-      } else {
-        setCurrentBlockIndex(0);
-      }
-    }
-
-    if (scheduleBlocks.length > 0) {
-      findStartingBlock();
-    }
-  }, [scheduleBlocks, selectedDate, selectedProfile]);
 
   // Use assignment placement logic to populate blocks with assignments
   const { populatedBlocks } = useAssignmentPlacement(
@@ -137,11 +149,29 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     effectiveDate
   );
 
-  // Build guided blocks from ALL populated blocks - NO FILTERING
+  // Build guided blocks from populated schedule or calculate if not provided
   const guidedBlocks = useMemo(() => {
+    if (populatedSchedule && populatedSchedule.length > 0) {
+      // Use what Dashboard calculated
+      console.log('GuidedDayView - Using provided populatedSchedule:', populatedSchedule.length);
+      return populatedSchedule.map(block => ({
+        id: block.id,
+        blockNumber: block.block_number,
+        startTime: block.start_time,
+        endTime: block.end_time,
+        subject: block.subject,
+        blockType: block.block_type,
+        assignment: block.assignment,
+        assignedFamily: block.assignedFamily,
+        fallback: block.fallback,
+        duration: calculateBlockDuration(block.start_time, block.end_time)
+      }));
+    }
+
+    // Fallback to current calculation if not provided
     console.log('GuidedDayView - Raw scheduleBlocks:', scheduleBlocks.length);
     console.log('GuidedDayView - populatedBlocks:', populatedBlocks.length, populatedBlocks);
-    
+
     return populatedBlocks.map(block => ({
       id: block.id,
       blockNumber: block.block_number,
@@ -154,7 +184,50 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       fallback: block.fallback,
       duration: calculateBlockDuration(block.start_time, block.end_time)
     }));
-  }, [populatedBlocks, calculateBlockDuration, scheduleBlocks.length]);
+  }, [populatedSchedule, populatedBlocks, calculateBlockDuration, scheduleBlocks.length]);
+
+  // After guidedBlocks are calculated, check status and find starting block
+  React.useEffect(() => {
+    async function findStartingBlock() {
+      console.log('Finding starting block for DATE:', selectedDate); // Check what date it's using
+      console.log('Profile:', selectedProfile?.displayName);
+
+      const { data: statuses } = await supabase
+        .from('daily_schedule_status')
+        .select('*')
+        .or(`student_name.eq.demo-${selectedProfile?.displayName?.toLowerCase()},student_name.ilike.${selectedProfile?.displayName}`)
+        .eq('date', selectedDate);
+
+      // Only use statuses from today, not previous days
+      const todayStatuses = statuses?.filter(s => s.date === selectedDate) || [];
+
+      console.log('Found statuses:', statuses);
+      console.log('Filtered to today only:', todayStatuses);
+
+      if (todayStatuses && todayStatuses.length > 0) {
+        const firstIncomplete = guidedBlocks.findIndex(block => {
+          const status = todayStatuses.find(s => s.template_block_id === block.id);
+          console.log('Block:', block.id, 'Status:', status?.status);
+          return !status || (status.status !== 'complete' && status.status !== 'overtime' && status.status !== 'stuck');
+        });
+
+        console.log('First incomplete index:', firstIncomplete);
+        trackedSetCurrentBlockIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
+      } else {
+        trackedSetCurrentBlockIndex(0);
+      }
+    }
+
+    if (guidedBlocks.length > 0) {
+      findStartingBlock();
+    }
+  }, [guidedBlocks, selectedDate, selectedProfile]);
+
+  // console.log('RENDER - currentBlockIndex:', currentBlockIndex);
+  // console.log('RENDER - guidedBlocks length:', guidedBlocks.length);
+  // console.log('RENDER - currentBlock:', guidedBlocks[currentBlockIndex]);
+  // console.log('Block 0:', guidedBlocks[0]);
+  // console.log('Block 1:', guidedBlocks[1]);
 
   const currentBlock = guidedBlocks[currentBlockIndex];
   const totalBlocks = guidedBlocks.length;
@@ -264,7 +337,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     // Auto-advance to next block for ALL block types
     setTimeout(() => {
       if (currentBlockIndex < totalBlocks - 1) {
-        setCurrentBlockIndex(prev => prev + 1);
+        trackedSetCurrentBlockIndex(prev => prev + 1);
         setLocalTimerRunning(false);
       } else {
         // All done!
@@ -278,51 +351,146 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleNeedMoreTime = async () => {
-    console.log('More Time clicked, currentBlock:', currentBlock);
-    try {
-      const result = await supabase.from('daily_schedule_status')
-        .upsert({ 
-          template_block_id: currentBlock.id,
-          date: effectiveDate,
-          student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
-          status: 'overtime' 
-        }, {
-          onConflict: 'student_name,date,template_block_id'
+    if (!currentBlock || !currentBlock.assignment) return;
+
+    const assignment = currentBlock.assignment;
+    const today = new Date(selectedDate + 'T12:00:00');
+    today.setHours(23, 59, 59, 999);
+
+    // Assignment is "critical" if due tomorrow (needs completion today)
+    const isCriticalDeadline = assignment.due_date && (() => {
+      const dueDate = new Date(assignment.due_date + 'T12:00:00');
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return dueDate <= tomorrow;
+    })();
+
+    if (isCriticalDeadline) {
+      // Must complete TODAY (due tomorrow or sooner)
+      const remainingTodaySlots = guidedBlocks
+        .slice(currentBlockIndex + 1)
+        .filter(block =>
+          block.subject === 'Assignment' &&
+          !block.assignment
+        );
+
+      if (remainingTodaySlots.length > 0) {
+        const nextSlot = remainingTodaySlots[0];
+
+        await supabase.from('demo_assignments')
+          .update({
+            scheduled_block: nextSlot.blockNumber,
+            scheduled_date: selectedDate
+          })
+          .eq('id', assignment.id);
+
+        toast({
+          title: "⚠️ Moved to later today",
+          description: `Due tomorrow at co-op - must complete today! Moved to ${nextSlot.startTime}`,
+          variant: "destructive"
         });
-      console.log('More Time database result:', result);
-    } catch (error) {
-      console.error('More Time database error:', error);
+      } else {
+        // No more slots - needs after-school work
+        toast({
+          title: "🚨 Due Tomorrow - No Slots Left!",
+          description: "This needs to be done after school today. Cannot push to tomorrow!",
+          variant: "destructive"
+        });
+
+        await supabase.from('daily_schedule_status')
+          .upsert({
+            template_block_id: currentBlock.id,
+            date: selectedDate,
+            student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
+            status: 'overtime-critical'
+          });
+      }
+    } else {
+      // Due in 2+ days, can safely reschedule to tomorrow
+      setIsRescheduling(true);
+
+      try {
+        // Mark current block as overtime
+        await supabase.from('daily_schedule_status')
+          .upsert({
+            template_block_id: currentBlock.id,
+            date: selectedDate,
+            student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
+            status: 'overtime'
+          });
+
+        // Update assignment to clear today's scheduling
+        await supabase.from('demo_assignments')
+          .update({
+            scheduled_block: null,
+            scheduled_date: null  // Clear so it can be rescheduled
+          })
+          .eq('id', assignment.id);
+
+        toast({
+          title: "Rescheduled for tomorrow",
+          description: "You'll see this assignment in tomorrow's schedule",
+        });
+
+        // Move to next block
+        if (currentBlockIndex < totalBlocks - 1) {
+          trackedSetCurrentBlockIndex(prev => prev + 1);
+        }
+      } finally {
+        setIsRescheduling(false);
+      }
     }
-      
-    setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1));
-    toast({
-      title: "No problem! 💙",
-      description: "Take the time you need. You're doing great!"
-    });
   };
 
   const handleStuck = async () => {
-    console.log('Stuck clicked, currentBlock:', currentBlock);
+    if (!currentBlock) return;
+
+    console.log('Stuck button clicked, starting process...');
+
     try {
-      const result = await supabase.from('daily_schedule_status')
-        .upsert({ 
+      // Save stuck status
+      console.log('Saving stuck status to database...');
+      await supabase.from('daily_schedule_status')
+        .upsert({
           template_block_id: currentBlock.id,
-          date: effectiveDate,
+          date: selectedDate,
           student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
-          status: 'stuck' 
+          status: 'stuck'
         }, {
           onConflict: 'student_name,date,template_block_id'
         });
-      console.log('Stuck database result:', result);
+
+      console.log('Status saved, now sending email...');
+
+      // Send email notification
+      const { data, error } = await supabase.functions.invoke('send-stuck-notification', {
+        body: {
+          student: selectedProfile?.displayName,
+          assignment: currentBlock.assignment?.title || currentBlock.subject,
+          reason: 'Student clicked stuck button'
+        }
+      });
+
+      console.log('Edge function response:', data);
+      if (error) {
+        console.error('Edge function error:', error);
+      }
+
+      toast({
+        title: "Help is on the way! 🤝",
+        description: "Mom has been notified"
+      });
+
+      trackedSetCurrentBlockIndex(prev => Math.min(guidedBlocks.length - 1, prev + 1));
+
     } catch (error) {
-      console.error('Stuck database error:', error);
+      console.error('Complete stuck handler error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
     }
-      
-    setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1));
-    toast({
-      title: "Help is on the way! 🤝",
-      description: "This has been flagged for assistance."
-    });
   };
 
   const canGoNext = currentBlockIndex < totalBlocks - 1;
@@ -366,6 +534,23 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     }
   };
 
+  // Show loading overlay when rescheduling
+  if (isRescheduling) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md text-center">
+          <CardContent className="p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Rescheduling Assignment...</h2>
+            <p className="text-muted-foreground">
+              Updating your schedule to accommodate extra time needed.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!currentBlock) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -376,7 +561,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             <p className="text-muted-foreground mb-6">
               You've completed all your blocks for today. Great work!
             </p>
-            <Button onClick={onBackToHub} className="gap-2">
+            <Button onClick={() => onBackToHub()} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
               Back to StudyFlow
             </Button>
@@ -393,14 +578,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       <div className="container max-w-2xl mx-auto p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onBackToHub} className="gap-2">
+          <Button variant="ghost" onClick={() => onBackToHub()} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Hub
           </Button>
           <div className="text-right">
-            {TEST_MODE && (
-              <p className="text-xs text-orange-600 font-medium">TEST MODE: {testSelectedDate}</p>
-            )}
             <p className="text-muted-foreground">
               Block {currentBlockIndex + 1} of {totalBlocks}
             </p>
@@ -422,6 +604,18 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               <Badge variant="outline" className="text-base font-medium">
                 {currentBlock.startTime} - {currentBlock.endTime}
               </Badge>
+              {currentBlock.assignment && (() => {
+                const urgency = getDeadlineUrgency(currentBlock.assignment.due_date);
+                return urgency && (
+                  <Badge variant={
+                    urgency.level === 'overdue' ? 'destructive' :
+                    urgency.level === 'critical' ? 'destructive' :
+                    'default'
+                  }>
+                    {urgency.text}
+                  </Badge>
+                );
+              })()}
             </div>
             <h1 className="text-3xl font-bold">
               {currentBlock.assignment?.title || currentBlock.fallback || currentBlock.subject}
@@ -514,19 +708,21 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
             {/* Action Buttons - Always show all buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button 
-                onClick={handleMarkComplete} 
-                size="lg" 
+              <Button
+                type="button"
+                onClick={handleMarkComplete}
+                size="lg"
                 className="gap-2 bg-success text-success-foreground hover:bg-success/90 text-base font-semibold py-4"
               >
                 <CheckCircle className="w-6 h-6" />
                 Done!
               </Button>
               
-              <Button 
-                variant="outline" 
-                onClick={handleNeedMoreTime} 
-                size="lg" 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleNeedMoreTime}
+                size="lg"
                 className="gap-2 border-2 py-4 text-base font-semibold"
               >
                 <Clock className="w-6 h-6" />
@@ -536,10 +732,11 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
             {/* Stuck Button - Always available */}
             <div className="flex justify-center">
-              <Button 
-                variant="outline" 
-                onClick={handleStuck} 
-                size="lg" 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleStuck}
+                size="lg"
                 className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 border-2 py-4 text-base font-semibold"
               >
                 <AlertTriangle className="w-6 h-6" />
@@ -551,7 +748,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             <div className="flex justify-between pt-6 border-t border-border/50">
               <Button 
                 variant="ghost" 
-                onClick={() => setCurrentBlockIndex(prev => Math.max(0, prev - 1))} 
+                onClick={() => trackedSetCurrentBlockIndex(prev => Math.max(0, prev - 1))} 
                 disabled={!canGoPrev} 
                 size="lg" 
                 className="gap-3 text-base font-semibold py-4"
@@ -562,7 +759,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
               <Button 
                 variant="ghost" 
-                onClick={() => setCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1))} 
+                onClick={() => trackedSetCurrentBlockIndex(prev => Math.min(totalBlocks - 1, prev + 1))} 
                 disabled={!canGoNext} 
                 size="lg" 
                 className="gap-3 text-base font-semibold py-4"

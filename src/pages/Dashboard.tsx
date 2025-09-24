@@ -33,6 +33,7 @@ const Dashboard = () => {
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
+  const [guidedDate, setGuidedDate] = useState(new Date().toISOString().split('T')[0]);
   const [weekSchedules, setWeekSchedules] = useState<Record<string, SupabaseScheduleBlock[]>>({});
   const [weekScheduleWithAssignments, setWeekScheduleWithAssignments] = useState<Record<string, PopulatedScheduleBlock[]>>({});
 
@@ -42,10 +43,20 @@ const Dashboard = () => {
 
   // Get Monday of current week
   const getMonday = (date: Date) => {
-    const d = new Date(date);
+    // Use noon to avoid timezone issues
+    const dateStr = date.toISOString().split('T')[0];
+    const d = new Date(dateStr + 'T12:00:00');
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
+    console.log('getMonday input:', dateStr, 'day of week:', day);
+
+    // Calculate days to subtract to get to Monday
+    const daysToSubtract = day === 0 ? 6 : day - 1;
+    console.log('Days to subtract to get Monday:', daysToSubtract);
+
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - daysToSubtract);
+    console.log('calculated Monday:', monday.toISOString().split('T')[0]);
+    return monday;
   };
 
   const monday = useMemo(() => getMonday(currentWeek), [currentWeek]);
@@ -61,9 +72,9 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchWeekSchedule = async () => {
       setWeekSchedules({});
-      
+
       if (!selectedProfile) return;
-      
+
       try {
         // Calculate weekDays inside effect to avoid dependency issues
         const weekDaysInEffect = Array.from({ length: 5 }, (_, i) => {
@@ -71,12 +82,18 @@ const Dashboard = () => {
           day.setDate(monday.getDate() + i);
           return day;
         });
-        
+
+        console.log('Monday date:', monday.toISOString().split('T')[0]);
+        console.log('Week days to fetch:', weekDaysInEffect.map(d => d.toISOString().split('T')[0]));
+
         // Fetch all days in parallel to avoid sequential requests
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
+          const dayString = day.toISOString().split('T')[0];
+          console.log(`Fetching schedule for ${dayString} (${dayName})`);
           const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
-          return { day: day.toISOString().split('T')[0], blocks };
+          console.log(`Got ${blocks.length} blocks for ${dayString}`);
+          return { day: dayString, blocks };
         });
 
         const results = await Promise.all(promises);
@@ -84,7 +101,8 @@ const Dashboard = () => {
         results.forEach(({ day, blocks }) => {
           finalWeekData[day] = blocks;
         });
-        
+
+        console.log('Final weekSchedules keys:', Object.keys(finalWeekData));
         setWeekSchedules(finalWeekData);
       } catch (error) {
         console.error('Error fetching week schedule:', error);
@@ -133,13 +151,20 @@ const Dashboard = () => {
   // Schedule assignments for the entire week at once
   const scheduleWeekAssignments = useCallback(() => {
     if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
+      console.log('scheduleWeekAssignments early return:', {
+        selectedProfile: !!selectedProfile,
+        assignments: assignments?.length,
+        weekSchedulesKeys: Object.keys(weekSchedules)
+      });
       return {};
     }
 
+    console.log('scheduleWeekAssignments processing weekSchedules:', Object.keys(weekSchedules));
+
     // Collect all assignment blocks for the week with their day info
     const allBlocksForWeek: Array<SupabaseScheduleBlock & { dayDate: string; dayName: string }> = [];
-    
-    
+
+
     Object.entries(weekSchedules).forEach(([dayDate, dayBlocks]) => {
       const date = new Date(dayDate + 'T12:00:00');
       const dayName = getDayName(date);
@@ -160,10 +185,21 @@ const Dashboard = () => {
       detectedFamily: detectFamily(assignment)
     }));
 
-    // Get unscheduled assignments (no scheduled_date or scheduled_block)
-    const unscheduledAssignments = assignmentsWithFamily.filter(a => 
-      !a.scheduled_date && !a.scheduled_block
-    );
+    // Get unscheduled assignments or those scheduled for past dates
+    const unscheduledAssignments = assignmentsWithFamily.filter(a => {
+      // Include if no schedule at all
+      if (!a.scheduled_date && !a.scheduled_block) return true;
+
+      // Include if scheduled for a past date (needs rescheduling)
+      if (a.scheduled_date) {
+        const scheduledDate = new Date(a.scheduled_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return scheduledDate < today;
+      }
+
+      return false;
+    });
 
     // Track which assignments have been scheduled to prevent duplicates across the entire week
     const scheduledAssignments = new Set<string>();
@@ -289,22 +325,30 @@ const Dashboard = () => {
       }
     }
 
-    // Add all non-assignable blocks back to their respective days
+    // Add ALL blocks back to their respective days to ensure nothing is lost
     Object.entries(weekSchedules).forEach(([dayDate, dayBlocks]) => {
-      const nonAssignableBlocks = dayBlocks.filter(block => {
-        const blockType = (block.block_type || '').toLowerCase();
-        return blockType !== 'assignment' && !isStudyHallBlock(block.block_type, block.start_time);
+      // Get IDs of blocks we've already processed
+      const processedBlockIds = new Set(weekAssignmentData[dayDate].map(b => b.id));
+
+      // Find any blocks that haven't been added yet
+      const unprocessedBlocks = dayBlocks.filter(block =>
+        !processedBlockIds.has(block.id)
+      );
+
+      // Add all missing blocks
+      unprocessedBlocks.forEach(block => {
+        weekAssignmentData[dayDate].push({
+          ...block,
+          assignment: undefined,
+          assignedFamily: undefined
+        });
       });
-      
-      nonAssignableBlocks.forEach(block => {
-        weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: undefined });
-      });
-      
-      // Sort blocks by start time
+
+      // Sort ALL blocks by start time
       weekAssignmentData[dayDate].sort((a, b) => {
-        const aTime = typeof a.start_time === 'number' ? a.start_time : 0;
-        const bTime = typeof b.start_time === 'number' ? b.start_time : 0;
-        return aTime - bTime;
+        const timeA = a.start_time.split(':').map(Number);
+        const timeB = b.start_time.split(':').map(Number);
+        return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
       });
     });
 
@@ -335,12 +379,31 @@ const Dashboard = () => {
     return shortTaskKeywords.some(keyword => title.includes(keyword));
   }, []);
 
-  // Get today's date for guided mode
-  const today = new Date().toISOString().split('T')[0];
+  // Modify onBackToHub to handle rescheduling
+  const handleBackFromGuided = (needsReload?: boolean) => {
+    if (needsReload) {
+      // Refresh assignments and schedule, then re-enter guided mode
+      window.location.href = window.location.href; // Clean reload maintaining state
+    } else {
+      setShowGuidedMode(false);
+    }
+  };
 
   // Show guided mode if enabled
   if (showGuidedMode) {
-    return <GuidedDayView onBackToHub={() => setShowGuidedMode(false)} selectedDate={today} />;
+    console.log('Guided date:', guidedDate);
+    console.log('Available dates in schedule:', Object.keys(weekScheduleWithAssignments));
+    console.log('Schedule for guided date:', weekScheduleWithAssignments[guidedDate]);
+
+    const guidedDaySchedule = weekScheduleWithAssignments[guidedDate] || [];
+
+    return (
+      <GuidedDayView
+        onBackToHub={handleBackFromGuided}
+        selectedDate={guidedDate}
+        populatedSchedule={guidedDaySchedule} // Pass the exact schedule
+      />
+    );
   }
 
   return (
@@ -380,7 +443,7 @@ const Dashboard = () => {
           {weekDays.map((day, dayIndex) => {
             const dayDate = day.toISOString().split('T')[0];
             return (
-              <OverviewDayCard 
+              <OverviewDayCard
                 key={dayIndex}
                 day={day}
                 selectedProfile={selectedProfile}
@@ -388,6 +451,10 @@ const Dashboard = () => {
                 scheduleBlocks={weekSchedules[dayDate] || []}
                 populatedBlocks={weekScheduleWithAssignments[dayDate] || []}
                 formatDate={formatDate}
+                onDayClick={(dateStr) => {
+                  setGuidedDate(dateStr);
+                  setShowGuidedMode(true);
+                }}
               />
             );
           })}

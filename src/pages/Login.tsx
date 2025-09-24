@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { GraduationCap, Users, Rocket } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -43,20 +44,60 @@ const Login = () => {
     }
   };
 
-  const handleDemoLogin = async (demoUser: string) => {
-    console.log('Demo login clicked:', demoUser); // Debug log
+  const handleDemoLogin = async (profileName: string) => {
     setLoading(true);
+
+    const email = `demo-${profileName.toLowerCase()}@studyflow.demo`;
+    console.log('Demo login starting for profileName:', profileName);
+    console.log('Current username state:', username);
+    console.log('Login attempt:', email, 'with password: demo');
+
     try {
-      const success = await login(demoUser);
-      console.log('Login success:', success); // Debug log
-      if (success) {
-        toast({ title: `Welcome ${demoUser === 'admin' ? 'Parent Admin' : demoUser}!` });
-        navigate('/dashboard');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'demo'
+      });
+
+      if (error) {
+        console.error('Supabase auth error:', {
+          message: error.message,
+          status: error.status,
+          code: error.code
+        });
+        toast({
+          title: 'Demo login failed',
+          description: `${error.message} (Code: ${error.code})`,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      console.log('Auth successful:', data);
+
+      if (data.user) {
+        // Session persists through reloads automatically
+        console.log('Calling AppContext login with profile name:', profileName);
+        console.log('Type of profileName:', typeof profileName, 'Value:', JSON.stringify(profileName));
+        const success = await login(profileName);
+        console.log('AppContext login result:', success);
+        if (success) {
+          toast({
+            title: `Welcome ${profileName === 'admin' ? 'Parent Admin' : profileName}!`,
+            description: 'Authenticated with Supabase'
+          });
+          navigate('/dashboard');
+        } else {
+          toast({
+            title: 'Profile setup failed',
+            description: 'Authentication succeeded but profile loading failed',
+            variant: 'destructive'
+          });
+        }
       }
     } catch (error) {
-      console.error('Demo login error:', error); // Debug log
-      toast({ 
-        title: 'Error', 
+      console.error('Demo login error:', error);
+      toast({
+        title: 'Error',
         description: 'Demo login failed.',
         variant: 'destructive'
       });

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,25 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser } = useApp();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    // Give AppContext time to restore session
+    const timer = setTimeout(() => {
+      setIsChecking(false);
+    }, 500); // Wait 500ms for session restoration
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Still checking auth - show loading
+  if (isChecking) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
+  }
+
+  // Auth check complete - redirect if no user
   return currentUser ? <>{children}</> : <Navigate to="/" />;
 };
 

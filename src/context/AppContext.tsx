@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUser } from '@/types';
 import { generateDemoData } from '@/lib/demo-data';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AppContextType {
   // Auth state
@@ -78,6 +79,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
+
   // Save data to localStorage whenever state changes (debounced to avoid excessive writes)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -139,21 +141,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     console.log('Demo data initialized:', demoData.profiles.length, 'profiles'); // Debug
   };
 
-  const login = async (username: string, password?: string): Promise<boolean> => {
-    console.log('Login attempt:', username, 'Available profiles:', profiles.length); // Debug
-    
-    // If no profiles exist, initialize demo data first
-    if (profiles.length === 0) {
-      console.log('No profiles found, initializing demo data...'); // Debug
-      initializeDemoData();
-      // Wait a moment for state to update
-      await new Promise(resolve => setTimeout(resolve, 100));
+  const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
+    console.log('AppContext login called with username:', username);
+
+    let cleanUsername = username;
+    if (username.includes('@')) {
+      cleanUsername = username.split('@')[0].replace('demo-', '');
+    }
+
+    // Actually authenticate with Supabase FIRST
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: `demo-${cleanUsername}@studyflow.demo`,
+        password: password || 'demo-password' // Use the password you set in Supabase
+      });
+
+      if (error) {
+        console.error('Supabase auth error:', error);
+        return false;
+      }
+
+      console.log('Supabase auth successful for:', data.user?.email);
+    } catch (error) {
+      console.error('Auth error:', error);
+      return false;
+    }
+
+    // Now set up local state after successful auth
+    let currentProfiles = profiles;
+    if (currentProfiles.length === 0) {
+      const demoData = generateDemoData();
+      currentProfiles = demoData.profiles;
+      setProfiles(demoData.profiles);
+      setAssignments(demoData.assignments);
+      setScheduleTemplate(demoData.scheduleTemplate);
+      setTimerSessions(demoData.timerSessions);
     }
 
     // Demo mode login
-    if (username === 'demo' || username === 'admin' || username === 'parent') {
-      const adminProfile = profiles.find(p => p.role === 'admin');
-      console.log('Looking for admin profile:', adminProfile); // Debug
+    if (cleanUsername === 'demo' || cleanUsername === 'admin' || cleanUsername === 'parent') {
+      const adminProfile = currentProfiles.find(p => p.role === 'admin');
       if (adminProfile) {
         const user: AppUser = {
           id: 'demo-admin',
@@ -162,15 +189,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           profileId: adminProfile.id
         };
         setCurrentUser(user);
-        setSelectedProfile(profiles.find(p => p.displayName === 'Abigail') || profiles[0]);
+        setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
         setIsDemo(true);
         return true;
       }
     }
 
-    if (username === 'abigail') {
-      const abigailProfile = profiles.find(p => p.displayName === 'Abigail');
-      console.log('Looking for Abigail profile:', abigailProfile); // Debug
+    if (cleanUsername === 'abigail') {
+      const abigailProfile = currentProfiles.find(p => p.displayName === 'Abigail');
       if (abigailProfile) {
         const user: AppUser = {
           id: 'demo-abigail',
@@ -185,9 +211,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    if (username === 'khalil') {
-      const khalilProfile = profiles.find(p => p.displayName === 'Khalil');
-      console.log('Looking for Khalil profile:', khalilProfile); // Debug
+    if (cleanUsername === 'khalil') {
+      const khalilProfile = currentProfiles.find(p => p.displayName === 'Khalil');
       if (khalilProfile) {
         const user: AppUser = {
           id: 'demo-khalil',
@@ -202,16 +227,112 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    console.log('Login failed - no matching profile found'); // Debug
     return false;
-  };
+  }, [profiles]);
 
-  const logout = () => {
+  const logout = async () => {
+    // Sign out from Supabase if authenticated
+    await supabase.auth.signOut();
+
     setCurrentUser(null);
     setSelectedProfile(null);
     setActiveTimer(null);
     setIsDemo(false);
   };
+
+  useEffect(() => {
+    let mounted = true;
+
+    // Immediately check for existing session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session?.user?.email && mounted) {
+          const email = session.user.email;
+          console.log('Found existing session for:', email);
+
+          if (email.startsWith('demo-')) {
+            // Extract username from email
+            const username = email.replace('demo-', '').split('@')[0];
+
+            // Initialize demo data if needed
+            let currentProfiles = profiles;
+            if (currentProfiles.length === 0) {
+              const demoData = generateDemoData();
+              currentProfiles = demoData.profiles;
+              setProfiles(demoData.profiles);
+              setAssignments(demoData.assignments);
+              setScheduleTemplate(demoData.scheduleTemplate);
+              setTimerSessions(demoData.timerSessions);
+            }
+
+            // Find the matching profile
+            const profile = currentProfiles.find(
+              (p: Profile) => p.displayName.toLowerCase() === username.toLowerCase()
+            );
+
+            if (profile) {
+              // Create the user object
+              const user: AppUser = {
+                id: `demo-${username}`,
+                username: profile.displayName,
+                role: 'student',
+                profileId: profile.id
+              };
+
+              // Set all auth state
+              setCurrentUser(user);
+              setSelectedProfile(profile);
+              setIsDemo(true);
+              console.log('Restored session for:', profile.displayName);
+            }
+          }
+        } else {
+          console.log('No existing session found');
+
+          // Check localStorage as fallback for demo users
+          const savedData = localStorage.getItem('mission-hub-data');
+          if (savedData) {
+            try {
+              const data = JSON.parse(savedData);
+              if (data.currentUser && data.selectedProfile) {
+                setCurrentUser(data.currentUser);
+                setSelectedProfile(data.selectedProfile);
+                setIsDemo(data.isDemo);
+                console.log('Restored from localStorage:', data.currentUser.username);
+              }
+            } catch (error) {
+              console.error('Failed to parse localStorage:', error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      }
+    };
+
+    // Run immediately
+    checkSession();
+
+    // Then set up listener for future changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+
+        if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          setSelectedProfile(null);
+          setIsDemo(false);
+        }
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Empty deps - only run once on mount
 
   const getAssignmentsForProfile = (profileId: string) => {
     return assignments.filter(a => a.profileId === profileId);

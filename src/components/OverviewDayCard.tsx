@@ -13,17 +13,23 @@ interface OverviewDayCardProps {
   scheduleBlocks: SupabaseScheduleBlock[];
   populatedBlocks: PopulatedScheduleBlock[];
   formatDate: (date: Date) => string;
+  onDayClick?: (dateStr: string) => void;
 }
 
-export function OverviewDayCard({ 
-  day, 
-  selectedProfile, 
+export function OverviewDayCard({
+  day,
+  selectedProfile,
   assignments,
   scheduleBlocks,
   populatedBlocks,
-  formatDate
+  formatDate,
+  onDayClick
 }: OverviewDayCardProps) {
-  const dateStr = day.toISOString().split('T')[0];
+  const year = day.getFullYear();
+  const month = String(day.getMonth() + 1).padStart(2, '0');
+  const dayNum = String(day.getDate()).padStart(2, '0');
+  const dateStr = `${year}-${month}-${dayNum}`;
+  console.log('OverviewDayCard dateStr for', formatDate(day), 'is:', dateStr); // Add this
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
   const [blockStatuses, setBlockStatuses] = React.useState<any[]>([]);
 
@@ -47,9 +53,17 @@ export function OverviewDayCard({
   return (
     <Card className="card-elevated h-fit">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold">
-          {formatDate(day)}
-        </CardTitle>
+        <div
+          className="cursor-pointer hover:bg-muted/50 -m-2 p-2 rounded"
+          onClick={() => {
+            console.log('Day clicked:', dateStr); // Debug log
+            onDayClick?.(dateStr);
+          }}
+        >
+          <CardTitle className="text-lg font-semibold">
+            {formatDate(day)}
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
         {scheduleBlocks.map((block) => {

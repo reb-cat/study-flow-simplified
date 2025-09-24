@@ -353,6 +353,45 @@ export type Database = {
         }
         Relationships: []
       }
+      assignment_reschedules: {
+        Row: {
+          id: string
+          user_id: string
+          assignment_id: string
+          from_block_id: string | null
+          to_block_id: string | null
+          from_date: string | null
+          to_date: string | null
+          reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          assignment_id: string
+          from_block_id?: string | null
+          to_block_id?: string | null
+          from_date?: string | null
+          to_date?: string | null
+          reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          assignment_id?: string
+          from_block_id?: string | null
+          to_block_id?: string | null
+          from_date?: string | null
+          to_date?: string | null
+          reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       demo_assignments: {
         Row: {
           completed_at: string | null
