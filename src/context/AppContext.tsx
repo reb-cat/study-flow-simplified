@@ -147,86 +147,108 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
     console.log('AppContext login called with username:', username);
 
+    // Check if user is already authenticated (for real users)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      console.log('User already authenticated with Supabase:', session.user.email);
+      // For real authenticated users, just set up the user state
+      const user: AppUser = {
+        id: session.user.id,
+        username: session.user.email || username,
+        role: 'student',
+        profileId: session.user.id
+      };
+      setCurrentUser(user);
+      setIsDemo(false);
+      return true;
+    }
+
+    // Demo mode authentication for demo users only
     let cleanUsername = username;
     if (username.includes('@')) {
       cleanUsername = username.split('@')[0].replace('demo-', '');
     }
 
-    // Actually authenticate with Supabase FIRST
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: `demo-${cleanUsername}@studyflow.demo`,
-        password: password || 'demo-password' // Use the password you set in Supabase
-      });
+    // Only authenticate with demo credentials for demo users
+    if (cleanUsername.includes('demo') || username.includes('demo')) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: `demo-${cleanUsername}@studyflow.demo`,
+          password: password || 'demo-password'
+        });
 
-      if (error) {
-        console.error('Supabase auth error:', error);
+        if (error) {
+          console.error('Supabase auth error:', error);
+          return false;
+        }
+
+        console.log('Supabase auth successful for:', data.user?.email);
+      } catch (error) {
+        console.error('Auth error:', error);
         return false;
       }
-
-      console.log('Supabase auth successful for:', data.user?.email);
-    } catch (error) {
-      console.error('Auth error:', error);
-      return false;
     }
 
-    // Now set up local state after successful auth
-    let currentProfiles = profiles;
-    if (currentProfiles.length === 0) {
-      const demoData = generateDemoData();
-      currentProfiles = demoData.profiles;
-      setProfiles(demoData.profiles);
-      setAssignments(demoData.assignments);
-      setScheduleTemplate(demoData.scheduleTemplate);
-      setTimerSessions(demoData.timerSessions);
-    }
-
-    // Demo mode login
-    if (cleanUsername === 'demo' || cleanUsername === 'admin' || cleanUsername === 'parent') {
-      const adminProfile = currentProfiles.find(p => p.role === 'admin');
-      if (adminProfile) {
-        const user: AppUser = {
-          id: 'demo-admin',
-          username: 'Parent Admin',
-          role: 'admin',
-          profileId: adminProfile.id
-        };
-        setCurrentUser(user);
-        setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
-        setIsDemo(true);
-        return true;
+    // Demo mode setup - only for demo users
+    if (cleanUsername.includes('demo') || username.includes('demo')) {
+      // Set up demo data for demo users
+      let currentProfiles = profiles;
+      if (currentProfiles.length === 0) {
+        const demoData = generateDemoData();
+        currentProfiles = demoData.profiles;
+        setProfiles(demoData.profiles);
+        setAssignments(demoData.assignments);
+        setScheduleTemplate(demoData.scheduleTemplate);
+        setTimerSessions(demoData.timerSessions);
       }
-    }
 
-    if (cleanUsername === 'abigail') {
-      const abigailProfile = currentProfiles.find(p => p.displayName === 'Abigail');
-      if (abigailProfile) {
-        const user: AppUser = {
-          id: 'demo-abigail',
-          username: 'Abigail',
-          role: 'student',
-          profileId: abigailProfile.id
-        };
-        setCurrentUser(user);
-        setSelectedProfile(abigailProfile);
-        setIsDemo(true);
-        return true;
+      // Demo mode login
+      if (cleanUsername === 'demo' || cleanUsername === 'admin' || cleanUsername === 'parent') {
+        const adminProfile = currentProfiles.find(p => p.role === 'admin');
+        if (adminProfile) {
+          const user: AppUser = {
+            id: 'demo-admin',
+            username: 'Parent Admin',
+            role: 'admin',
+            profileId: adminProfile.id
+          };
+          setCurrentUser(user);
+          setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
+          setIsDemo(true);
+          return true;
+        }
       }
-    }
 
-    if (cleanUsername === 'khalil') {
-      const khalilProfile = currentProfiles.find(p => p.displayName === 'Khalil');
-      if (khalilProfile) {
-        const user: AppUser = {
-          id: 'demo-khalil',
-          username: 'Khalil',
-          role: 'student',
-          profileId: khalilProfile.id
-        };
-        setCurrentUser(user);
-        setSelectedProfile(khalilProfile);
-        setIsDemo(true);
-        return true;
+      if (cleanUsername === 'abigail') {
+        const abigailProfile = currentProfiles.find(p => p.displayName === 'Abigail');
+        if (abigailProfile) {
+          const user: AppUser = {
+            id: 'demo-abigail',
+            username: 'Abigail',
+            role: 'student',
+            profileId: abigailProfile.id
+          };
+          setCurrentUser(user);
+          setSelectedProfile(abigailProfile);
+          setIsDemo(true);
+          return true;
+        }
+      }
+
+      if (cleanUsername === 'khalil') {
+        const khalilProfile = currentProfiles.find(p => p.displayName === 'Khalil');
+        if (khalilProfile) {
+          const user: AppUser = {
+            id: 'demo-khalil',
+            username: 'Khalil',
+            role: 'student',
+            profileId: khalilProfile.id
+          };
+          setCurrentUser(user);
+          setSelectedProfile(khalilProfile);
+          setIsDemo(true);
+          return true;
+        }
       }
     }
 
