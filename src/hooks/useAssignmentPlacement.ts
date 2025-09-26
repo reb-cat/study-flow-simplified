@@ -40,9 +40,9 @@ export function useAssignmentPlacement(
 
     // Get Assignment and Study Hall blocks for processing
     const assignableBlocks = scheduleBlocks.filter(block => {
-      const blockType = (block.block_type || '').toLowerCase();
+      const blockType = (block.block_type || '');
       const isStudyHall = isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name);
-      return blockType === 'assignment' || isStudyHall;
+      return blockType === 'Assignment' || isStudyHall;
     });
 
     // Track which assignments have been scheduled to prevent duplicates

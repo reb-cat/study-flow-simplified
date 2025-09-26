@@ -159,9 +159,9 @@ const Dashboard = () => {
       const dayName = getDayName(date);
       
       const assignableBlocks = dayBlocks.filter(block => {
-        const blockType = (block.block_type || '').toLowerCase();
+        const blockType = (block.block_type || '');
         return block.block_number !== 999 &&
-               (blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time));
+               (blockType === 'Assignment' || isStudyHallBlock(block.block_type, block.start_time));
       });
       
       assignableBlocks.forEach(block => {
