@@ -158,10 +158,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
     console.log('AppContext login called with username:', username);
 
-    // Check if user is already authenticated
-    const { data: { session } } = await supabase.auth.getSession();
+    // Check if user is already authenticated - retry if needed
+    let session = null;
+    let retries = 3;
+    
+    while (retries > 0 && !session) {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      session = currentSession;
+      if (!session) {
+        console.log('Session not yet available, retrying...', retries);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        retries--;
+      }
+    }
+    
     if (session?.user) {
-      console.log('User already authenticated with Supabase:', session.user.email);
+      console.log('User authenticated with Supabase:', session.user.email);
       
       // Fetch user roles from database
       const { data: roleData, error: roleError } = await supabase
