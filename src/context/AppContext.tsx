@@ -151,11 +151,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       console.log('User already authenticated with Supabase:', session.user.email);
+      
+      // Fetch user roles from database
+      const { data: roleData, error: roleError } = await supabase
+        .rpc('get_user_roles', { _user_id: session.user.id });
+      
+      let userRole: 'admin' | 'student' = 'student';
+      if (!roleError && roleData) {
+        // Check if user has admin role
+        const hasAdminRole = roleData.some((r: { role: string }) => r.role === 'admin');
+        userRole = hasAdminRole ? 'admin' : 'student';
+      }
+      
       // For real authenticated users, set up user state and create a default profile
       const user: AppUser = {
         id: session.user.id,
         username: session.user.email || username,
-        role: 'student',
+        role: userRole,
         profileId: session.user.id
       };
       
@@ -164,7 +176,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: session.user.id,
         userId: session.user.id,
         displayName: session.user.email?.split('@')[0] || 'Student',
-        role: 'student'
+        role: userRole
       };
       
       setCurrentUser(user);
