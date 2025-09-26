@@ -31,6 +31,8 @@ const Dashboard = () => {
   
   const { getCachedScheduleForDay } = useScheduleCache();
   const { assignments } = useAssignments();
+
+  console.log('Dashboard assignments:', assignments);
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
@@ -39,6 +41,7 @@ const Dashboard = () => {
   const [weekScheduleWithAssignments, setWeekScheduleWithAssignments] = useState<Record<string, PopulatedScheduleBlock[]>>({});
 
   if (!selectedProfile || !currentUser) {
+    console.log('Missing profile or user:', { selectedProfile, currentUser });
     return <div>Loading...</div>;
   }
 
@@ -99,6 +102,7 @@ const Dashboard = () => {
         });
 
         setWeekSchedules(finalWeekData);
+        console.log('Dashboard scheduleBlocks:', finalWeekData);
       } catch (error) {
         console.error('Error fetching week schedule:', error);
         setWeekSchedules({});
@@ -145,6 +149,13 @@ const Dashboard = () => {
 
   // Schedule assignments for the entire week at once
   const scheduleWeekAssignments = useCallback(() => {
+    console.log('About to call useAssignmentPlacement with:', {
+      assignmentsLength: assignments?.length,
+      blocksLength: Object.keys(weekSchedules).length,
+      studentName: selectedProfile?.displayName,
+      currentUserId: currentUser?.id
+    });
+    
     if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
       return {};
     }
