@@ -142,6 +142,15 @@ const Login = () => {
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
+
+            <div className="mt-4 text-center">
+              <a 
+                href="/forgot-password" 
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Forgot your password?
+              </a>
+            </div>
           </CardContent>
         </Card>
 
