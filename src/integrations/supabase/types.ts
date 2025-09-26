@@ -35,6 +35,53 @@ export type Database = {
         }
         Relationships: []
       }
+      assignment_reschedules: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          from_block_id: string | null
+          from_date: string | null
+          id: string
+          reason: string | null
+          to_block_id: string | null
+          to_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          from_block_id?: string | null
+          from_date?: string | null
+          id?: string
+          reason?: string | null
+          to_block_id?: string | null
+          to_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          from_block_id?: string | null
+          from_date?: string | null
+          id?: string
+          reason?: string | null
+          to_block_id?: string | null
+          to_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_reschedule_demo_assignment_id"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "demo_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
           academic_year: string | null
@@ -52,6 +99,7 @@ export type Database = {
           canvas_module_item_id: number | null
           canvas_page_slug: string | null
           canvas_url: string | null
+          cleared_at: string | null
           completed_at: string | null
           completion_status: string | null
           confidence_score: string | null
@@ -73,6 +121,7 @@ export type Database = {
           module_number: number | null
           needs_manual_due_date: boolean | null
           needs_printing: boolean | null
+          needs_reschedule: boolean | null
           notes: string | null
           parent_id: string | null
           parent_notes: string | null
@@ -113,6 +162,7 @@ export type Database = {
           canvas_module_item_id?: number | null
           canvas_page_slug?: string | null
           canvas_url?: string | null
+          cleared_at?: string | null
           completed_at?: string | null
           completion_status?: string | null
           confidence_score?: string | null
@@ -134,6 +184,7 @@ export type Database = {
           module_number?: number | null
           needs_manual_due_date?: boolean | null
           needs_printing?: boolean | null
+          needs_reschedule?: boolean | null
           notes?: string | null
           parent_id?: string | null
           parent_notes?: string | null
@@ -174,6 +225,7 @@ export type Database = {
           canvas_module_item_id?: number | null
           canvas_page_slug?: string | null
           canvas_url?: string | null
+          cleared_at?: string | null
           completed_at?: string | null
           completion_status?: string | null
           confidence_score?: string | null
@@ -195,6 +247,7 @@ export type Database = {
           module_number?: number | null
           needs_manual_due_date?: boolean | null
           needs_printing?: boolean | null
+          needs_reschedule?: boolean | null
           notes?: string | null
           parent_id?: string | null
           parent_notes?: string | null
@@ -353,53 +406,18 @@ export type Database = {
         }
         Relationships: []
       }
-      assignment_reschedules: {
-        Row: {
-          id: string
-          user_id: string
-          assignment_id: string
-          from_block_id: string | null
-          to_block_id: string | null
-          from_date: string | null
-          to_date: string | null
-          reason: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          assignment_id: string
-          from_block_id?: string | null
-          to_block_id?: string | null
-          from_date?: string | null
-          to_date?: string | null
-          reason?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          assignment_id?: string
-          from_block_id?: string | null
-          to_block_id?: string | null
-          from_date?: string | null
-          to_date?: string | null
-          reason?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       demo_assignments: {
         Row: {
+          cleared_at: string | null
           completed_at: string | null
           course_name: string | null
           created_at: string | null
           difficulty: string | null
           due_date: string | null
           id: string
+          needs_reschedule: boolean | null
+          previous_block: number | null
+          previous_date: string | null
           priority: string | null
           scheduled_block: number | null
           scheduled_date: string | null
@@ -410,12 +428,16 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cleared_at?: string | null
           completed_at?: string | null
           course_name?: string | null
           created_at?: string | null
           difficulty?: string | null
           due_date?: string | null
           id?: string
+          needs_reschedule?: boolean | null
+          previous_block?: number | null
+          previous_date?: string | null
           priority?: string | null
           scheduled_block?: number | null
           scheduled_date?: string | null
@@ -426,12 +448,16 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cleared_at?: string | null
           completed_at?: string | null
           course_name?: string | null
           created_at?: string | null
           difficulty?: string | null
           due_date?: string | null
           id?: string
+          needs_reschedule?: boolean | null
+          previous_block?: number | null
+          previous_date?: string | null
           priority?: string | null
           scheduled_block?: number | null
           scheduled_date?: string | null
@@ -1005,7 +1031,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_access_student_profile: {
+        Args: { student_name_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

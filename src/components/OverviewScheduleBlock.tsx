@@ -41,7 +41,7 @@ export function OverviewScheduleBlock({ block, assignment, status }: OverviewSch
         .upsert({
           template_block_id: block.id,
           date: new Date().toISOString().split('T')[0],
-          student_name: `demo-${assignment.student_name?.toLowerCase() || 'student'}`,
+          student_name: `demo-${block.student_name.toLowerCase()}`,
           status: 'complete'
         });
 
