@@ -18,4 +18,5 @@ export interface UnifiedAssignment {
   difficulty?: string;
   needs_reschedule?: boolean;
   cleared_at?: string;
+  completion_status?: string;
 }
