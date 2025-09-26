@@ -25,8 +25,11 @@ const AuthConfirm = () => {
           return;
         }
 
-        // Exchange the code for a session using PKCE flow
-        const { data, error } = await supabase.auth.exchangeCodeForSession(tokenHash);
+        // Verify the OTP token for password recovery
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'recovery'
+        });
 
         if (error) {
           console.error('Auth confirmation error:', error);
