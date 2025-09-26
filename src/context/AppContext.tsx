@@ -95,7 +95,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-
   // Save data to localStorage whenever state changes (debounced to avoid excessive writes)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -110,12 +109,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isDemo,
       };
       localStorage.setItem('mission-hub-data', JSON.stringify(data));
-    }, 1000); // Debounce saves by 1 second
+    }, 1000);
 
     return () => clearTimeout(timeoutId);
   }, [profiles, assignments, scheduleTemplate, timerSessions, currentUser, selectedProfile, activeTimer, isDemo]);
 
-  // Timer tick effect - Fixed dependency array to prevent infinite loops
+  // Timer tick effect
   useEffect(() => {
     if (!activeTimer) return;
 
@@ -128,7 +127,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       });
 
-      // Auto-save every minute - moved assignment lookup inside interval to avoid stale closure
       if (activeTimer.elapsedTime % 60 === 0) {
         setAssignments(prevAssignments => {
           const assignment = prevAssignments.find(a => a.id === activeTimer.assignmentId);
@@ -145,22 +143,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeTimer?.assignmentId]); // Only depend on assignment ID, not full activeTimer object
+  }, [activeTimer?.assignmentId]);
 
   const initializeDemoData = () => {
-    console.log('Initializing demo data...'); // Debug
+    console.log('Initializing demo data...');
     const demoData = generateDemoData();
     setProfiles(demoData.profiles);
     setAssignments(demoData.assignments);
     setScheduleTemplate(demoData.scheduleTemplate);
     setTimerSessions(demoData.timerSessions);
-    console.log('Demo data initialized:', demoData.profiles.length, 'profiles'); // Debug
+    console.log('Demo data initialized:', demoData.profiles.length, 'profiles');
   };
 
-const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
+  const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
     console.log('AppContext login called with username:', username);
 
-    // Check if user is already authenticated (for real users)
+    // Check if user is already authenticated
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       console.log('User already authenticated with Supabase:', session.user.email);
@@ -171,32 +169,30 @@ const login = useCallback(async (username: string, password?: string): Promise<b
       
       let userRole: 'admin' | 'student' = 'student';
       if (!roleError && roleData) {
-        // Check if user has admin role
         const hasAdminRole = roleData.some((r: { role: string }) => r.role === 'admin');
         userRole = hasAdminRole ? 'admin' : 'student';
       }
       
-      // For real authenticated users, fetch their student profile data
+      // For real authenticated users, use mapped student name
       const studentName = getUserIdFromEmail(session.user.email || '');
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from('student_profiles')
         .select('*')
         .eq('student_name', studentName)
-        .single();
+        .maybeSingle();
       
       let displayName = studentName;
-      if (!profileError && profileData) {
+      if (profileData) {
         displayName = profileData.display_name || studentName;
       }
       
       const user: AppUser = {
         id: session.user.id,
-        username: displayName, // Use display name instead of email
+        username: displayName,
         role: userRole,
         profileId: session.user.id
       };
       
-      // Create profile with proper display name
       const defaultProfile: Profile = {
         id: session.user.id,
         userId: session.user.id,
@@ -211,13 +207,12 @@ const login = useCallback(async (username: string, password?: string): Promise<b
       return true;
     }
 
-    // Demo mode authentication for demo users only
+    // Demo mode authentication
     let cleanUsername = username;
     if (username.includes('@')) {
       cleanUsername = username.split('@')[0].replace('demo-', '');
     }
 
-    // Only authenticate with demo credentials for demo users
     if (cleanUsername.includes('demo') || username.includes('demo')) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -235,11 +230,8 @@ const login = useCallback(async (username: string, password?: string): Promise<b
         console.error('Auth error:', error);
         return false;
       }
-    }
 
-    // Demo mode setup - only for demo users
-    if (cleanUsername.includes('demo') || username.includes('demo')) {
-      // Set up demo data for demo users
+      // Set up demo data
       let currentProfiles = profiles;
       if (currentProfiles.length === 0) {
         const demoData = generateDemoData();
@@ -250,7 +242,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
         setTimerSessions(demoData.timerSessions);
       }
 
-      // Demo mode login
+      // Demo user login
       if (cleanUsername === 'demo' || cleanUsername === 'admin' || cleanUsername === 'parent') {
         const adminProfile = currentProfiles.find(p => p.role === 'admin');
         if (adminProfile) {
@@ -304,9 +296,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
   }, [profiles]);
 
   const logout = async () => {
-    // Sign out from Supabase if authenticated
     await supabase.auth.signOut();
-
     setCurrentUser(null);
     setSelectedProfile(null);
     setActiveTimer(null);
@@ -316,7 +306,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
   useEffect(() => {
     let mounted = true;
 
-    // Immediately check for existing session
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -326,10 +315,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
           console.log('Found existing session for:', email);
 
           if (email.startsWith('demo-')) {
-            // Extract username from email
             const username = email.replace('demo-', '').split('@')[0];
-
-            // Initialize demo data if needed
             let currentProfiles = profiles;
             if (currentProfiles.length === 0) {
               const demoData = generateDemoData();
@@ -340,9 +326,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
               setTimerSessions(demoData.timerSessions);
             }
 
-            // Find the matching profile or handle admin
             if (username === 'admin') {
-              // Admin login
               const adminProfile = currentProfiles.find(p => p.role === 'admin');
               if (adminProfile) {
                 const user: AppUser = {
@@ -354,16 +338,13 @@ const login = useCallback(async (username: string, password?: string): Promise<b
                 setCurrentUser(user);
                 setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
                 setIsDemo(true);
-                console.log('Restored admin session');
               }
             } else {
-              // Student login
               const profile = currentProfiles.find(
                 (p: Profile) => p.displayName.toLowerCase() === username.toLowerCase()
               );
 
               if (profile) {
-                // Create the user object
                 const user: AppUser = {
                   id: `demo-${username}`,
                   username: profile.displayName,
@@ -371,28 +352,25 @@ const login = useCallback(async (username: string, password?: string): Promise<b
                   profileId: profile.id
                 };
 
-                // Set all auth state
                 setCurrentUser(user);
                 setSelectedProfile(profile);
                 setIsDemo(true);
-                console.log('Restored session for:', profile.displayName);
               }
             }
           } else {
-            // Real authenticated user - fetch their profile data
+            // Real authenticated user
             const studentName = getUserIdFromEmail(email);
             const { data: profileData } = await supabase
               .from('student_profiles')
               .select('*')
               .eq('student_name', studentName)
-              .single();
+              .maybeSingle();
               
             let displayName = studentName;
             if (profileData) {
               displayName = profileData.display_name || studentName;
             }
             
-            // Fetch user roles
             const { data: roleData } = await supabase
               .rpc('get_user_roles', { _user_id: session.user.id });
             
@@ -420,25 +398,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
             setProfiles([defaultProfile]);
             setSelectedProfile(defaultProfile);
             setIsDemo(false);
-            console.log('Restored real user session for:', displayName);
-          }
-        } else {
-          console.log('No existing session found');
-
-          // Check localStorage as fallback for demo users
-          const savedData = localStorage.getItem('mission-hub-data');
-          if (savedData) {
-            try {
-              const data = JSON.parse(savedData);
-              if (data.currentUser && data.selectedProfile) {
-                setCurrentUser(data.currentUser);
-                setSelectedProfile(data.selectedProfile);
-                setIsDemo(data.isDemo);
-                console.log('Restored from localStorage:', data.currentUser.username);
-              }
-            } catch (error) {
-              console.error('Failed to parse localStorage:', error);
-            }
           }
         }
       } catch (error) {
@@ -446,10 +405,8 @@ const login = useCallback(async (username: string, password?: string): Promise<b
       }
     };
 
-    // Run immediately
     checkSession();
 
-    // Then set up listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -466,7 +423,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty deps - only run once on mount
+  }, []);
 
   const getAssignmentsForProfile = (profileId: string) => {
     return assignments.filter(a => a.profileId === profileId);
@@ -487,7 +444,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
 
   const deleteAssignment = (id: string) => {
     setAssignments(prev => prev.filter(a => a.id !== id));
-    // Stop timer if it's for this assignment
     if (activeTimer?.assignmentId === id) {
       stopTimer();
     }
@@ -498,7 +454,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
   };
 
   const startTimer = (assignmentId: string, profileId: string) => {
-    // Stop any existing timer for this profile
     if (activeTimer && activeTimer.profileId === profileId) {
       stopTimer();
     }
@@ -513,7 +468,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
 
   const pauseTimer = () => {
     if (activeTimer) {
-      // Save the elapsed time to the assignment
       const assignment = assignments.find(a => a.id === activeTimer.assignmentId);
       if (assignment) {
         updateAssignment(assignment.id, {
@@ -525,7 +479,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
   };
 
   const resumeTimer = () => {
-    // This would be called from a paused state - for now just treat as start
     if (activeTimer) {
       setActiveTimer({
         ...activeTimer,
@@ -537,7 +490,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
 
   const stopTimer = () => {
     if (activeTimer) {
-      // Save the elapsed time to the assignment
       const assignment = assignments.find(a => a.id === activeTimer.assignmentId);
       if (assignment) {
         updateAssignment(assignment.id, {
@@ -545,7 +497,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
         });
       }
 
-      // Create timer session
       const session: TimerSession = {
         id: `session-${Date.now()}`,
         profileId: activeTimer.profileId,
@@ -567,7 +518,6 @@ const login = useCallback(async (username: string, password?: string): Promise<b
       .reduce((total, session) => total + session.duration, 0);
   };
 
-  // Compute role-based values
   const userRole = useMemo(() => {
     if (!currentUser) return 'demo' as const;
     return currentUser.role || 'student' as const;
