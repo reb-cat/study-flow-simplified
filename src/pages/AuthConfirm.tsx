@@ -80,11 +80,16 @@ const AuthConfirm = () => {
             // Handle different OTP confirmation types
             switch (type) {
               case 'recovery':
-                setMessage('Password recovery confirmed! You can now sign in with your new password.');
+                setMessage('Email verified! Please set your new password.');
                 toast({
-                  title: 'Password Recovery Confirmed',
-                  description: 'You can now sign in with your new password.'
+                  title: 'Email Verified',
+                  description: 'Please set your new password to complete the recovery.'
                 });
+                // Redirect to password reset page instead of dashboard
+                setTimeout(() => {
+                  navigate('/reset-password');
+                }, 2000);
+                return; // Don't continue with normal login flow
                 break;
               case 'email':
                 setMessage('Email confirmed successfully! You can now access your account.');
