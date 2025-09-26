@@ -7,9 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 const getUserIdFromEmail = (email: string): string => {
   switch (email.toLowerCase()) {
     case 'khalilsjh10@gmail.com':
-      return 'khalil-user';
+      return 'khalil';
     case 'sweetpeaag120@gmail.com':
-      return 'abigail-user';
+      return 'abigail';
     default:
       // For demo users or unknown emails, use email prefix as fallback
       return email.split('@')[0];
