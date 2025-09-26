@@ -265,14 +265,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             profileId: adminProfile.id
           };
           setCurrentUser(user);
-          setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
+          setSelectedProfile(currentProfiles.find(p => p.displayName === 'abigail-user') || currentProfiles[0]);
           setIsDemo(true);
           return true;
         }
       }
 
       if (cleanUsername === 'abigail') {
-        const abigailProfile = currentProfiles.find(p => p.displayName === 'Abigail');
+        const abigailProfile = currentProfiles.find(p => p.displayName === 'abigail-user');
         if (abigailProfile) {
           const user: AppUser = {
             id: 'demo-abigail',
@@ -288,7 +288,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (cleanUsername === 'khalil') {
-        const khalilProfile = currentProfiles.find(p => p.displayName === 'Khalil');
+        const khalilProfile = currentProfiles.find(p => p.displayName === 'khalil-user');
         if (khalilProfile) {
           const user: AppUser = {
             id: 'demo-khalil',
@@ -349,7 +349,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   profileId: adminProfile.id
                 };
                 setCurrentUser(user);
-                setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
+                setSelectedProfile(currentProfiles.find(p => p.displayName === 'abigail-user') || currentProfiles[0]);
                 setIsDemo(true);
               }
             } else {
