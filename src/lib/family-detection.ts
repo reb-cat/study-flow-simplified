@@ -19,19 +19,19 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
   "Abigail": {
     "Monday": {
       2: "Analytical",    // Block 2 (9:20-9:50)
-      3: "Humanities",    // Block 3 (9:50-10:20) 
+      3: "Humanities",    // Block 3 (9:50-10:20)
       6: "Composition"    // Block 6 (14:30-15:00)
     },
     "Tuesday": {
       2: "Analytical",
-      3: "Humanities", 
+      3: "Humanities",
       5: "Composition",
       6: "Creative",
       7: "Analytical"
     },
     "Wednesday": {
       2: "Analytical",
-      5: "Humanities", 
+      5: "Humanities",
       6: "Composition",
       7: "Creative",
       8: "Analytical"
@@ -42,7 +42,7 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
     "Friday": {
       2: "Analytical",
       3: "Humanities",
-      4: "Composition", 
+      4: "Composition",
       5: "Creative",
       6: "Analytical",
       7: "Humanities",
@@ -59,7 +59,7 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
       2: "Humanities",
       3: "Analytical",
       5: "Composition",
-      6: "Creative", 
+      6: "Creative",
       7: "Analytical"
     },
     "Wednesday": {
@@ -89,43 +89,52 @@ export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, Assign
 export function detectFamily(assignment: { title?: string; subject?: string | null; course_name?: string | null }): AssignmentFamily {
   const title = (assignment.title || '').toLowerCase();
   const course = (assignment.course_name || assignment.subject || '').toLowerCase();
-  
+  const searchText = `${title} ${course}`.toLowerCase();
+
   // Keywords override course defaults
-  if (title.includes('create') || title.includes('sketch') || title.includes('map') || 
+  if (title.includes('create') || title.includes('sketch') || title.includes('map') ||
       title.includes('diagram') || title.includes('poster') || title.includes('draw')) {
     return "Creative";
   }
-  
-  if (title.includes('essay') || title.includes('write') || title.includes('draft') || 
+
+  if (title.includes('essay') || title.includes('write') || title.includes('draft') ||
       title.includes('response') || title.includes('dbq')) {
     return "Composition";
   }
-  
+
   if (title.includes('read') || title.includes('chapter') || title.includes('pages')) {
     if (course.includes('history')) {
       return "Humanities";
     }
   }
-  
-  // Course defaults
-  if (course.includes('algebra') || course.includes('geometry') || course.includes('math') || 
-      course.includes('science') || course.includes('chemistry') || course.includes('physics')) {
+
+  // Improved Canvas course recognition
+  // Analytical subjects: Math, Science, etc.
+  if (searchText.includes('algebra') || searchText.includes('geometry') || searchText.includes('math') ||
+      searchText.includes('science') || searchText.includes('chemistry') || searchText.includes('physics') ||
+      searchText.includes('biology') || searchText.includes('calculus') || searchText.includes('statistics')) {
     return "Analytical";
   }
-  
-  if (course.includes('history') || course.includes('literature') || course.includes('social')) {
+
+  // Humanities subjects: History, Literature, Social Studies
+  if (searchText.includes('history') || searchText.includes('literature') || searchText.includes('social') ||
+      searchText.includes('government') || searchText.includes('civics') || searchText.includes('psychology')) {
     return "Humanities";
   }
-  
-  if (course.includes('english') || course.includes('grammar') || course.includes('writing')) {
+
+  // Composition subjects: English, Writing, Grammar
+  if (searchText.includes('english') || searchText.includes('grammar') || searchText.includes('writing') ||
+      searchText.includes('composition') || searchText.includes('rhetoric')) {
     return "Composition";
   }
-  
-  if (course.includes('art') || course.includes('photo') || course.includes('music') || 
-      course.includes('baking') || course.includes('creative')) {
+
+  // Creative subjects: Art, Music, etc.
+  if (searchText.includes('art') || searchText.includes('photo') || searchText.includes('music') ||
+      searchText.includes('baking') || searchText.includes('creative') || searchText.includes('drama') ||
+      searchText.includes('theater') || searchText.includes('design')) {
     return "Creative";
   }
-  
+
   return "Analytical"; // default fallback
 }
 
