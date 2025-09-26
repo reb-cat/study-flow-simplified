@@ -3,13 +3,13 @@ import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUs
 import { generateDemoData } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
 
-// Email to user-id mapping function
+// Email to user-id mapping function (for assignments table)
 const getUserIdFromEmail = (email: string): string => {
   switch (email.toLowerCase()) {
     case 'khalilsjh10@gmail.com':
-      return 'khalil';
+      return 'khalil-user';
     case 'sweetpeaag120@gmail.com':
-      return 'abigail';
+      return 'abigail-user';
     default:
       // For demo users or unknown emails, use email prefix as fallback
       return email.split('@')[0];

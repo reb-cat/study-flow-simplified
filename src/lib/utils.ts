@@ -12,6 +12,7 @@ export function convertTo12Hour(time24: string): string {
   return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
+// Email to student name mapping (for schedule_template table)
 export function getStudentNameFromEmail(email: string): string {
   console.log('🔍 Utils Debug - Input email:', email);
 
