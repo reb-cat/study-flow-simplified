@@ -1031,7 +1031,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_access_student_profile: {
+        Args: { student_name_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
