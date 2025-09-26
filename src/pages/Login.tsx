@@ -69,15 +69,11 @@ const Login = () => {
       }
 
       if (data.user) {
-        // Add a small delay to ensure session is available
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
         const success = await login(validationResult.data.email);
         if (success) {
           toast({ title: 'Welcome to StudyFlow!' });
           navigate('/dashboard');
         } else {
-          console.error('Login profile setup failed for:', validationResult.data.email);
           toast({
             title: 'Profile setup failed',
             description: 'Authentication succeeded but profile loading failed',

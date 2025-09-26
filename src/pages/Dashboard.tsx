@@ -7,8 +7,7 @@ import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { useAssignments } from '@/hooks/useAssignments';  
-import { useUnifiedSchedule } from '@/hooks/useUnifiedSchedule';
-import { getStudentNameFromEmail } from '@/lib/utils';
+import { useScheduleCache } from '@/hooks/useScheduleCache';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 import { 
@@ -23,19 +22,14 @@ import {
 } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
-import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { 
     selectedProfile, 
-    currentUser,
-    isDemo 
+    currentUser 
   } = useApp();
   
-  console.log('🔍 Dashboard Debug - Current User:', currentUser?.username, 'isDemo:', isDemo);
-  console.log('🔍 Dashboard Debug - Selected Profile:', selectedProfile?.displayName);
-  
-  const { getScheduleForStudent } = useUnifiedSchedule();
+  const { getCachedScheduleForDay } = useScheduleCache();
   const { assignments } = useAssignments();
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -72,18 +66,6 @@ const Dashboard = () => {
     });
   }, [monday]);
 
-  // Get the correct student name for database lookup
-  const getStudentName = () => {
-    // After AppContext changes, currentUser.id now contains the mapped student name
-    const studentName = isDemo ? selectedProfile.displayName : currentUser.id;
-
-    console.log('🔍 Dashboard Debug - getStudentName result:', studentName);
-    console.log('🔍 Dashboard Debug - currentUser.id:', currentUser?.id);
-    console.log('🔍 Dashboard Debug - isDemo:', isDemo);
-
-    return studentName;
-  };
-
   // Get schedule data for the week - fetch all at once to avoid duplicate requests
   useEffect(() => {
     const fetchWeekSchedule = async () => {
@@ -99,13 +81,12 @@ const Dashboard = () => {
           return day;
         });
 
-        const studentName = getStudentName();
 
         // Fetch all days in parallel to avoid sequential requests
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
           const dayString = day.toISOString().split('T')[0];
-          const blocks = await getScheduleForStudent(studentName, dayName);
+          const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
           return { day: dayString, blocks };
         });
 
@@ -123,7 +104,7 @@ const Dashboard = () => {
     };
 
     fetchWeekSchedule();
-  }, [currentUser?.id, currentWeek, getScheduleForStudent, isDemo]); // Use stable currentUser.id instead of displayName
+  }, [selectedProfile?.displayName, currentWeek]); // Removed getCachedScheduleForDay to prevent infinite loops
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 

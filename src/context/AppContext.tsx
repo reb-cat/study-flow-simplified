@@ -2,20 +2,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUser } from '@/types';
 import { generateDemoData } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
-import { getStudentNameFromEmail, getDisplayNameFromStudentName } from '@/lib/utils';
-
-// Email to user-id mapping function (for assignments table)
-const getUserIdFromEmail = (email: string): string => {
-  switch (email.toLowerCase()) {
-    case 'khalilsjh10@gmail.com':
-      return 'khalil-user';
-    case 'sweetpeaag120@gmail.com':
-      return 'abigail-user';
-    default:
-      // For demo users or unknown emails, use email prefix as fallback
-      return email.split('@')[0];
-  }
-};
 
 interface AppContextType {
   // Auth state
@@ -96,6 +82,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
+
   // Save data to localStorage whenever state changes (debounced to avoid excessive writes)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -110,12 +97,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isDemo,
       };
       localStorage.setItem('mission-hub-data', JSON.stringify(data));
-    }, 1000);
+    }, 1000); // Debounce saves by 1 second
 
     return () => clearTimeout(timeoutId);
   }, [profiles, assignments, scheduleTemplate, timerSessions, currentUser, selectedProfile, activeTimer, isDemo]);
 
-  // Timer tick effect
+  // Timer tick effect - Fixed dependency array to prevent infinite loops
   useEffect(() => {
     if (!activeTimer) return;
 
@@ -128,6 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       });
 
+      // Auto-save every minute - moved assignment lookup inside interval to avoid stale closure
       if (activeTimer.elapsedTime % 60 === 0) {
         setAssignments(prevAssignments => {
           const assignment = prevAssignments.find(a => a.id === activeTimer.assignmentId);
@@ -144,37 +132,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeTimer?.assignmentId]);
+  }, [activeTimer?.assignmentId]); // Only depend on assignment ID, not full activeTimer object
 
   const initializeDemoData = () => {
-    console.log('Initializing demo data...');
+    console.log('Initializing demo data...'); // Debug
     const demoData = generateDemoData();
     setProfiles(demoData.profiles);
     setAssignments(demoData.assignments);
     setScheduleTemplate(demoData.scheduleTemplate);
     setTimerSessions(demoData.timerSessions);
-    console.log('Demo data initialized:', demoData.profiles.length, 'profiles');
+    console.log('Demo data initialized:', demoData.profiles.length, 'profiles'); // Debug
   };
 
   const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
     console.log('AppContext login called with username:', username);
 
-    // Check if user is already authenticated - retry if needed
-    let session = null;
-    let retries = 3;
-    
-    while (retries > 0 && !session) {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      session = currentSession;
-      if (!session) {
-        console.log('Session not yet available, retrying...', retries);
-        await new Promise(resolve => setTimeout(resolve, 200));
-        retries--;
-      }
-    }
-    
+    // Check if user is already authenticated (for real users)
+    const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
-      console.log('User authenticated with Supabase:', session.user.email);
+      console.log('User already authenticated with Supabase:', session.user.email);
       
       // Fetch user roles from database
       const { data: roleData, error: roleError } = await supabase
@@ -182,30 +158,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       let userRole: 'admin' | 'student' = 'student';
       if (!roleError && roleData) {
+        // Check if user has admin role
         const hasAdminRole = roleData.some((r: { role: string }) => r.role === 'admin');
         userRole = hasAdminRole ? 'admin' : 'student';
       }
       
-      // For real authenticated users, use mapped student name
-      const studentName = getUserIdFromEmail(session.user.email || '');
-      const { data: profileData } = await supabase
-        .from('student_profiles')
-        .select('*')
-        .eq('student_name', studentName)
-        .maybeSingle();
-      
-      // Use the mapped student name consistently
+      // For real authenticated users, set up user state and create a default profile
       const user: AppUser = {
-        id: studentName, // Use mapped student name instead of UUID
-        username: getDisplayNameFromStudentName(studentName), // Use friendly display name
+        id: session.user.id,
+        username: session.user.email || username,
         role: userRole,
         profileId: session.user.id
       };
       
+      // Create a default student profile for real users
       const defaultProfile: Profile = {
         id: session.user.id,
         userId: session.user.id,
-        displayName: getDisplayNameFromStudentName(studentName), // Use friendly display name
+        displayName: session.user.email?.split('@')[0] || 'Student',
         role: userRole
       };
       
@@ -216,12 +186,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return true;
     }
 
-    // Demo mode authentication
+    // Demo mode authentication for demo users only
     let cleanUsername = username;
     if (username.includes('@')) {
       cleanUsername = username.split('@')[0].replace('demo-', '');
     }
 
+    // Only authenticate with demo credentials for demo users
     if (cleanUsername.includes('demo') || username.includes('demo')) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -239,8 +210,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Auth error:', error);
         return false;
       }
+    }
 
-      // Set up demo data
+    // Demo mode setup - only for demo users
+    if (cleanUsername.includes('demo') || username.includes('demo')) {
+      // Set up demo data for demo users
       let currentProfiles = profiles;
       if (currentProfiles.length === 0) {
         const demoData = generateDemoData();
@@ -251,7 +225,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTimerSessions(demoData.timerSessions);
       }
 
-      // Demo user login
+      // Demo mode login
       if (cleanUsername === 'demo' || cleanUsername === 'admin' || cleanUsername === 'parent') {
         const adminProfile = currentProfiles.find(p => p.role === 'admin');
         if (adminProfile) {
@@ -262,14 +236,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             profileId: adminProfile.id
           };
           setCurrentUser(user);
-          setSelectedProfile(currentProfiles.find(p => p.displayName === 'abigail-user') || currentProfiles[0]);
+          setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
           setIsDemo(true);
           return true;
         }
       }
 
       if (cleanUsername === 'abigail') {
-        const abigailProfile = currentProfiles.find(p => p.displayName === 'abigail-user');
+        const abigailProfile = currentProfiles.find(p => p.displayName === 'Abigail');
         if (abigailProfile) {
           const user: AppUser = {
             id: 'demo-abigail',
@@ -285,7 +259,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (cleanUsername === 'khalil') {
-        const khalilProfile = currentProfiles.find(p => p.displayName === 'khalil-user');
+        const khalilProfile = currentProfiles.find(p => p.displayName === 'Khalil');
         if (khalilProfile) {
           const user: AppUser = {
             id: 'demo-khalil',
@@ -305,7 +279,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [profiles]);
 
   const logout = async () => {
+    // Sign out from Supabase if authenticated
     await supabase.auth.signOut();
+
     setCurrentUser(null);
     setSelectedProfile(null);
     setActiveTimer(null);
@@ -315,17 +291,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let mounted = true;
 
-  const checkSession = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔍 AppContext Debug - Session check:', session?.user?.email);
+    // Immediately check for existing session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
 
-      if (session?.user?.email && mounted) {
+        if (session?.user?.email && mounted) {
           const email = session.user.email;
           console.log('Found existing session for:', email);
 
           if (email.startsWith('demo-')) {
+            // Extract username from email
             const username = email.replace('demo-', '').split('@')[0];
+
+            // Initialize demo data if needed
             let currentProfiles = profiles;
             if (currentProfiles.length === 0) {
               const demoData = generateDemoData();
@@ -336,7 +315,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setTimerSessions(demoData.timerSessions);
             }
 
+            // Find the matching profile or handle admin
             if (username === 'admin') {
+              // Admin login
               const adminProfile = currentProfiles.find(p => p.role === 'admin');
               if (adminProfile) {
                 const user: AppUser = {
@@ -346,15 +327,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   profileId: adminProfile.id
                 };
                 setCurrentUser(user);
-                setSelectedProfile(currentProfiles.find(p => p.displayName === 'abigail-user') || currentProfiles[0]);
+                setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
                 setIsDemo(true);
+                console.log('Restored admin session');
               }
             } else {
+              // Student login
               const profile = currentProfiles.find(
                 (p: Profile) => p.displayName.toLowerCase() === username.toLowerCase()
               );
 
               if (profile) {
+                // Create the user object
                 const user: AppUser = {
                   id: `demo-${username}`,
                   username: profile.displayName,
@@ -362,48 +346,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   profileId: profile.id
                 };
 
+                // Set all auth state
                 setCurrentUser(user);
                 setSelectedProfile(profile);
                 setIsDemo(true);
+                console.log('Restored session for:', profile.displayName);
               }
             }
-          } else {
-            // Real authenticated user
-            const studentName = getUserIdFromEmail(email);
-            const { data: profileData } = await supabase
-              .from('student_profiles')
-              .select('*')
-              .eq('student_name', studentName)
-              .maybeSingle();
-            
-            const { data: roleData } = await supabase
-              .rpc('get_user_roles', { _user_id: session.user.id });
-            
-            let userRole: 'admin' | 'student' = 'student';
-            if (roleData) {
-              const hasAdminRole = roleData.some((r: { role: string }) => r.role === 'admin');
-              userRole = hasAdminRole ? 'admin' : 'student';
+          }
+        } else {
+          console.log('No existing session found');
+
+          // Check localStorage as fallback for demo users
+          const savedData = localStorage.getItem('mission-hub-data');
+          if (savedData) {
+            try {
+              const data = JSON.parse(savedData);
+              if (data.currentUser && data.selectedProfile) {
+                setCurrentUser(data.currentUser);
+                setSelectedProfile(data.selectedProfile);
+                setIsDemo(data.isDemo);
+                console.log('Restored from localStorage:', data.currentUser.username);
+              }
+            } catch (error) {
+              console.error('Failed to parse localStorage:', error);
             }
-            
-            // Use the mapped student name consistently
-            const user: AppUser = {
-              id: studentName, // Use mapped student name instead of UUID
-              username: getDisplayNameFromStudentName(studentName), // Use friendly display name
-              role: userRole,
-              profileId: session.user.id
-            };
-            
-            const defaultProfile: Profile = {
-              id: session.user.id,
-              userId: session.user.id,
-              displayName: getDisplayNameFromStudentName(studentName), // Use friendly display name
-              role: userRole
-            };
-            
-            setCurrentUser(user);
-            setProfiles([defaultProfile]);
-            setSelectedProfile(defaultProfile);
-            setIsDemo(false);
           }
         }
       } catch (error) {
@@ -411,8 +378,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     };
 
+    // Run immediately
     checkSession();
 
+    // Then set up listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -429,7 +398,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Empty deps - only run once on mount
 
   const getAssignmentsForProfile = (profileId: string) => {
     return assignments.filter(a => a.profileId === profileId);
@@ -450,6 +419,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteAssignment = (id: string) => {
     setAssignments(prev => prev.filter(a => a.id !== id));
+    // Stop timer if it's for this assignment
     if (activeTimer?.assignmentId === id) {
       stopTimer();
     }
@@ -460,6 +430,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const startTimer = (assignmentId: string, profileId: string) => {
+    // Stop any existing timer for this profile
     if (activeTimer && activeTimer.profileId === profileId) {
       stopTimer();
     }
@@ -474,6 +445,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const pauseTimer = () => {
     if (activeTimer) {
+      // Save the elapsed time to the assignment
       const assignment = assignments.find(a => a.id === activeTimer.assignmentId);
       if (assignment) {
         updateAssignment(assignment.id, {
@@ -485,6 +457,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resumeTimer = () => {
+    // This would be called from a paused state - for now just treat as start
     if (activeTimer) {
       setActiveTimer({
         ...activeTimer,
@@ -496,6 +469,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const stopTimer = () => {
     if (activeTimer) {
+      // Save the elapsed time to the assignment
       const assignment = assignments.find(a => a.id === activeTimer.assignmentId);
       if (assignment) {
         updateAssignment(assignment.id, {
@@ -503,6 +477,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
       }
 
+      // Create timer session
       const session: TimerSession = {
         id: `session-${Date.now()}`,
         profileId: activeTimer.profileId,
@@ -524,6 +499,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .reduce((total, session) => total + session.duration, 0);
   };
 
+  // Compute role-based values
   const userRole = useMemo(() => {
     if (!currentUser) return 'demo' as const;
     return currentUser.role || 'student' as const;

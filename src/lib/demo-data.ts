@@ -12,33 +12,33 @@ export const generateDemoData = () => {
       id: 'profile-abigail',
       userId: 'user-abigail',
       role: 'student',
-      displayName: 'abigail-user'
+      displayName: 'Abigail'
     },
     {
       id: 'profile-khalil',
       userId: 'user-khalil',
       role: 'student',
-      displayName: 'khalil-user'
+      displayName: 'Khalil'
     }
   ];
 
   const scheduleTemplate: ScheduleTemplate[] = [
     // Abigail's schedule
-    { id: 'sched-1', studentName: 'abigail-user', weekday: 1, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Math', blockType: 'assignment' },
-    { id: 'sched-2', studentName: 'abigail-user', weekday: 1, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'English', blockType: 'assignment' },
-    { id: 'sched-3', studentName: 'abigail-user', weekday: 1, blockNumber: 3, startTime: '10:30', endTime: '11:10', subject: 'Science', blockType: 'assignment' },
-    { id: 'sched-4', studentName: 'abigail-user', weekday: 2, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'English', blockType: 'assignment' },
-    { id: 'sched-5', studentName: 'abigail-user', weekday: 2, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Math', blockType: 'assignment' },
-    { id: 'sched-6', studentName: 'abigail-user', weekday: 3, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Science', blockType: 'assignment' },
-    { id: 'sched-7', studentName: 'abigail-user', weekday: 4, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Math', blockType: 'assignment' },
-    { id: 'sched-8', studentName: 'abigail-user', weekday: 5, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Review', blockType: 'assignment' },
+    { id: 'sched-1', studentName: 'Abigail', weekday: 1, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Math', blockType: 'assignment' },
+    { id: 'sched-2', studentName: 'Abigail', weekday: 1, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'English', blockType: 'assignment' },
+    { id: 'sched-3', studentName: 'Abigail', weekday: 1, blockNumber: 3, startTime: '10:30', endTime: '11:10', subject: 'Science', blockType: 'assignment' },
+    { id: 'sched-4', studentName: 'Abigail', weekday: 2, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'English', blockType: 'assignment' },
+    { id: 'sched-5', studentName: 'Abigail', weekday: 2, blockNumber: 2, startTime: '09:40', endTime: '10:20', subject: 'Math', blockType: 'assignment' },
+    { id: 'sched-6', studentName: 'Abigail', weekday: 3, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Science', blockType: 'assignment' },
+    { id: 'sched-7', studentName: 'Abigail', weekday: 4, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Math', blockType: 'assignment' },
+    { id: 'sched-8', studentName: 'Abigail', weekday: 5, blockNumber: 1, startTime: '08:30', endTime: '09:30', subject: 'Review', blockType: 'assignment' },
 
     // Khalil's schedule
-    { id: 'sched-9', studentName: 'khalil-user', weekday: 1, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Chemistry', blockType: 'assignment' },
-    { id: 'sched-10', studentName: 'khalil-user', weekday: 2, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Co-op', blockType: 'co-op' },
-    { id: 'sched-11', studentName: 'khalil-user', weekday: 3, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Career', blockType: 'assignment' },
-    { id: 'sched-12', studentName: 'khalil-user', weekday: 4, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Chemistry', blockType: 'assignment' },
-    { id: 'sched-13', studentName: 'khalil-user', weekday: 4, blockNumber: 2, startTime: '10:15', endTime: '11:15', subject: 'Career', blockType: 'assignment' },
+    { id: 'sched-9', studentName: 'Khalil', weekday: 1, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Chemistry', blockType: 'assignment' },
+    { id: 'sched-10', studentName: 'Khalil', weekday: 2, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Co-op', blockType: 'co-op' },
+    { id: 'sched-11', studentName: 'Khalil', weekday: 3, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Career', blockType: 'assignment' },
+    { id: 'sched-12', studentName: 'Khalil', weekday: 4, blockNumber: 1, startTime: '09:00', endTime: '10:00', subject: 'Chemistry', blockType: 'assignment' },
+    { id: 'sched-13', studentName: 'Khalil', weekday: 4, blockNumber: 2, startTime: '10:15', endTime: '11:15', subject: 'Career', blockType: 'assignment' },
   ];
 
   const assignments: Assignment[] = [
