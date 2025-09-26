@@ -32,3 +32,15 @@ export function getStudentNameFromEmail(email: string): string {
   console.log('🔍 Utils Debug - Mapped to student name:', result);
   return result;
 }
+
+// Convert database student name to user-friendly display name
+export function getDisplayNameFromStudentName(studentName: string): string {
+  switch (studentName) {
+    case 'khalil-user':
+      return 'Khalil';
+    case 'abigail-user':
+      return 'Abigail';
+    default:
+      return studentName;
+  }
+}

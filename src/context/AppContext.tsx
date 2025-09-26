@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUser } from '@/types';
 import { generateDemoData } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
+import { getStudentNameFromEmail, getDisplayNameFromStudentName } from '@/lib/utils';
 
 // Email to user-id mapping function (for assignments table)
 const getUserIdFromEmail = (email: string): string => {
@@ -196,7 +197,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Use the mapped student name consistently
       const user: AppUser = {
         id: studentName, // Use mapped student name instead of UUID
-        username: studentName,
+        username: getDisplayNameFromStudentName(studentName), // Use friendly display name
         role: userRole,
         profileId: session.user.id
       };
@@ -204,7 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const defaultProfile: Profile = {
         id: session.user.id,
         userId: session.user.id,
-        displayName: studentName, // Use mapped student name
+        displayName: getDisplayNameFromStudentName(studentName), // Use friendly display name
         role: userRole
       };
       
@@ -387,7 +388,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             // Use the mapped student name consistently
             const user: AppUser = {
               id: studentName, // Use mapped student name instead of UUID
-              username: studentName,
+              username: getDisplayNameFromStudentName(studentName), // Use friendly display name
               role: userRole,
               profileId: session.user.id
             };
@@ -395,7 +396,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const defaultProfile: Profile = {
               id: session.user.id,
               userId: session.user.id,
-              displayName: studentName, // Use mapped student name
+              displayName: getDisplayNameFromStudentName(studentName), // Use friendly display name
               role: userRole
             };
             

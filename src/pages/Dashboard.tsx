@@ -74,20 +74,12 @@ const Dashboard = () => {
 
   // Get the correct student name for database lookup
   const getStudentName = () => {
-    let studentName;
-    if (isDemo || !currentUser) {
-      studentName = selectedProfile.displayName;
-    } else if (currentUser.id && currentUser.id.includes('@')) {
-      // For real users, currentUser.id contains their email
-      studentName = getStudentNameFromEmail(currentUser.id);
-    } else {
-      studentName = selectedProfile.displayName;
-    }
+    // After AppContext changes, currentUser.id now contains the mapped student name
+    const studentName = isDemo ? selectedProfile.displayName : currentUser.id;
 
     console.log('🔍 Dashboard Debug - getStudentName result:', studentName);
     console.log('🔍 Dashboard Debug - currentUser.id:', currentUser?.id);
     console.log('🔍 Dashboard Debug - isDemo:', isDemo);
-    console.log('🔍 Dashboard Debug - selectedProfile.displayName:', selectedProfile?.displayName);
 
     return studentName;
   };
@@ -131,7 +123,7 @@ const Dashboard = () => {
     };
 
     fetchWeekSchedule();
-  }, [selectedProfile?.displayName, currentWeek, getScheduleForStudent, isDemo, currentUser]); // Added missing dependencies
+  }, [currentUser?.id, currentWeek, getScheduleForStudent, isDemo]); // Use stable currentUser.id instead of displayName
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
