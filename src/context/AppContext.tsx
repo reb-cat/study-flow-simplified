@@ -193,14 +193,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('student_name', studentName)
         .maybeSingle();
       
-      let displayName = studentName;
-      if (profileData) {
-        displayName = profileData.display_name || studentName;
-      }
-      
+      // Use the mapped student name consistently
       const user: AppUser = {
-        id: session.user.id,
-        username: displayName,
+        id: studentName, // Use mapped student name instead of UUID
+        username: studentName,
         role: userRole,
         profileId: session.user.id
       };
@@ -208,7 +204,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const defaultProfile: Profile = {
         id: session.user.id,
         userId: session.user.id,
-        displayName: displayName,
+        displayName: studentName, // Use mapped student name
         role: userRole
       };
       
@@ -378,11 +374,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               .select('*')
               .eq('student_name', studentName)
               .maybeSingle();
-              
-            let displayName = studentName;
-            if (profileData) {
-              displayName = profileData.display_name || studentName;
-            }
             
             const { data: roleData } = await supabase
               .rpc('get_user_roles', { _user_id: session.user.id });
@@ -393,9 +384,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               userRole = hasAdminRole ? 'admin' : 'student';
             }
             
+            // Use the mapped student name consistently
             const user: AppUser = {
-              id: session.user.id,
-              username: displayName,
+              id: studentName, // Use mapped student name instead of UUID
+              username: studentName,
               role: userRole,
               profileId: session.user.id
             };
@@ -403,7 +395,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const defaultProfile: Profile = {
               id: session.user.id,
               userId: session.user.id,
-              displayName: displayName,
+              displayName: studentName, // Use mapped student name
               role: userRole
             };
             
