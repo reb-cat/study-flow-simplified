@@ -4,15 +4,31 @@ import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { z } from 'zod';
+
+const resetPasswordSchema = z.object({
+  password: z.string()
+    .min(6, { message: "Password must be at least 6 characters" })
+    .max(128, { message: "Password must be less than 128 characters" }),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 const AuthConfirm = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useApp();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'reset-password'>('loading');
   const [message, setMessage] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
 
   useEffect(() => {
     const confirmAuth = async () => {
@@ -99,16 +115,13 @@ const AuthConfirm = () => {
 
           // Handle password recovery flow first - bypass normal login
           if (type === 'recovery') {
-            console.log('Password recovery confirmed - redirecting to reset password');
+            console.log('Password recovery confirmed - showing reset password form');
+            setStatus('reset-password');
             setMessage('Email verified! Please set your new password.');
             toast({
               title: 'Email Verified',
               description: 'Please set your new password to complete the recovery.'
             });
-            // Redirect to password reset page immediately, don't login to app context
-            setTimeout(() => {
-              navigate('/reset-password');
-            }, 1500);
             return; // Don't continue with normal login flow
           }
 
@@ -172,7 +185,7 @@ const AuthConfirm = () => {
             } else {
               // If app context login fails, still redirect to login page
               setTimeout(() => {
-                navigate('/login');
+                navigate('/');
               }, 2000);
             }
           }
@@ -201,11 +214,61 @@ const AuthConfirm = () => {
   }, [searchParams, navigate, login]);
 
   const handleGoToLogin = () => {
-    navigate('/login');
+    navigate('/');
   };
 
   const handleGoToDashboard = () => {
     navigate('/dashboard');
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setErrors({});
+
+    try {
+      const validationResult = resetPasswordSchema.safeParse({ password, confirmPassword });
+      
+      if (!validationResult.success) {
+        const fieldErrors: { password?: string; confirmPassword?: string } = {};
+        validationResult.error.issues.forEach((err) => {
+          if (err.path[0] === 'password') fieldErrors.password = err.message;
+          if (err.path[0] === 'confirmPassword') fieldErrors.confirmPassword = err.message;
+        });
+        setErrors(fieldErrors);
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: validationResult.data.password
+      });
+
+      if (error) {
+        toast({
+          title: 'Password reset failed',
+          description: error.message,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      toast({
+        title: 'Password reset successful',
+        description: 'Your password has been updated successfully.'
+      });
+
+      setStatus('success');
+      setMessage('Password updated successfully! Redirecting...');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -217,42 +280,93 @@ const AuthConfirm = () => {
               {status === 'loading' && 'Confirming...'}
               {status === 'success' && 'Confirmation Successful'}
               {status === 'error' && 'Confirmation Failed'}
+              {status === 'reset-password' && 'Reset Your Password'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex justify-center">
-              {status === 'loading' && (
-                <Loader2 className="w-16 h-16 text-primary animate-spin" />
-              )}
-              {status === 'success' && (
-                <CheckCircle className="w-16 h-16 text-green-600" />
-              )}
-              {status === 'error' && (
-                <XCircle className="w-16 h-16 text-red-600" />
-              )}
-            </div>
+            {status === 'reset-password' ? (
+              // Reset Password Form
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="flex justify-center">
+                  <div className="text-6xl">🔐</div>
+                </div>
+                
+                <p className="text-center text-muted-foreground">{message}</p>
+                
+                <div className="space-y-1">
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="New Password"
+                    required
+                    aria-invalid={!!errors.password}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="space-y-1">
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm New Password"
+                    required
+                    aria-invalid={!!errors.confirmPassword}
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={resetLoading}>
+                  {resetLoading ? 'Updating Password...' : 'Update Password'}
+                </Button>
+              </form>
+            ) : (
+              // Status Display  
+              <>
+                <div className="flex justify-center">
+                  {status === 'loading' && (
+                    <Loader2 className="w-16 h-16 text-primary animate-spin" />
+                  )}
+                  {status === 'success' && (
+                    <CheckCircle className="w-16 h-16 text-green-600" />
+                  )}
+                  {status === 'error' && (
+                    <XCircle className="w-16 h-16 text-red-600" />
+                  )}
+                </div>
 
-            <p className="text-center text-muted-foreground">
-              {message}
-            </p>
+                <p className="text-center text-muted-foreground">
+                  {message}
+                </p>
 
-            <div className="space-y-2">
-              {status === 'success' && (
-                <Button onClick={handleGoToDashboard} className="w-full">
-                  Go to Dashboard
-                </Button>
-              )}
-              {status === 'error' && (
-                <Button onClick={handleGoToLogin} className="w-full">
-                  Go to Login
-                </Button>
-              )}
-              {status === 'loading' && (
-                <Button disabled className="w-full">
-                  Processing...
-                </Button>
-              )}
-            </div>
+                <div className="space-y-2">
+                  {status === 'success' && (
+                    <Button onClick={handleGoToDashboard} className="w-full">
+                      Go to Dashboard
+                    </Button>
+                  )}
+                  {status === 'error' && (
+                    <Button onClick={handleGoToLogin} className="w-full">
+                      Go to Login
+                    </Button>
+                  )}
+                  {status === 'loading' && (
+                    <Button disabled className="w-full">
+                      Processing...
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
