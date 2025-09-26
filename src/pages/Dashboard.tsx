@@ -8,6 +8,7 @@ import { GuidedDayView } from '@/components/GuidedDayView';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { useAssignments } from '@/hooks/useAssignments';  
 import { useUnifiedSchedule } from '@/hooks/useUnifiedSchedule';
+import { getStudentNameFromEmail } from '@/lib/utils';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 import { 
@@ -70,18 +71,6 @@ const Dashboard = () => {
       return day;
     });
   }, [monday]);
-
-  // Helper function to get student name from email
-  const getStudentNameFromEmail = (email: string): string => {
-    switch (email.toLowerCase()) {
-      case 'khalilsjh10@gmail.com':
-        return 'khalil-user';
-      case 'sweetpeaag120@gmail.com':
-        return 'abigail-user';
-      default:
-        return email.split('@')[0];
-    }
-  };
 
   // Get the correct student name for database lookup
   const getStudentName = () => {
