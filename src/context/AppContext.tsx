@@ -144,7 +144,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     console.log('Demo data initialized:', demoData.profiles.length, 'profiles'); // Debug
   };
 
-  const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
+const login = useCallback(async (username: string, password?: string): Promise<boolean> => {
     console.log('AppContext login called with username:', username);
 
     // Check if user is already authenticated (for real users)
@@ -163,19 +163,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userRole = hasAdminRole ? 'admin' : 'student';
       }
       
-      // For real authenticated users, set up user state and create a default profile
+      // For real authenticated users, fetch their student profile data
+      const studentName = session.user.email?.split('@')[0] || '';
+      const { data: profileData, error: profileError } = await supabase
+        .from('student_profiles')
+        .select('*')
+        .eq('student_name', studentName)
+        .single();
+      
+      let displayName = studentName;
+      if (!profileError && profileData) {
+        displayName = profileData.display_name || studentName;
+      }
+      
       const user: AppUser = {
         id: session.user.id,
-        username: session.user.email || username,
+        username: displayName, // Use display name instead of email
         role: userRole,
         profileId: session.user.id
       };
       
-      // Create a default student profile for real users
+      // Create profile with proper display name
       const defaultProfile: Profile = {
         id: session.user.id,
         userId: session.user.id,
-        displayName: session.user.email?.split('@')[0] || 'Student',
+        displayName: displayName,
         role: userRole
       };
       
@@ -353,6 +365,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 console.log('Restored session for:', profile.displayName);
               }
             }
+          } else {
+            // Real authenticated user - fetch their profile data
+            const studentName = email.split('@')[0];
+            const { data: profileData } = await supabase
+              .from('student_profiles')
+              .select('*')
+              .eq('student_name', studentName)
+              .single();
+              
+            let displayName = studentName;
+            if (profileData) {
+              displayName = profileData.display_name || studentName;
+            }
+            
+            // Fetch user roles
+            const { data: roleData } = await supabase
+              .rpc('get_user_roles', { _user_id: session.user.id });
+            
+            let userRole: 'admin' | 'student' = 'student';
+            if (roleData) {
+              const hasAdminRole = roleData.some((r: { role: string }) => r.role === 'admin');
+              userRole = hasAdminRole ? 'admin' : 'student';
+            }
+            
+            const user: AppUser = {
+              id: session.user.id,
+              username: displayName,
+              role: userRole,
+              profileId: session.user.id
+            };
+            
+            const defaultProfile: Profile = {
+              id: session.user.id,
+              userId: session.user.id,
+              displayName: displayName,
+              role: userRole
+            };
+            
+            setCurrentUser(user);
+            setProfiles([defaultProfile]);
+            setSelectedProfile(defaultProfile);
+            setIsDemo(false);
+            console.log('Restored real user session for:', displayName);
           }
         } else {
           console.log('No existing session found');

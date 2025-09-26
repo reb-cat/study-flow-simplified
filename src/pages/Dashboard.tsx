@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { GuidedDayView } from '@/components/GuidedDayView';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
 import { useAssignments } from '@/hooks/useAssignments';  
-import { useScheduleCache } from '@/hooks/useScheduleCache';
+import { useUnifiedSchedule } from '@/hooks/useUnifiedSchedule';
 import { OverviewDayCard } from '@/components/OverviewDayCard';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 import { 
@@ -26,10 +26,11 @@ import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
 const Dashboard = () => {
   const { 
     selectedProfile, 
-    currentUser 
+    currentUser,
+    isDemo 
   } = useApp();
   
-  const { getCachedScheduleForDay } = useScheduleCache();
+  const { getScheduleForStudent } = useUnifiedSchedule();
   const { assignments } = useAssignments();
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -81,12 +82,21 @@ const Dashboard = () => {
           return day;
         });
 
+        // Get the correct student name for database lookup
+        let studentName = selectedProfile.displayName;
+        if (!isDemo && currentUser) {
+          // For real users, use the username from their email (e.g., khalilsjh10)
+          studentName = currentUser.id; // This should be khalilsjh10@gmail.com -> khalilsjh10
+          if (studentName.includes('@')) {
+            studentName = studentName.split('@')[0];
+          }
+        }
 
         // Fetch all days in parallel to avoid sequential requests
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
           const dayString = day.toISOString().split('T')[0];
-          const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
+          const blocks = await getScheduleForStudent(studentName, dayName);
           return { day: dayString, blocks };
         });
 
@@ -104,7 +114,7 @@ const Dashboard = () => {
     };
 
     fetchWeekSchedule();
-  }, [selectedProfile?.displayName, currentWeek]); // Removed getCachedScheduleForDay to prevent infinite loops
+  }, [selectedProfile?.displayName, currentWeek, getScheduleForStudent, isDemo, currentUser]); // Added missing dependencies
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
