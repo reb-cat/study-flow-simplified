@@ -22,6 +22,7 @@ import {
 } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { 
@@ -88,10 +89,22 @@ const Dashboard = () => {
         // Get the correct student name for database lookup
         let studentName = selectedProfile.displayName;
         if (!isDemo && currentUser) {
-          // For real users, use the username from their email (e.g., khalilsjh10)
-          studentName = currentUser.id; // This should be khalilsjh10@gmail.com -> khalilsjh10
-          if (studentName.includes('@')) {
-            studentName = studentName.split('@')[0];
+          // For real users, use the mapped student name from getUserIdFromEmail function
+          const getUserIdFromEmail = (email: string): string => {
+            switch (email.toLowerCase()) {
+              case 'khalilsjh10@gmail.com':
+                return 'khalil-user';
+              case 'sweetpeaag120@gmail.com':
+                return 'abigail-user';
+              default:
+                return email.split('@')[0];
+            }
+          };
+          
+          // Get user's email and map to correct student name
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user?.email) {
+            studentName = getUserIdFromEmail(session.user.email);
           }
         }
 
