@@ -74,16 +74,22 @@ const Dashboard = () => {
 
   // Get the correct student name for database lookup
   const getStudentName = () => {
+    let studentName;
     if (isDemo || !currentUser) {
-      return selectedProfile.displayName;
+      studentName = selectedProfile.displayName;
+    } else if (currentUser.id && currentUser.id.includes('@')) {
+      // For real users, currentUser.id contains their email
+      studentName = getStudentNameFromEmail(currentUser.id);
+    } else {
+      studentName = selectedProfile.displayName;
     }
-    
-    // For real users, currentUser.id contains their email
-    if (currentUser.id && currentUser.id.includes('@')) {
-      return getStudentNameFromEmail(currentUser.id);
-    }
-    
-    return selectedProfile.displayName;
+
+    console.log('🔍 Dashboard Debug - getStudentName result:', studentName);
+    console.log('🔍 Dashboard Debug - currentUser.id:', currentUser?.id);
+    console.log('🔍 Dashboard Debug - isDemo:', isDemo);
+    console.log('🔍 Dashboard Debug - selectedProfile.displayName:', selectedProfile?.displayName);
+
+    return studentName;
   };
 
   // Get schedule data for the week - fetch all at once to avoid duplicate requests

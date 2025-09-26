@@ -31,12 +31,26 @@ export function useSupabaseSchedule() {
     console.log('🔍 Auth Debug - Fetching schedule for:', studentName, dayName);
 
     try {
+      console.log('🔍 Schedule Debug - Querying for student:', studentName);
+      console.log('🔍 Schedule Debug - Querying for day:', dayName);
+
+      // First, let's see what student names are actually in the database
+      const { data: allStudents } = await supabase
+        .from('schedule_template')
+        .select('DISTINCT student_name')
+        .limit(10);
+
+      console.log('🔍 Database Debug - Available student names:', allStudents?.map(s => s.student_name));
+
       const { data, error: fetchError } = await supabase
         .from('schedule_template')
         .select('*')
         .eq('student_name', studentName)
         .eq('weekday', dayName);
-        
+
+      console.log('🔍 Schedule Debug - Query result:', data);
+      console.log('🔍 Schedule Debug - Query error:', fetchError);
+
       setIsLoading(false);
 
       if (fetchError) {
