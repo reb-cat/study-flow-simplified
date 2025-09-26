@@ -22,6 +22,7 @@ import {
 } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
+import { getStudentNameFromId } from '@/lib/utils';
 
 const Dashboard = () => {
   const { 
@@ -214,8 +215,9 @@ const Dashboard = () => {
     // Process blocks and populate with assignments
     for (const blockWithDay of allBlocksForWeek) {
       const { dayDate, dayName, ...block } = blockWithDay;
-      // Use displayName for family detection (this should remain human-readable)
-      const family = getBlockFamily(selectedProfile.displayName, dayName, block.block_number || 0);
+      // Convert UUID to student name for family detection
+      const studentName = getStudentNameFromId(currentUser?.id || '');
+      const family = getBlockFamily(studentName, dayName, block.block_number || 0);
       
       if (!family) {
         weekAssignmentData[dayDate].push({ ...block, assignment: undefined, assignedFamily: undefined });
@@ -223,7 +225,7 @@ const Dashboard = () => {
       }
 
       // Special case: Khalil's Algebra priority
-      if (shouldPrioritizeAlgebra(selectedProfile.displayName, dayName, block.block_number || 0)) {
+      if (shouldPrioritizeAlgebra(studentName, dayName, block.block_number || 0)) {
         const algebraAssignment = unscheduledAssignments.find(a => 
           !scheduledAssignments.has(a.id) &&
           ((a.subject || '').toLowerCase().includes('algebra') || 
