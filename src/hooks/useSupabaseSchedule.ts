@@ -37,7 +37,7 @@ export function useSupabaseSchedule() {
       // First, let's see what student names are actually in the database
       const { data: allStudents } = await supabase
         .from('schedule_template')
-        .select('DISTINCT student_name')
+        .select('student_name')
         .limit(10);
 
       console.log('🔍 Database Debug - Available student names:', allStudents?.map(s => s.student_name));

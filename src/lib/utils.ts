@@ -19,10 +19,10 @@ export function getStudentNameFromEmail(email: string): string {
   let result: string;
   switch (email.toLowerCase()) {
     case 'khalilsjh10@gmail.com':
-      result = 'khalil';
+      result = 'khalil-user';
       break;
     case 'sweetpeaag120@gmail.com':
-      result = 'abigail';
+      result = 'abigail-user';
       break;
     default:
       result = email.split('@')[0];
