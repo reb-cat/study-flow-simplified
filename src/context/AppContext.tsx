@@ -3,6 +3,19 @@ import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUs
 import { generateDemoData } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
 
+// Email to user-id mapping function
+const getUserIdFromEmail = (email: string): string => {
+  switch (email.toLowerCase()) {
+    case 'khalilsjh10@gmail.com':
+      return 'khalil-user';
+    case 'sweetpeaag120@gmail.com':
+      return 'abigail-user';
+    default:
+      // For demo users or unknown emails, use email prefix as fallback
+      return email.split('@')[0];
+  }
+};
+
 interface AppContextType {
   // Auth state
   currentUser: AppUser | null;
@@ -164,7 +177,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
       }
       
       // For real authenticated users, fetch their student profile data
-      const studentName = session.user.email?.split('@')[0] || '';
+      const studentName = getUserIdFromEmail(session.user.email || '');
       const { data: profileData, error: profileError } = await supabase
         .from('student_profiles')
         .select('*')
@@ -367,7 +380,7 @@ const login = useCallback(async (username: string, password?: string): Promise<b
             }
           } else {
             // Real authenticated user - fetch their profile data
-            const studentName = email.split('@')[0];
+            const studentName = getUserIdFromEmail(email);
             const { data: profileData } = await supabase
               .from('student_profiles')
               .select('*')
