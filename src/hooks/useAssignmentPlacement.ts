@@ -47,9 +47,12 @@ export function useAssignmentPlacement(
       scheduled_block: a.scheduled_block
     })));
 
-    // Get unscheduled assignments (no scheduled_date or scheduled_block)
-    const unscheduledAssignments = assignmentsWithFamily.filter(a =>
-      !a.scheduled_date && !a.scheduled_block
+    // Get unscheduled assignments (exclude scheduled, completed, and cleared assignments)
+    const unscheduledAssignments = assignmentsWithFamily.filter(a => 
+      !a.scheduled_date && 
+      !a.scheduled_block &&
+      !a.completed_at &&
+      !a.cleared_at // Also exclude cleared assignments
     );
     console.log('Unscheduled count:', unscheduledAssignments.length);
 
