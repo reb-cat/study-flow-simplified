@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,15 +22,24 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have the necessary tokens
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    // Parse hash fragment for Supabase auth tokens
+    const parseHashParams = (hash: string) => {
+      const params = new URLSearchParams(hash.substring(1));
+      return {
+        access_token: params.get('access_token'),
+        refresh_token: params.get('refresh_token'),
+        type: params.get('type')
+      };
+    };
+
+    const hashParams = parseHashParams(window.location.hash);
+    const { access_token, refresh_token, type } = hashParams;
     
-    if (!accessToken || !refreshToken) {
+    // Check if this is a password recovery and we have the necessary tokens
+    if (type !== 'recovery' || !access_token || !refresh_token) {
       toast({
         title: 'Invalid reset link',
         description: 'This password reset link is invalid or has expired.',
@@ -40,12 +49,12 @@ const ResetPassword = () => {
       return;
     }
 
-    // Set the session with the tokens from the URL
+    // Set the session with the tokens from the hash
     supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken
+      access_token,
+      refresh_token
     });
-  }, [searchParams, navigate]);
+  }, [navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
