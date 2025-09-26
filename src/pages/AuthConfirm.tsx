@@ -17,26 +17,41 @@ const AuthConfirm = () => {
   useEffect(() => {
     const confirmAuth = async () => {
       const tokenHash = searchParams.get('token_hash');
+      const code = searchParams.get('code');
+      const codeVerifier = searchParams.get('code_verifier');
       const type = searchParams.get('type');
 
-      // Validate required parameters
-      if (!tokenHash || !type) {
-        setStatus('error');
-        setMessage('Invalid confirmation link. Missing token or type parameter.');
-        toast({
-          title: 'Invalid Link',
-          description: 'The confirmation link is missing required parameters.',
-          variant: 'destructive'
-        });
-        return;
-      }
-
       try {
-        // Handle different types of OTP verification
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: type as 'recovery' | 'email' | 'magiclink' | 'email_change' | 'invite'
-        });
+        let data, error;
+
+        // Check if we have PKCE flow parameters (code + code_verifier)
+        if (code && codeVerifier) {
+          // Handle PKCE flow
+          const result = await supabase.auth.exchangeCodeForSession(code);
+          data = result.data;
+          error = result.error;
+        }
+        // Check if we have token_hash for OTP verification
+        else if (tokenHash && type) {
+          // Handle OTP verification
+          const result = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as 'recovery' | 'email' | 'magiclink' | 'email_change' | 'invite'
+          });
+          data = result.data;
+          error = result.error;
+        }
+        // Handle missing parameters
+        else {
+          setStatus('error');
+          setMessage('Invalid confirmation link. Missing required parameters.');
+          toast({
+            title: 'Invalid Link',
+            description: 'The confirmation link is missing required parameters.',
+            variant: 'destructive'
+          });
+          return;
+        }
 
         if (error) {
           console.error('Auth confirmation error:', error);
@@ -50,57 +65,68 @@ const AuthConfirm = () => {
           return;
         }
 
-        if (data.user) {
+        if (data.user || data.session) {
           setStatus('success');
 
-          // Handle different confirmation types
-          switch (type) {
-            case 'recovery':
-              setMessage('Password recovery confirmed! You can now sign in with your new password.');
-              toast({
-                title: 'Password Recovery Confirmed',
-                description: 'You can now sign in with your new password.'
-              });
-              break;
-            case 'email':
-              setMessage('Email confirmed successfully! You can now access your account.');
-              toast({
-                title: 'Email Confirmed',
-                description: 'Your email has been verified successfully.'
-              });
-              break;
-            case 'magiclink':
-              setMessage('Magic link authentication successful!');
-              toast({
-                title: 'Sign In Successful',
-                description: 'Welcome back to StudyFlow!'
-              });
-              break;
-            case 'email_change':
-              setMessage('Email change confirmed successfully!');
-              toast({
-                title: 'Email Updated',
-                description: 'Your email address has been updated.'
-              });
-              break;
-            case 'invite':
-              setMessage('Invitation accepted! Welcome to StudyFlow!');
-              toast({
-                title: 'Welcome!',
-                description: 'Your invitation has been accepted.'
-              });
-              break;
-            default:
-              setMessage('Authentication confirmed successfully!');
-              toast({
-                title: 'Confirmed',
-                description: 'Authentication successful.'
-              });
+          // Determine the flow type and set appropriate messaging
+          if (code && codeVerifier) {
+            // PKCE flow - typically for OAuth or magic links
+            setMessage('Authentication successful! Welcome back to StudyFlow.');
+            toast({
+              title: 'Sign In Successful',
+              description: 'Welcome back to StudyFlow!'
+            });
+          } else {
+            // Handle different OTP confirmation types
+            switch (type) {
+              case 'recovery':
+                setMessage('Password recovery confirmed! You can now sign in with your new password.');
+                toast({
+                  title: 'Password Recovery Confirmed',
+                  description: 'You can now sign in with your new password.'
+                });
+                break;
+              case 'email':
+                setMessage('Email confirmed successfully! You can now access your account.');
+                toast({
+                  title: 'Email Confirmed',
+                  description: 'Your email has been verified successfully.'
+                });
+                break;
+              case 'magiclink':
+                setMessage('Magic link authentication successful!');
+                toast({
+                  title: 'Sign In Successful',
+                  description: 'Welcome back to StudyFlow!'
+                });
+                break;
+              case 'email_change':
+                setMessage('Email change confirmed successfully!');
+                toast({
+                  title: 'Email Updated',
+                  description: 'Your email address has been updated.'
+                });
+                break;
+              case 'invite':
+                setMessage('Invitation accepted! Welcome to StudyFlow!');
+                toast({
+                  title: 'Welcome!',
+                  description: 'Your invitation has been accepted.'
+                });
+                break;
+              default:
+                setMessage('Authentication confirmed successfully!');
+                toast({
+                  title: 'Confirmed',
+                  description: 'Authentication successful.'
+                });
+            }
           }
 
           // Try to log the user in to the app context
-          if (data.user.email) {
-            const loginSuccess = await login(data.user.email);
+          const user = data.user || data.session?.user;
+          if (user?.email) {
+            const loginSuccess = await login(user.email);
             if (loginSuccess) {
               // Redirect to dashboard after successful login
               setTimeout(() => {
