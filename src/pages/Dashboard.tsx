@@ -71,6 +71,32 @@ const Dashboard = () => {
     });
   }, [monday]);
 
+  // Helper function to get student name from email
+  const getStudentNameFromEmail = (email: string): string => {
+    switch (email.toLowerCase()) {
+      case 'khalilsjh10@gmail.com':
+        return 'khalil-user';
+      case 'sweetpeaag120@gmail.com':
+        return 'abigail-user';
+      default:
+        return email.split('@')[0];
+    }
+  };
+
+  // Get the correct student name for database lookup
+  const getStudentName = () => {
+    if (isDemo || !currentUser) {
+      return selectedProfile.displayName;
+    }
+    
+    // For real users, currentUser.id contains their email
+    if (currentUser.id && currentUser.id.includes('@')) {
+      return getStudentNameFromEmail(currentUser.id);
+    }
+    
+    return selectedProfile.displayName;
+  };
+
   // Get schedule data for the week - fetch all at once to avoid duplicate requests
   useEffect(() => {
     const fetchWeekSchedule = async () => {
@@ -86,27 +112,7 @@ const Dashboard = () => {
           return day;
         });
 
-        // Get the correct student name for database lookup
-        let studentName = selectedProfile.displayName;
-        if (!isDemo && currentUser) {
-          // For real users, use the mapped student name from getUserIdFromEmail function
-          const getUserIdFromEmail = (email: string): string => {
-            switch (email.toLowerCase()) {
-              case 'khalilsjh10@gmail.com':
-                return 'khalil-user';
-              case 'sweetpeaag120@gmail.com':
-                return 'abigail-user';
-              default:
-                return email.split('@')[0];
-            }
-          };
-          
-          // Get user's email and map to correct student name
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user?.email) {
-            studentName = getUserIdFromEmail(session.user.email);
-          }
-        }
+        const studentName = getStudentName();
 
         // Fetch all days in parallel to avoid sequential requests
         const promises = weekDaysInEffect.map(async (day) => {
