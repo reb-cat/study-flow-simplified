@@ -94,9 +94,25 @@ const AuthConfirm = () => {
         }
 
         if (data.user || data.session) {
+          console.log('Auth success - user/session found:', { type, user: data.user, session: data.session });
           setStatus('success');
 
-          // Determine the flow type and set appropriate messaging
+          // Handle password recovery flow first - bypass normal login
+          if (type === 'recovery') {
+            console.log('Password recovery confirmed - redirecting to reset password');
+            setMessage('Email verified! Please set your new password.');
+            toast({
+              title: 'Email Verified',
+              description: 'Please set your new password to complete the recovery.'
+            });
+            // Redirect to password reset page immediately, don't login to app context
+            setTimeout(() => {
+              navigate('/reset-password');
+            }, 1500);
+            return; // Don't continue with normal login flow
+          }
+
+          // Determine the flow type and set appropriate messaging for other flows
           if (code && codeVerifier) {
             // PKCE flow - typically for OAuth or magic links
             setMessage('Authentication successful! Welcome back to StudyFlow.');
@@ -107,18 +123,6 @@ const AuthConfirm = () => {
           } else {
             // Handle different OTP confirmation types
             switch (type) {
-              case 'recovery':
-                setMessage('Email verified! Please set your new password.');
-                toast({
-                  title: 'Email Verified',
-                  description: 'Please set your new password to complete the recovery.'
-                });
-                // Redirect to password reset page instead of dashboard
-                setTimeout(() => {
-                  navigate('/reset-password');
-                }, 2000);
-                return; // Don't continue with normal login flow
-                break;
               case 'email':
                 setMessage('Email confirmed successfully! You can now access your account.');
                 toast({
