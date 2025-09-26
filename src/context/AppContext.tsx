@@ -151,14 +151,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       console.log('User already authenticated with Supabase:', session.user.email);
-      // For real authenticated users, just set up the user state
+      // For real authenticated users, set up user state and create a default profile
       const user: AppUser = {
         id: session.user.id,
         username: session.user.email || username,
         role: 'student',
         profileId: session.user.id
       };
+      
+      // Create a default student profile for real users
+      const defaultProfile: Profile = {
+        id: session.user.id,
+        userId: session.user.id,
+        displayName: session.user.email?.split('@')[0] || 'Student',
+        role: 'student'
+      };
+      
       setCurrentUser(user);
+      setProfiles([defaultProfile]);
+      setSelectedProfile(defaultProfile);
       setIsDemo(false);
       return true;
     }
