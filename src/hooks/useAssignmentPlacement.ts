@@ -24,6 +24,12 @@ export function useAssignmentPlacement(
 } {
   
   return useMemo(() => {
+    console.log('=== ASSIGNMENT PLACEMENT DEBUG ===');
+    console.log('Input assignments:', assignments);
+    console.log('Input scheduleBlocks:', scheduleBlocks);
+    console.log('Student:', studentName);
+    console.log('Date:', selectedDate);
+
     // Add family detection to assignments
     const assignmentsWithFamily: AssignmentWithFamily[] = assignments.map(assignment => {
       const family = detectFamily(assignment);
@@ -32,13 +38,20 @@ export function useAssignmentPlacement(
         detectedFamily: family
       };
     });
-    console.log('Assignments with families:', assignmentsWithFamily);
+    
+    console.log('Assignments with families:', assignmentsWithFamily.map(a => ({
+      title: a.title,
+      subject: a.subject,
+      family: a.detectedFamily,
+      scheduled_date: a.scheduled_date,
+      scheduled_block: a.scheduled_block
+    })));
 
     // Get unscheduled assignments (no scheduled_date or scheduled_block)
     const unscheduledAssignments = assignmentsWithFamily.filter(a =>
       !a.scheduled_date && !a.scheduled_block
     );
-    console.log('Unscheduled assignments:', unscheduledAssignments);
+    console.log('Unscheduled count:', unscheduledAssignments.length);
 
     // Get Assignment and Study Hall blocks for processing
     const assignableBlocks = scheduleBlocks.filter(block => {
@@ -46,7 +59,12 @@ export function useAssignmentPlacement(
       const isStudyHall = isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name);
       return blockType === 'Assignment' || isStudyHall;
     });
-    console.log('Assignable blocks:', assignableBlocks);
+    console.log('Assignable blocks:', assignableBlocks.map(b => ({
+      block_type: b.block_type,
+      block_number: b.block_number,
+      subject: b.subject,
+      block_name: b.block_name
+    })));
 
     // Track which assignments have been scheduled to prevent duplicates
     const scheduledAssignments = new Set<string>();
@@ -58,7 +76,7 @@ export function useAssignmentPlacement(
     for (const block of assignableBlocks) {
       const dayName = getDayName(selectedDate);
       const family = getBlockFamily(studentName, dayName, block.block_number || 0);
-      console.log('Processing block:', block.block_number, 'Family:', family);
+      console.log(`Processing block ${block.block_number}: family="${family}"`);
       
       if (!family) {
         populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: undefined });
