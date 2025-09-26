@@ -13,12 +13,21 @@ export function convertTo12Hour(time24: string): string {
 }
 
 export function getStudentNameFromEmail(email: string): string {
+  console.log('🔍 Utils Debug - Input email:', email);
+
+  let result: string;
   switch (email.toLowerCase()) {
     case 'khalilsjh10@gmail.com':
-      return 'khalil-user';
+      result = 'khalil';
+      break;
     case 'sweetpeaag120@gmail.com':
-      return 'abigail-user';
+      result = 'abigail';
+      break;
     default:
-      return email.split('@')[0];
+      result = email.split('@')[0];
+      break;
   }
+
+  console.log('🔍 Utils Debug - Mapped to student name:', result);
+  return result;
 }
