@@ -68,12 +68,8 @@ export function OverviewScheduleBlock({ block, assignment, status }: OverviewSch
     if (status === 'overtime') return '➡️';
     if (status === 'stuck') return '⚠️';
 
-    // Fall back to assignment checks for compatibility - only show checkmark if completed TODAY
-    if (assignment?.completed_at) {
-      const completedDate = new Date(assignment.completed_at).toDateString();
-      const today = new Date().toDateString();
-      if (completedDate === today) return '✅';
-    }
+    // Fall back to assignment checks for compatibility
+    if (assignment?.completed_at) return '✅';
 
     return '○';  // Empty circle - not started
   };
