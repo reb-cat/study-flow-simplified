@@ -17,9 +17,12 @@ const AuthConfirm = () => {
   useEffect(() => {
     const confirmAuth = async () => {
       const tokenHash = searchParams.get('token_hash');
+      const token = searchParams.get('token');
       const code = searchParams.get('code');
       const codeVerifier = searchParams.get('code_verifier');
       const type = searchParams.get('type');
+
+      console.log('Auth confirmation params:', { tokenHash, token, code, type });
 
       try {
         let data, error;
@@ -31,9 +34,9 @@ const AuthConfirm = () => {
           data = result.data;
           error = result.error;
         }
-        // Check if we have token_hash for OTP verification
-        else if (tokenHash && type) {
-          // Handle OTP verification
+        // Check if we have token_hash for OTP verification (custom URLs)
+        if (tokenHash && type) {
+          // Handle token_hash verification
           const result = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: type as 'recovery' | 'email' | 'magiclink' | 'email_change' | 'invite'
@@ -43,6 +46,7 @@ const AuthConfirm = () => {
         }
         // Handle missing parameters
         else {
+          console.error('Missing auth parameters:', { tokenHash, token, code, type });
           setStatus('error');
           setMessage('Invalid confirmation link. Missing required parameters.');
           toast({
