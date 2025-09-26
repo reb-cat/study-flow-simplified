@@ -153,7 +153,7 @@ const Dashboard = () => {
     console.log('About to call useAssignmentPlacement with:', {
       assignmentsLength: assignments?.length,
       blocksLength: Object.keys(weekSchedules).length,
-      studentName: selectedProfile?.displayName,
+      studentName: getStudentNameFromId(currentUser?.id || ''),
       currentUserId: currentUser?.id
     });
     
