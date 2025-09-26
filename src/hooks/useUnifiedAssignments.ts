@@ -6,7 +6,7 @@ import { UnifiedAssignment } from '@/types/assignment';
  * Unified hook that works for both demo and production assignments
  * The only difference is the table name
  */
-export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) {
+export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, refreshKey?: number) {
   const [assignments, setAssignments] = useState<UnifiedAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
 
     try {
       // Different column sets for different tables
-      const baseColumns = 'id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, created_at, updated_at';
+      const baseColumns = 'id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, needs_reschedule, cleared_at, created_at, updated_at';
       const productionColumns = `${baseColumns}, canvas_url, canvas_id`;
       const demoColumns = baseColumns; // demo table doesn't have canvas fields
       
@@ -53,6 +53,8 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
         time_spent: assignment.time_spent,
         priority: assignment.priority,
         difficulty: assignment.difficulty,
+        needs_reschedule: assignment.needs_reschedule,
+        cleared_at: assignment.cleared_at,
         created_at: assignment.created_at,
         updated_at: assignment.updated_at,
         // Canvas fields (only exist in production assignments table)
@@ -99,7 +101,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false) 
     if (userId) {
       fetchAssignments(userId);
     }
-  }, [userId, isDemo]);
+  }, [userId, isDemo, refreshKey]);
 
   return {
     assignments,

@@ -21,6 +21,7 @@ import {
   getStudyHallPriority 
 } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
+import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
 
 const Dashboard = () => {
   const { 
@@ -47,15 +48,12 @@ const Dashboard = () => {
     const dateStr = date.toISOString().split('T')[0];
     const d = new Date(dateStr + 'T12:00:00');
     const day = d.getDay();
-    console.log('getMonday input:', dateStr, 'day of week:', day);
 
     // Calculate days to subtract to get to Monday
     const daysToSubtract = day === 0 ? 6 : day - 1;
-    console.log('Days to subtract to get Monday:', daysToSubtract);
 
     const monday = new Date(d);
     monday.setDate(d.getDate() - daysToSubtract);
-    console.log('calculated Monday:', monday.toISOString().split('T')[0]);
     return monday;
   };
 
@@ -83,16 +81,12 @@ const Dashboard = () => {
           return day;
         });
 
-        console.log('Monday date:', monday.toISOString().split('T')[0]);
-        console.log('Week days to fetch:', weekDaysInEffect.map(d => d.toISOString().split('T')[0]));
 
         // Fetch all days in parallel to avoid sequential requests
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
           const dayString = day.toISOString().split('T')[0];
-          console.log(`Fetching schedule for ${dayString} (${dayName})`);
           const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
-          console.log(`Got ${blocks.length} blocks for ${dayString}`);
           return { day: dayString, blocks };
         });
 
@@ -102,7 +96,6 @@ const Dashboard = () => {
           finalWeekData[day] = blocks;
         });
 
-        console.log('Final weekSchedules keys:', Object.keys(finalWeekData));
         setWeekSchedules(finalWeekData);
       } catch (error) {
         console.error('Error fetching week schedule:', error);
@@ -151,15 +144,9 @@ const Dashboard = () => {
   // Schedule assignments for the entire week at once
   const scheduleWeekAssignments = useCallback(() => {
     if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
-      console.log('scheduleWeekAssignments early return:', {
-        selectedProfile: !!selectedProfile,
-        assignments: assignments?.length,
-        weekSchedulesKeys: Object.keys(weekSchedules)
-      });
       return {};
     }
 
-    console.log('scheduleWeekAssignments processing weekSchedules:', Object.keys(weekSchedules));
 
     // Collect all assignment blocks for the week with their day info
     const allBlocksForWeek: Array<SupabaseScheduleBlock & { dayDate: string; dayName: string }> = [];
@@ -171,7 +158,8 @@ const Dashboard = () => {
       
       const assignableBlocks = dayBlocks.filter(block => {
         const blockType = (block.block_type || '').toLowerCase();
-        return blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time);
+        return block.block_number !== 999 &&
+               (blockType === 'assignment' || isStudyHallBlock(block.block_type, block.start_time));
       });
       
       assignableBlocks.forEach(block => {
@@ -235,7 +223,6 @@ const Dashboard = () => {
             assignment: algebraAssignment,
             assignedFamily: family
           });
-          console.log('Assigned algebra to block:', algebraAssignment.title);
           continue;
         }
       }
@@ -272,7 +259,6 @@ const Dashboard = () => {
             assignment: studyHallTask,
             assignedFamily: family
           });
-          console.log('Assigned Study Hall task:', studyHallTask.title, 'Priority:', getStudyHallPriority(studyHallTask));
           continue;
         } else {
           // Fallback for Study Hall when no suitable assignments
@@ -282,7 +268,6 @@ const Dashboard = () => {
             assignedFamily: family,
             fallback: 'Review notes'
           });
-          console.log('No suitable Study Hall tasks, using fallback');
           continue;
         }
       }
@@ -391,9 +376,6 @@ const Dashboard = () => {
 
   // Show guided mode if enabled
   if (showGuidedMode) {
-    console.log('Guided date:', guidedDate);
-    console.log('Available dates in schedule:', Object.keys(weekScheduleWithAssignments));
-    console.log('Schedule for guided date:', weekScheduleWithAssignments[guidedDate]);
 
     const guidedDaySchedule = weekScheduleWithAssignments[guidedDate] || [];
 
@@ -437,6 +419,12 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* After School Summary */}
+        <AfterSchoolSummary
+          assignments={assignments}
+          date={new Date().toISOString().split('T')[0]}
+        />
 
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">

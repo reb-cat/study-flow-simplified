@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CircularTimer } from './CircularTimer';
-import { ChevronLeft, ChevronRight, CheckCircle, Clock, BookOpen, ArrowLeft, AlertTriangle, Target, ExternalLink, ChevronDown, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Clock, ArrowLeft, AlertTriangle, ExternalLink, ChevronDown, FileText } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
@@ -47,16 +47,14 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const trackedSetCurrentBlockIndex = (newIndex: number | ((prev: number) => number)) => {
     if (typeof newIndex === 'function') {
       const nextValue = newIndex(currentBlockIndex);
-      console.trace('CHANGING currentBlockIndex from', currentBlockIndex, 'to', nextValue);
       setCurrentBlockIndex(nextValue);
     } else {
-      console.trace('CHANGING currentBlockIndex from', currentBlockIndex, 'to', newIndex);
       setCurrentBlockIndex(newIndex);
     }
   };
   const [localTimerRunning, setLocalTimerRunning] = useState(false);
   const [localTimeRemaining, setLocalTimeRemaining] = useState<number | null>(null);
-  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [blockStatuses, setBlockStatuses] = useState<any[]>([]);
 
   // Helper function - memoized to avoid recreation
   const calculateBlockDuration = useCallback((startTime: string, endTime: string): number => {
@@ -115,11 +113,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       
       getScheduleForDay(selectedProfile.displayName, dayName)
         .then(schedule => {
-          console.log('Blocks loaded:', schedule.map(b => ({
-            id: b.id,
-            time: b.start_time,
-            subject: b.subject
-          })));
 
           // Sort blocks by start time
           const sortedBlocks = schedule.sort((a, b) => {
@@ -128,11 +121,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
             return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
           });
 
-          console.log('Blocks after sorting:', sortedBlocks.map(b => ({
-            id: b.id,
-            time: b.start_time,
-            subject: b.subject
-          })));
 
           setScheduleBlocks(sortedBlocks);
         })
@@ -153,7 +141,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const guidedBlocks = useMemo(() => {
     if (populatedSchedule && populatedSchedule.length > 0) {
       // Use what Dashboard calculated
-      console.log('GuidedDayView - Using provided populatedSchedule:', populatedSchedule.length);
       return populatedSchedule.map(block => ({
         id: block.id,
         blockNumber: block.block_number,
@@ -169,8 +156,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     }
 
     // Fallback to current calculation if not provided
-    console.log('GuidedDayView - Raw scheduleBlocks:', scheduleBlocks.length);
-    console.log('GuidedDayView - populatedBlocks:', populatedBlocks.length, populatedBlocks);
 
     return populatedBlocks.map(block => ({
       id: block.id,
@@ -186,11 +171,28 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     }));
   }, [populatedSchedule, populatedBlocks, calculateBlockDuration, scheduleBlocks.length]);
 
+  // Determine if some blocks have been completed
+  const hasCompletedSomeBlocks = useMemo(() => {
+    return blockStatuses.some(status => status.status === 'complete' || status.status === 'overtime');
+  }, [blockStatuses]);
+
+  // Filter guidedBlocks based on completion status
+  const blocksToShow = useMemo(() => {
+    if (hasCompletedSomeBlocks) {
+      // Only show incomplete blocks
+      return guidedBlocks.filter(block => {
+        const status = blockStatuses.find(s => s.template_block_id === block.id);
+        return !status || (status.status !== 'complete' && status.status !== 'overtime');
+      });
+    }
+    return guidedBlocks; // Show all blocks on fresh start
+  }, [guidedBlocks, blockStatuses, hasCompletedSomeBlocks]);
+
   // After guidedBlocks are calculated, check status and find starting block
   React.useEffect(() => {
     async function findStartingBlock() {
-      console.log('Finding starting block for DATE:', selectedDate); // Check what date it's using
-      console.log('Profile:', selectedProfile?.displayName);
+      // Only auto-position if we haven't manually set a position yet
+      if (currentBlockIndex !== 0) return;
 
       const { data: statuses } = await supabase
         .from('daily_schedule_status')
@@ -198,39 +200,35 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         .or(`student_name.eq.demo-${selectedProfile?.displayName?.toLowerCase()},student_name.ilike.${selectedProfile?.displayName}`)
         .eq('date', selectedDate);
 
-      // Only use statuses from today, not previous days
       const todayStatuses = statuses?.filter(s => s.date === selectedDate) || [];
 
-      console.log('Found statuses:', statuses);
-      console.log('Filtered to today only:', todayStatuses);
+      // Update block statuses state for filtering
+      setBlockStatuses(todayStatuses);
 
       if (todayStatuses && todayStatuses.length > 0) {
+        // Find first incomplete block
         const firstIncomplete = guidedBlocks.findIndex(block => {
           const status = todayStatuses.find(s => s.template_block_id === block.id);
-          console.log('Block:', block.id, 'Status:', status?.status);
-          return !status || (status.status !== 'complete' && status.status !== 'overtime' && status.status !== 'stuck');
+          return !status || (status.status !== 'complete' && status.status !== 'overtime');
         });
 
-        console.log('First incomplete index:', firstIncomplete);
-        trackedSetCurrentBlockIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
-      } else {
-        trackedSetCurrentBlockIndex(0);
+        // If all regular blocks are done, show after-school summary
+        if (firstIncomplete === -1) {
+          setCurrentBlockIndex(guidedBlocks.length); // Past the last block
+        } else {
+          setCurrentBlockIndex(firstIncomplete);
+        }
       }
     }
 
     if (guidedBlocks.length > 0) {
       findStartingBlock();
     }
-  }, [guidedBlocks, selectedDate, selectedProfile]);
+  }, [guidedBlocks.length, selectedDate, selectedProfile]); // Remove currentBlockIndex from deps
 
-  // console.log('RENDER - currentBlockIndex:', currentBlockIndex);
-  // console.log('RENDER - guidedBlocks length:', guidedBlocks.length);
-  // console.log('RENDER - currentBlock:', guidedBlocks[currentBlockIndex]);
-  // console.log('Block 0:', guidedBlocks[0]);
-  // console.log('Block 1:', guidedBlocks[1]);
 
-  const currentBlock = guidedBlocks[currentBlockIndex];
-  const totalBlocks = guidedBlocks.length;
+  const currentBlock = blocksToShow[currentBlockIndex];
+  const totalBlocks = blocksToShow.length;
 
   // Initialize timer when block changes
   useEffect(() => {
@@ -267,15 +265,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     };
   }, [localTimerRunning, localTimeRemaining]);
 
-  const handleTimerStop = () => {
-    if (currentBlock) {
-      setLocalTimerRunning(false);
-      toast({
-        title: "Timer stopped",
-        description: "Time tracking paused"
-      });
-    }
-  };
 
   const handleTimerComplete = () => {
     setLocalTimerRunning(false);
@@ -286,19 +275,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   };
 
   const handleMarkComplete = async () => {
-    console.log('Done clicked, currentBlock:', currentBlock);
     
-    // Calculate time spent (in minutes)
-    const timeSpent = localTimeRemaining !== null 
-      ? Math.round((calculateBlockDuration(currentBlock.startTime, currentBlock.endTime) - (localTimeRemaining / 60)))
-      : calculateBlockDuration(currentBlock.startTime, currentBlock.endTime);
 
     try {
-      console.log('selectedDate value:', selectedDate, 'type:', typeof selectedDate);
-      console.log('student name:', selectedProfile?.displayName);
       
       // Add status update to daily_schedule_status table
-      const { data, error } = await supabase.from('daily_schedule_status')
+      const { error } = await supabase.from('daily_schedule_status')
         .upsert({ 
           template_block_id: currentBlock.id,
           date: effectiveDate,
@@ -311,15 +293,13 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
       if (error) {
         console.error('Upsert failed:', error);
       } else {
-        console.log('Upsert successful:', data);
       }
       
       if (currentBlock?.assignment) {
         // Update assignment as completed
-        const assignmentResult = await supabase.from('assignments')
+        await supabase.from('assignments')
           .update({ completed_at: new Date().toISOString() })
           .eq('id', currentBlock.assignment.id);
-        console.log('Assignment update result:', assignmentResult);
           
         updateAssignment(currentBlock.assignment.id, {
           completed: true
@@ -340,116 +320,35 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         trackedSetCurrentBlockIndex(prev => prev + 1);
         setLocalTimerRunning(false);
       } else {
-        // All done!
-        toast({
-          title: "All blocks complete! 🎊",
-          description: "Amazing work today!"
-        });
+        // Reached end of regular blocks - will show after-school check on next render
         onBackToHub();
       }
     }, 1000);
   };
 
   const handleNeedMoreTime = async () => {
-    if (!currentBlock || !currentBlock.assignment) return;
+    if (!currentBlock?.assignment) return;
 
-    const assignment = currentBlock.assignment;
-    const today = new Date(selectedDate + 'T12:00:00');
-    today.setHours(23, 59, 59, 999);
+    // Move to block 999 AND keep a flag that it needs attention
+    await supabase.from('demo_assignments').update({
+      scheduled_block: 999,
+      needs_reschedule: true  // Keep this TRUE so we know it needs work
+    }).eq('id', currentBlock.assignment.id);
 
-    // Assignment is "critical" if due tomorrow (needs completion today)
-    const isCriticalDeadline = assignment.due_date && (() => {
-      const dueDate = new Date(assignment.due_date + 'T12:00:00');
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return dueDate <= tomorrow;
-    })();
+    toast({
+      title: "Moved to After School",
+      description: "Complete this after regular hours"
+    });
 
-    if (isCriticalDeadline) {
-      // Must complete TODAY (due tomorrow or sooner)
-      const remainingTodaySlots = guidedBlocks
-        .slice(currentBlockIndex + 1)
-        .filter(block =>
-          block.subject === 'Assignment' &&
-          !block.assignment
-        );
-
-      if (remainingTodaySlots.length > 0) {
-        const nextSlot = remainingTodaySlots[0];
-
-        await supabase.from('demo_assignments')
-          .update({
-            scheduled_block: nextSlot.blockNumber,
-            scheduled_date: selectedDate
-          })
-          .eq('id', assignment.id);
-
-        toast({
-          title: "⚠️ Moved to later today",
-          description: `Due tomorrow at co-op - must complete today! Moved to ${nextSlot.startTime}`,
-          variant: "destructive"
-        });
-      } else {
-        // No more slots - needs after-school work
-        toast({
-          title: "🚨 Due Tomorrow - No Slots Left!",
-          description: "This needs to be done after school today. Cannot push to tomorrow!",
-          variant: "destructive"
-        });
-
-        await supabase.from('daily_schedule_status')
-          .upsert({
-            template_block_id: currentBlock.id,
-            date: selectedDate,
-            student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
-            status: 'overtime-critical'
-          });
-      }
-    } else {
-      // Due in 2+ days, can safely reschedule to tomorrow
-      setIsRescheduling(true);
-
-      try {
-        // Mark current block as overtime
-        await supabase.from('daily_schedule_status')
-          .upsert({
-            template_block_id: currentBlock.id,
-            date: selectedDate,
-            student_name: `demo-${selectedProfile?.displayName.toLowerCase()}`,
-            status: 'overtime'
-          });
-
-        // Update assignment to clear today's scheduling
-        await supabase.from('demo_assignments')
-          .update({
-            scheduled_block: null,
-            scheduled_date: null  // Clear so it can be rescheduled
-          })
-          .eq('id', assignment.id);
-
-        toast({
-          title: "Rescheduled for tomorrow",
-          description: "You'll see this assignment in tomorrow's schedule",
-        });
-
-        // Move to next block
-        if (currentBlockIndex < totalBlocks - 1) {
-          trackedSetCurrentBlockIndex(prev => prev + 1);
-        }
-      } finally {
-        setIsRescheduling(false);
-      }
-    }
+    setCurrentBlockIndex(prev => prev + 1);
   };
 
   const handleStuck = async () => {
     if (!currentBlock) return;
 
-    console.log('Stuck button clicked, starting process...');
 
     try {
       // Save stuck status
-      console.log('Saving stuck status to database...');
       await supabase.from('daily_schedule_status')
         .upsert({
           template_block_id: currentBlock.id,
@@ -460,10 +359,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
           onConflict: 'student_name,date,template_block_id'
         });
 
-      console.log('Status saved, now sending email...');
 
       // Send email notification
-      const { data, error } = await supabase.functions.invoke('send-stuck-notification', {
+      const { error } = await supabase.functions.invoke('send-stuck-notification', {
         body: {
           student: selectedProfile?.displayName,
           assignment: currentBlock.assignment?.title || currentBlock.subject,
@@ -471,7 +369,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         }
       });
 
-      console.log('Edge function response:', data);
       if (error) {
         console.error('Edge function error:', error);
       }
@@ -481,7 +378,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
         description: "Mom has been notified"
       });
 
-      trackedSetCurrentBlockIndex(prev => Math.min(guidedBlocks.length - 1, prev + 1));
+      trackedSetCurrentBlockIndex(prev => Math.min(blocksToShow.length - 1, prev + 1));
 
     } catch (error) {
       console.error('Complete stuck handler error:', error);
@@ -496,82 +393,158 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const canGoNext = currentBlockIndex < totalBlocks - 1;
   const canGoPrev = currentBlockIndex > 0;
 
-  const getBlockTypeIcon = (blockType: string) => {
-    switch (blockType?.toLowerCase()) {
-      case 'bible':
-        return BookOpen;
-      case 'assignment':
-        return Target;
-      case 'lunch':
-      case 'movement':
-        return Clock;
-      case 'co-op':
-      case 'travel':
-      case 'prep/load':
-        return ChevronRight;
-      default:
-        return Clock;
-    }
-  };
 
-  const getBlockTypeColor = (blockType: string) => {
-    switch (blockType?.toLowerCase()) {
-      case 'bible':
-        return 'text-purple-600';
-      case 'assignment':
-        return 'text-primary';
-      case 'lunch':
-        return 'text-green-600';
-      case 'movement':
-        return 'text-blue-600';
-      case 'co-op':
-        return 'text-orange-600';
-      case 'travel':
-      case 'prep/load':
-        return 'text-slate-600';
-      default:
-        return 'text-muted-foreground';
-    }
-  };
 
-  // Show loading overlay when rescheduling
-  if (isRescheduling) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md text-center">
-          <CardContent className="p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Rescheduling Assignment...</h2>
-            <p className="text-muted-foreground">
-              Updating your schedule to accommodate extra time needed.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
+  // Handle end-of-day logic with after-school and stuck work check
+  const [incompleteWork, setIncompleteWork] = React.useState<{afterSchool: any[], stuck: any[], incomplete: any[]}>({ afterSchool: [], stuck: [], incomplete: [] });
+  const [checkedIncomplete, setCheckedIncomplete] = React.useState(false);
+
+  React.useEffect(() => {
+    async function checkIncompleteWork() {
+      if (currentBlock || checkedIncomplete) return;
+
+      // Get after-school assignments (block 999)
+      const afterSchoolAssignments = profileAssignments.filter(a =>
+        (a.scheduled_block === 999 || a.needs_reschedule === true) &&
+        a.scheduled_date === selectedDate
+      );
+
+      // Fetch stuck blocks for today
+      const { data: todayStatuses } = await supabase
+        .from('daily_schedule_status')
+        .select('*')
+        .eq('student_name', `demo-${selectedProfile?.displayName?.toLowerCase()}`)
+        .eq('date', selectedDate)
+        .in('status', ['stuck', 'overtime']);
+
+      // Get stuck assignments
+      const stuckBlocks = todayStatuses?.filter(s => s.status === 'stuck') || [];
+      const stuckAssignments = stuckBlocks.map(status => {
+        const block = guidedBlocks.find(b => b.id === status.template_block_id);
+        return block?.assignment;
+      }).filter(Boolean) || [];
+
+      // Get incomplete blocks (blocks without 'complete' status that had assignments)
+      const completedBlockIds = new Set(todayStatuses?.filter(s => s.status === 'complete').map(s => s.template_block_id) || []);
+      const incompleteBlocks = guidedBlocks.filter(block =>
+        block.assignment && // Had an assignment
+        !completedBlockIds.has(block.id) && // Not marked complete
+        !stuckBlocks.some(s => s.template_block_id === block.id) && // Not marked stuck
+        !afterSchoolAssignments.some(a => a.id === block.assignment?.id) // Not moved to after school
+      ).map(block => ({
+        id: block.id,
+        time: block.startTime,
+        assignment: block.assignment,
+        subject: block.subject
+      }));
+
+      setIncompleteWork({ afterSchool: afterSchoolAssignments, stuck: stuckAssignments, incomplete: incompleteBlocks });
+      setCheckedIncomplete(true);
+    }
+
+    checkIncompleteWork();
+  }, [currentBlock, selectedDate, selectedProfile, profileAssignments, guidedBlocks, checkedIncomplete]);
 
   if (!currentBlock) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md text-center">
-          <CardContent className="p-8">
-            <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">All Done! 🎉</h2>
-            <p className="text-muted-foreground mb-6">
-              You've completed all your blocks for today. Great work!
-            </p>
-            <Button onClick={() => onBackToHub()} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to StudyFlow
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    const hasIncompleteWork = (incompleteWork.afterSchool.length > 0 || incompleteWork.stuck.length > 0 || incompleteWork.incomplete.length > 0) && checkedIncomplete;
 
-  const BlockIcon = getBlockTypeIcon(currentBlock.blockType || '');
+    if (!hasIncompleteWork && checkedIncomplete) {
+      // Really all done
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Card className="max-w-md text-center">
+            <CardContent className="p-8">
+              <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-foreground mb-2">All Done! 🎉</h2>
+              <p className="text-muted-foreground mb-6">
+                You've completed all your blocks for today. Great work!
+              </p>
+              <Button onClick={() => onBackToHub()} className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to StudyFlow
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    if (hasIncompleteWork) {
+      // Show incomplete work reminder
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="p-8">
+              <AlertTriangle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Regular School Complete</h2>
+              <p className="text-xl text-orange-600 font-semibold mb-4">
+                ⚠️ You have unfinished work to complete
+              </p>
+
+              {/* Show the incomplete blocks with empty circles */}
+              {incompleteWork.incomplete.length > 0 && (
+                <div className="bg-orange-50 p-4 rounded mb-4">
+                  <h3 className="font-bold mb-2">Still Need to Complete:</h3>
+                  {incompleteWork.incomplete.map(block => (
+                    <div key={block.id} className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">⭕</span>
+                      <span>{block.time} - {block.assignment?.title || block.subject}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {incompleteWork.afterSchool.length > 0 && (
+                <div className="bg-orange-50 p-4 rounded mb-4">
+                  <h3 className="font-bold mb-2">Needs More Time:</h3>
+                  {incompleteWork.afterSchool.map(a => (
+                    <div key={a.id} className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">⭕</span>
+                      <span>{a.title}</span>
+                      {a.canvas_url && (
+                        <a href={a.canvas_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 ml-auto">
+                          Canvas Link →
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {incompleteWork.stuck.length > 0 && (
+                <div className="bg-red-50 p-4 rounded mb-4">
+                  <h3 className="font-bold mb-2">Got Stuck On:</h3>
+                  {incompleteWork.stuck.map((a, index) => (
+                    <div key={a.id || index} className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">⭕</span>
+                      <span>{a.title}</span>
+                      {a.canvas_url && (
+                        <a href={a.canvas_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 ml-auto">
+                          Canvas Link →
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-600 mb-4">
+                Return to Overview to see instructions and mark items complete.
+              </p>
+
+              <Button onClick={() => onBackToHub()} className="w-full">
+                Back to Overview
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Still loading/checking
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-primary/5">

@@ -29,7 +29,6 @@ export function OverviewDayCard({
   const month = String(day.getMonth() + 1).padStart(2, '0');
   const dayNum = String(day.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${dayNum}`;
-  console.log('OverviewDayCard dateStr for', formatDate(day), 'is:', dateStr); // Add this
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
   const [blockStatuses, setBlockStatuses] = React.useState<any[]>([]);
 
@@ -41,7 +40,6 @@ export function OverviewDayCard({
         .or(`student_name.eq.demo-${selectedProfile?.displayName?.toLowerCase()},student_name.ilike.${selectedProfile?.displayName}`)
         .eq('date', dateStr);
 
-      console.log('Fetched statuses:', data);
       if (data) setBlockStatuses(data);
     }
 
@@ -56,7 +54,6 @@ export function OverviewDayCard({
         <div
           className="cursor-pointer hover:bg-muted/50 -m-2 p-2 rounded"
           onClick={() => {
-            console.log('Day clicked:', dateStr); // Debug log
             onDayClick?.(dateStr);
           }}
         >

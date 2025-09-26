@@ -7,6 +7,9 @@ interface AppContextType {
   // Auth state
   currentUser: AppUser | null;
   isDemo: boolean;
+  userRole: 'admin' | 'student' | 'demo';
+  isAdmin: boolean;
+  isDemoUser: boolean;
   login: (username: string, password?: string) => Promise<boolean>;
   logout: () => void;
   
@@ -267,25 +270,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setTimerSessions(demoData.timerSessions);
             }
 
-            // Find the matching profile
-            const profile = currentProfiles.find(
-              (p: Profile) => p.displayName.toLowerCase() === username.toLowerCase()
-            );
+            // Find the matching profile or handle admin
+            if (username === 'admin') {
+              // Admin login
+              const adminProfile = currentProfiles.find(p => p.role === 'admin');
+              if (adminProfile) {
+                const user: AppUser = {
+                  id: 'demo-admin',
+                  username: 'Parent Admin',
+                  role: 'admin',
+                  profileId: adminProfile.id
+                };
+                setCurrentUser(user);
+                setSelectedProfile(currentProfiles.find(p => p.displayName === 'Abigail') || currentProfiles[0]);
+                setIsDemo(true);
+                console.log('Restored admin session');
+              }
+            } else {
+              // Student login
+              const profile = currentProfiles.find(
+                (p: Profile) => p.displayName.toLowerCase() === username.toLowerCase()
+              );
 
-            if (profile) {
-              // Create the user object
-              const user: AppUser = {
-                id: `demo-${username}`,
-                username: profile.displayName,
-                role: 'student',
-                profileId: profile.id
-              };
+              if (profile) {
+                // Create the user object
+                const user: AppUser = {
+                  id: `demo-${username}`,
+                  username: profile.displayName,
+                  role: 'student',
+                  profileId: profile.id
+                };
 
-              // Set all auth state
-              setCurrentUser(user);
-              setSelectedProfile(profile);
-              setIsDemo(true);
-              console.log('Restored session for:', profile.displayName);
+                // Set all auth state
+                setCurrentUser(user);
+                setSelectedProfile(profile);
+                setIsDemo(true);
+                console.log('Restored session for:', profile.displayName);
+              }
             }
           }
         } else {
@@ -433,10 +454,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .reduce((total, session) => total + session.duration, 0);
   };
 
+  // Compute role-based values
+  const userRole = useMemo(() => {
+    if (!currentUser) return 'demo' as const;
+    return currentUser.role || 'student' as const;
+  }, [currentUser]);
+
+  const isAdmin = useMemo(() => {
+    return userRole === 'admin';
+  }, [userRole]);
+
+  const isDemoUser = useMemo(() => {
+    return currentUser?.id?.includes('demo') ||
+           currentUser?.username?.toLowerCase().includes('demo') ||
+           (typeof currentUser?.id === 'string' && currentUser.id.startsWith('demo-')) ||
+           isDemo;
+  }, [currentUser, isDemo]);
+
   return (
     <AppContext.Provider value={{
       currentUser,
       isDemo,
+      userRole,
+      isAdmin,
+      isDemoUser,
       login,
       logout,
       profiles,
