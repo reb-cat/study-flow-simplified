@@ -86,7 +86,9 @@ const Dashboard = () => {
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
           const dayString = day.toISOString().split('T')[0];
-          const blocks = await getCachedScheduleForDay(selectedProfile.displayName, dayName);
+          // Use currentUser.id (UUID) for real users, fall back to displayName for demo users
+          const studentIdentifier = currentUser?.id || selectedProfile.displayName;
+          const blocks = await getCachedScheduleForDay(studentIdentifier, dayName);
           return { day: dayString, blocks };
         });
 
@@ -104,7 +106,7 @@ const Dashboard = () => {
     };
 
     fetchWeekSchedule();
-  }, [selectedProfile?.displayName, currentWeek]); // Removed getCachedScheduleForDay to prevent infinite loops
+  }, [currentUser?.id, selectedProfile?.displayName, currentWeek]); // Use UUID for real users, displayName for demo users
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -201,6 +203,7 @@ const Dashboard = () => {
     // Process blocks and populate with assignments
     for (const blockWithDay of allBlocksForWeek) {
       const { dayDate, dayName, ...block } = blockWithDay;
+      // Use displayName for family detection (this should remain human-readable)
       const family = getBlockFamily(selectedProfile.displayName, dayName, block.block_number || 0);
       
       if (!family) {
@@ -339,9 +342,10 @@ const Dashboard = () => {
 
     return weekAssignmentData;
   }, [
-    selectedProfile?.displayName, 
+    currentUser?.id,
+    selectedProfile?.displayName,
     JSON.stringify(assignments?.map(a => ({ id: a.id, title: a.title, course_name: a.course_name }))),
-    JSON.stringify(Object.keys(weekSchedules)), 
+    JSON.stringify(Object.keys(weekSchedules)),
     getDayName
   ]);
 
