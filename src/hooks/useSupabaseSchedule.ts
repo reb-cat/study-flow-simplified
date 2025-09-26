@@ -25,6 +25,11 @@ export function useSupabaseSchedule() {
     setIsLoading(true);
     setError(null);
 
+    // Debug auth state
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('🔍 Auth Debug - Session:', session?.user?.email);
+    console.log('🔍 Auth Debug - Fetching schedule for:', studentName, dayName);
+
     try {
       const { data, error: fetchError } = await supabase
         .from('schedule_template')

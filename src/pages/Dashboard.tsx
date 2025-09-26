@@ -30,6 +30,9 @@ const Dashboard = () => {
     isDemo 
   } = useApp();
   
+  console.log('🔍 Dashboard Debug - Current User:', currentUser?.username, 'isDemo:', isDemo);
+  console.log('🔍 Dashboard Debug - Selected Profile:', selectedProfile?.displayName);
+  
   const { getScheduleForStudent } = useUnifiedSchedule();
   const { assignments } = useAssignments();
   

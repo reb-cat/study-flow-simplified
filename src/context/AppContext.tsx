@@ -306,11 +306,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let mounted = true;
 
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+  const checkSession = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 AppContext Debug - Session check:', session?.user?.email);
 
-        if (session?.user?.email && mounted) {
+      if (session?.user?.email && mounted) {
           const email = session.user.email;
           console.log('Found existing session for:', email);
 
