@@ -21,21 +21,45 @@ const AuthConfirm = () => {
       const code = searchParams.get('code');
       const codeVerifier = searchParams.get('code_verifier');
       const type = searchParams.get('type');
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
 
-      console.log('Auth confirmation params:', { tokenHash, token, code, type });
+      console.log('Current URL:', window.location.href);
+      console.log('Auth confirmation params:', { 
+        tokenHash, 
+        token, 
+        code, 
+        codeVerifier, 
+        type, 
+        accessToken, 
+        refreshToken,
+        allParams: Object.fromEntries(searchParams.entries())
+      });
 
       try {
         let data, error;
 
         // Check if we have PKCE flow parameters (code + code_verifier)
         if (code && codeVerifier) {
+          console.log('Attempting PKCE flow with code exchange');
           // Handle PKCE flow
           const result = await supabase.auth.exchangeCodeForSession(code);
           data = result.data;
           error = result.error;
         }
+        // Check if we have access_token and refresh_token (direct token flow)
+        else if (accessToken && refreshToken) {
+          console.log('Attempting direct token session setup');
+          const result = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          data = result.data;
+          error = result.error;
+        }
         // Check if we have token_hash for OTP verification (custom URLs)
-        if (tokenHash && type) {
+        else if (tokenHash && type) {
+          console.log('Attempting token_hash verification for type:', type);
           // Handle token_hash verification
           const result = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
@@ -46,12 +70,12 @@ const AuthConfirm = () => {
         }
         // Handle missing parameters
         else {
-          console.error('Missing auth parameters:', { tokenHash, token, code, type });
+          console.error('Missing auth parameters:', { tokenHash, token, code, type, accessToken, refreshToken });
           setStatus('error');
-          setMessage('Invalid confirmation link. Missing required parameters.');
+          setMessage('Invalid confirmation link. Please check that you clicked the correct link from your email.');
           toast({
             title: 'Invalid Link',
-            description: 'The confirmation link is missing required parameters.',
+            description: 'The confirmation link appears to be invalid or incomplete. Please try requesting a new reset link.',
             variant: 'destructive'
           });
           return;
