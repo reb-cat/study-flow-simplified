@@ -35,7 +35,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     startTimer,
     pauseTimer,
     stopTimer,
-    activeTimer
+    activeTimer,
+    getGuidedDaySchedule,
+    setGuidedDaySchedule,
   } = useApp();
   
   // Get unified assignments and schedule data
@@ -150,39 +152,37 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     effectiveDate
   );
 
-  // Build guided blocks from populated schedule or calculate if not provided
-  const guidedBlocks = useMemo(() => {
-    if (populatedSchedule && populatedSchedule.length > 0) {
-      // Use what Dashboard calculated
-      return populatedSchedule.map(block => ({
-        id: block.id,
-        blockNumber: block.block_number,
-        startTime: block.start_time,
-        endTime: block.end_time,
-        subject: block.subject,
-        blockType: block.block_type,
-        assignment: block.assignment,
-        assignedFamily: block.assignedFamily,
-        fallback: block.fallback,
-        duration: calculateBlockDuration(block.start_time, block.end_time)
-      }));
+  // Write the computed schedule to the context cache as the canonical schedule
+  useEffect(() => {
+    if (selectedProfile?.id && Array.isArray(populatedBlocks)) {
+      setGuidedDaySchedule?.(selectedProfile.id, effectiveDate, populatedBlocks);
     }
+  }, [selectedProfile?.id, effectiveDate, populatedBlocks, setGuidedDaySchedule]);
 
-    // Fallback to current calculation if not provided
+  // Build guided blocks from canonical schedule context, populatedSchedule, or calculated
+  const guidedBlocks = useMemo(() => {
+    // Prefer the canonical schedule from context (set by GuidedDayView)
+    const fromContext = selectedProfile?.id ? getGuidedDaySchedule?.(selectedProfile.id, effectiveDate) : null;
 
-    return populatedBlocks.map(block => ({
+    const source = (fromContext && fromContext.length > 0)
+      ? fromContext
+      : (populatedSchedule && populatedSchedule.length > 0)
+        ? populatedSchedule
+        : populatedBlocks;
+
+    return source.map(block => ({
       id: block.id,
       blockNumber: block.block_number,
       startTime: block.start_time,
       endTime: block.end_time,
       subject: block.subject,
       blockType: block.block_type,
-      assignment: block.assignment || null,
-      assignedFamily: block.assignedFamily,
-      fallback: block.fallback,
+      assignment: (block as any).assignment || null,
+      assignedFamily: (block as any).assignedFamily,
+      fallback: (block as any).fallback,
       duration: calculateBlockDuration(block.start_time, block.end_time)
     }));
-  }, [populatedSchedule, populatedBlocks, calculateBlockDuration, scheduleBlocks.length]);
+  }, [getGuidedDaySchedule, selectedProfile?.id, effectiveDate, populatedSchedule, populatedBlocks, calculateBlockDuration]);
 
   // Determine if some blocks have been completed
   const hasCompletedSomeBlocks = useMemo(() => {
