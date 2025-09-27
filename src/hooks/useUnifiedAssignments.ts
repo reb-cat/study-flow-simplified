@@ -33,6 +33,9 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, 
         .eq('user_id', targetUserId)
         .order('due_date', { ascending: true });
 
+      console.log('Raw data from Supabase:', data?.[0]);
+      console.log('Columns being selected:', columns);
+
       if (fetchError) {
         console.error(`Failed to fetch ${isDemo ? 'demo' : 'production'} assignments:`, fetchError);
         setError(fetchError.message);
