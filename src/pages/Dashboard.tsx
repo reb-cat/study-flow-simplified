@@ -22,9 +22,8 @@ import {
 } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
-import { CanvasSyncCard } from '@/components/CanvasSync';
-import { CanvasManager } from '@/components/admin/CanvasManager';
 import { getStudentNameFromId } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { 
@@ -42,6 +41,30 @@ const Dashboard = () => {
   console.log('Dashboard assignments for student:', selectedProfile?.displayName, 'UUID:', selectedProfile?.id);
   console.log('Dashboard assignments count:', assignments?.length);
   
+  // Canvas sync function using edge function
+  const syncCanvasAssignments = async () => {
+    if (!selectedProfile?.id) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-canvas', {
+        body: { studentId: selectedProfile.id }
+      });
+      
+      if (error) {
+        console.error('Canvas sync error:', error);
+        return;
+      }
+      
+      if (data?.success) {
+        console.log('Canvas sync successful:', data);
+        // Refresh assignments
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Canvas sync failed:', error);
+    }
+  };
+
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
   const [guidedDate, setGuidedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -510,11 +533,16 @@ const Dashboard = () => {
 
         {/* Canvas Sync - Admin Only */}
         {isAdmin && (
-          <div className="space-y-4">
-            <CanvasManager />
-            {/* Keep legacy sync for backward compatibility */}
-            <CanvasSyncCard />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Canvas Sync</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={syncCanvasAssignments}>
+                Sync Canvas Assignments
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {/* Weekly Grid */}
