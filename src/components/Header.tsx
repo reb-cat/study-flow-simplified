@@ -58,7 +58,7 @@ export const Header = () => {
           )}
 
           {/* Student Switcher (Admin only) */}
-          {currentUser.role === 'admin' && (
+          {currentUser.role === 'admin' && studentProfiles.length > 0 && (
             <Select
               value={selectedProfile?.id || ''}
               onValueChange={(value) => {
