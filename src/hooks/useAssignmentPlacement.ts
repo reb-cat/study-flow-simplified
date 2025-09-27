@@ -69,7 +69,7 @@ export function useAssignmentPlacement(
     // - Include items due within next 30 days (or overdue)
     const unscheduledAssignments = activeAssignments
       .filter(a => {
-        if (a.scheduled_block) return false; // Only skip if actively in a block
+        if (a.scheduled_block && a.scheduled_date === selectedDate) return false; // only treat as placed if it's for today
         if (!a.due_date) return true;
 
         const dueDate = new Date(a.due_date);
