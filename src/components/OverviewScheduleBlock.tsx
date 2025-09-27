@@ -119,7 +119,7 @@ export function OverviewScheduleBlock({ block, assignment, status }: OverviewSch
         </div>
         <div className={`text-2xl font-mono ${
           status === 'complete' ? 'text-green-600' :
-          status === 'stuck' ? 'text-red-600' :
+          status === 'stuck' ? 'text-stuck' :
           status === 'overtime' ? 'text-orange-600' :
           'text-foreground/80'
         }`}>
