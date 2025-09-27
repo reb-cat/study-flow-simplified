@@ -30,26 +30,21 @@ export function useAssignmentPlacement(
     console.log('Student:', studentName);
     console.log('Date:', selectedDate);
 
-    // Add family detection to assignments, excluding completed assignments entirely
-    const assignmentsWithFamily: AssignmentWithFamily[] = assignments
-      .filter(assignment => {
-        // Exclude completed assignments unless they were completed today
-        if (assignment.completion_status === 'completed') {
-          const isCompletedToday = assignment.completed_at && 
-                                   new Date(assignment.completed_at).toDateString() === new Date().toDateString();
-          return isCompletedToday;
-        }
-        return true;
-      })
-      .map(assignment => {
-        const family = detectFamily(assignment);
-        return {
-          ...assignment,
-          detectedFamily: family
-        };
-      });
+    // Add family detection to assignments
+    const assignmentsWithFamily: AssignmentWithFamily[] = assignments.map(assignment => {
+      const family = detectFamily(assignment);
+      return {
+        ...assignment,
+        detectedFamily: family
+      };
+    });
+
+    // Filter out completed assignments entirely - they shouldn't be placed in any blocks
+    const activeAssignments = assignmentsWithFamily.filter(a => 
+      a.completion_status !== 'completed'
+    );
     
-    console.log('Assignments with families:', assignmentsWithFamily.map(a => ({
+    console.log('Assignments with families:', activeAssignments.map(a => ({
       title: a.title,
       subject: a.subject,
       family: a.detectedFamily,
@@ -59,7 +54,7 @@ export function useAssignmentPlacement(
 
     // Get unscheduled assignments (exclude scheduled and cleared assignments)
     // Note: Completed assignments are already filtered out above
-    const unscheduledAssignments = assignmentsWithFamily.filter(a => {
+    const unscheduledAssignments = activeAssignments.filter(a => {
       return !a.scheduled_date && !a.scheduled_block;
     });
     console.log('Unscheduled count:', unscheduledAssignments.length);
@@ -193,7 +188,7 @@ export function useAssignmentPlacement(
         };
         return timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
       }),
-      assignmentsWithFamily,
+      assignmentsWithFamily: activeAssignments,
       unscheduledCount: unscheduledAssignments.length - scheduledAssignments.size
     };
     
