@@ -37,34 +37,21 @@ export function OverviewDayCard({
 
   React.useEffect(() => {
     async function fetchStatuses() {
-      const studentName = selectedProfile?.displayName ? 
-        (selectedProfile.displayName.toLowerCase().startsWith('demo') ? 
-          `demo-${selectedProfile.displayName.toLowerCase()}` : 
-          selectedProfile.displayName) : '';
+      const studentId = selectedProfile?.id || '';
       
-      const { data: blockStatuses } = await supabase
+      const { data: fetchedStatuses } = await supabase
         .from('daily_schedule_status')
         .select('*')
-        .eq('student_name', studentName)
-        .eq('date', dateStr)
-        .gte('created_at', new Date(new Date(dateStr).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString());
+        .eq('student_name', studentId)
+        .eq('date', dateStr);
 
-      const validStatuses = (blockStatuses || []).filter(status => {
-        if (status.status === 'complete') {
-          const statusDate = new Date(status.updated_at || status.created_at);
-          const today = new Date();
-          return statusDate.toDateString() === today.toDateString();
-        }
-        return true;
-      });
-
-      setBlockStatuses(validStatuses);
+      setBlockStatuses(fetchedStatuses || []);
     }
 
-    if (selectedProfile?.displayName) {
+    if (selectedProfile?.id) {
       fetchStatuses();
     }
-  }, [dateStr, selectedProfile]);
+  }, [dateStr, selectedProfile?.id]);
 
   return (
     <Card className="card-elevated h-fit">
