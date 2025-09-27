@@ -1,1 +1,4 @@
 project_id = "tbtewpyegsmfkaplfryr"
+
+[functions.sync-canvas]
+verify_jwt = true
