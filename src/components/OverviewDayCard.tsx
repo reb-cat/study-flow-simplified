@@ -1,4 +1,5 @@
 import React from 'react';
+import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { OverviewScheduleBlock } from '@/components/OverviewScheduleBlock';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
@@ -25,10 +26,12 @@ export function OverviewDayCard({
   formatDate,
   onDayClick
 }: OverviewDayCardProps) {
+  const { getGuidedDaySchedule } = useApp();
   const year = day.getFullYear();
   const month = String(day.getMonth() + 1).padStart(2, '0');
   const dayNum = String(day.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${dayNum}`;
+  const canonicalBlocks = getGuidedDaySchedule?.(selectedProfile?.id, dateStr) || null;
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
   const [blockStatuses, setBlockStatuses] = React.useState<any[]>([]);
 
@@ -79,7 +82,7 @@ export function OverviewDayCard({
       </CardHeader>
       <CardContent className="space-y-2">
         {scheduleBlocks.map((block) => {
-          const populatedBlock = populatedBlocks.find(p => p.id === block.id);
+          const populatedBlock = (canonicalBlocks || populatedBlocks).find(p => p.id === block.id);
           const manualAssignment = dayAssignments.find(a =>
             a.scheduled_block === block.block_number && !populatedBlock?.assignment
           );
