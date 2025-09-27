@@ -22,12 +22,15 @@ import {
 } from '@/lib/family-detection';
 import { UnifiedAssignment } from '@/types/assignment';
 import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
+import { CanvasSyncCard } from '@/components/CanvasSync';
 import { getStudentNameFromId } from '@/lib/utils';
 
 const Dashboard = () => {
   const { 
     selectedProfile, 
-    currentUser 
+    currentUser,
+    userRole,
+    isAdmin
   } = useApp();
   
   const { getCachedScheduleForDay } = useScheduleCache();
@@ -491,6 +494,9 @@ const Dashboard = () => {
           assignments={assignments}
           date={new Date().toISOString().split('T')[0]}
         />
+
+        {/* Canvas Sync - Admin Only */}
+        {isAdmin && <CanvasSyncCard />}
 
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
