@@ -62,24 +62,9 @@ const Dashboard = () => {
       const requestBody = { studentId: selectedProfile.id };
       console.log('Request body being sent:', requestBody);
       
-      const response = await fetch(`https://tbtewpyegsmfkaplfryr.supabase.co/functions/v1/sync-canvas`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRidGV3cHllZ3NtZmthcGxmcnlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4Njk5MzksImV4cCI6MjA3MzQ0NTkzOX0.F7C0_6Ov7gs6Uj3EaPLrGlH35Rd1nmQ5Aj-u6xFDGoo`,
-        },
-        body: JSON.stringify(requestBody)
+      const { data, error } = await supabase.functions.invoke('sync-canvas', {
+        body: requestBody
       });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        console.error('Sync error:', result);
-        setSyncMessage(`Error: ${result.error || 'Unknown error'}`);
-        return;
-      }
-      
-      const { data, error } = { data: result, error: null };
       
       if (error) {
         console.error('Sync error:', error);
