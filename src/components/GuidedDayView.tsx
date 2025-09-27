@@ -94,12 +94,12 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   const [scheduleBlocks, setScheduleBlocks] = useState<any[]>([]);
   const [isScheduleLoading, setIsScheduleLoading] = useState(false);
 
+  // Gate placement on data readiness
+  const dataReady = !isAssignmentsLoading && !isScheduleLoading;
+
   if (!selectedProfile) {
     return <div>Loading...</div>;
   }
-
-  // Gate placement on data readiness
-  const dataReady = !isAssignmentsLoading && !isScheduleLoading;
 
   // Don't schedule until data is ready - prevents early placement that causes fallbacks
   if (!dataReady) {
