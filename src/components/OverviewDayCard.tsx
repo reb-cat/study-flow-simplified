@@ -34,13 +34,28 @@ export function OverviewDayCard({
 
   React.useEffect(() => {
     async function fetchStatuses() {
-      const { data } = await supabase
+      const studentName = selectedProfile?.displayName ? 
+        (selectedProfile.displayName.toLowerCase().startsWith('demo') ? 
+          `demo-${selectedProfile.displayName.toLowerCase()}` : 
+          selectedProfile.displayName) : '';
+      
+      const { data: blockStatuses } = await supabase
         .from('daily_schedule_status')
         .select('*')
-        .or(`student_name.eq.demo-${selectedProfile?.displayName?.toLowerCase()},student_name.ilike.${selectedProfile?.displayName}`)
-        .eq('date', dateStr);
+        .eq('student_name', studentName)
+        .eq('date', dateStr)
+        .gte('created_at', new Date(new Date(dateStr).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
-      if (data) setBlockStatuses(data);
+      const validStatuses = (blockStatuses || []).filter(status => {
+        if (status.status === 'complete') {
+          const statusDate = new Date(status.updated_at || status.created_at);
+          const today = new Date();
+          return statusDate.toDateString() === today.toDateString();
+        }
+        return true;
+      });
+
+      setBlockStatuses(validStatuses);
     }
 
     if (selectedProfile?.displayName) {
