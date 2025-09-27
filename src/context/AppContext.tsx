@@ -163,7 +163,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userRole = hasAdminRole ? 'admin' : 'student';
       }
       
-      // For real authenticated users, set up user state and create a default profile
+      // For real authenticated users, set up user state
       const user: AppUser = {
         id: session.user.id,
         username: session.user.email || username,
@@ -171,7 +171,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         profileId: session.user.id
       };
       
-      // Create a default student profile for real users
+      // Load student profiles from database for admins
+      if (userRole === 'admin') {
+        try {
+          const { data: studentProfiles, error: profileError } = await supabase
+            .from('student_profiles')
+            .select('*');
+          
+          if (!profileError && studentProfiles) {
+            // Convert database profiles to app profiles
+            const appProfiles: Profile[] = studentProfiles.map(sp => ({
+              id: sp.id,
+              userId: session.user.id,
+              displayName: sp.display_name || sp.student_name,
+              role: 'student' as const
+            }));
+            
+            // Add admin profile
+            const adminProfile: Profile = {
+              id: session.user.id,
+              userId: session.user.id,
+              displayName: session.user.email?.split('@')[0] || 'Admin',
+              role: 'admin'
+            };
+            
+            setCurrentUser(user);
+            setProfiles([adminProfile, ...appProfiles]);
+            setSelectedProfile(appProfiles[0] || adminProfile); // Default to first student or admin
+            setIsDemo(false);
+            return true;
+          }
+        } catch (error) {
+          console.error('Error loading student profiles:', error);
+        }
+      }
+      
+      // Fallback: Create a default profile for non-admin or if loading fails
       const defaultProfile: Profile = {
         id: session.user.id,
         userId: session.user.id,
@@ -352,6 +387,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 setIsDemo(true);
                 console.log('Restored session for:', profile.displayName);
               }
+            }
+          } else {
+            // Real user session - check if admin and load student profiles
+            const { data: roleData, error: roleError } = await supabase
+              .rpc('get_user_roles', { _user_id: session.user.id });
+            
+            let userRole: 'admin' | 'student' = 'student';
+            if (!roleError && roleData) {
+              const hasAdminRole = roleData.some((r: { role: string }) => r.role === 'admin');
+              userRole = hasAdminRole ? 'admin' : 'student';
+            }
+
+            const user: AppUser = {
+              id: session.user.id,
+              username: session.user.email || 'User',
+              role: userRole,
+              profileId: session.user.id
+            };
+
+            if (userRole === 'admin') {
+              try {
+                const { data: studentProfiles, error: profileError } = await supabase
+                  .from('student_profiles')
+                  .select('*');
+                
+                if (!profileError && studentProfiles) {
+                  // Convert database profiles to app profiles
+                  const appProfiles: Profile[] = studentProfiles.map(sp => ({
+                    id: sp.id,
+                    userId: session.user.id,
+                    displayName: sp.display_name || sp.student_name,
+                    role: 'student' as const
+                  }));
+                  
+                  // Add admin profile
+                  const adminProfile: Profile = {
+                    id: session.user.id,
+                    userId: session.user.id,
+                    displayName: email?.split('@')[0] || 'Admin',
+                    role: 'admin'
+                  };
+                  
+                  setCurrentUser(user);
+                  setProfiles([adminProfile, ...appProfiles]);
+                  setSelectedProfile(appProfiles[0] || adminProfile);
+                  setIsDemo(false);
+                  console.log('Restored admin session with student profiles:', appProfiles.length);
+                }
+              } catch (error) {
+                console.error('Error loading student profiles during session restore:', error);
+                // Fallback to default profile
+                const defaultProfile: Profile = {
+                  id: session.user.id,
+                  userId: session.user.id,
+                  displayName: email?.split('@')[0] || 'Admin',
+                  role: userRole
+                };
+                setCurrentUser(user);
+                setProfiles([defaultProfile]);
+                setSelectedProfile(defaultProfile);
+                setIsDemo(false);
+              }
+            } else {
+              // Regular student user
+              const defaultProfile: Profile = {
+                id: session.user.id,
+                userId: session.user.id,
+                displayName: email?.split('@')[0] || 'Student',
+                role: userRole
+              };
+              setCurrentUser(user);
+              setProfiles([defaultProfile]);
+              setSelectedProfile(defaultProfile);
+              setIsDemo(false);
             }
           }
         } else {
