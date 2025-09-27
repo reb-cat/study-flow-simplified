@@ -99,10 +99,13 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
   // Gate placement on data readiness
   const dataReady = !isAssignmentsLoading && !isScheduleLoading;
-
-  // Safe render guard placed *after* all hooks so hook order is stable
+  // Safe render guard placed after all hooks so hook order is stable
   if (!selectedProfile || !dataReady) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading schedule…</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        Loading schedule…
+      </div>
+    );
   }
 
   // Memoize expensive calculations with assignment placement
