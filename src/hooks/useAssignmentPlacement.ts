@@ -182,7 +182,7 @@ export function useAssignmentPlacement(
             const completedTime = shortTask.completed_at ? new Date(shortTask.completed_at).getTime() : 0;
             const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
             if (completedTime < oneDayAgo) {
-              // Skip this assignment entirely, fall through to fallback
+              // Skip this assignment entirely, fall through to fallback logic
             } else {
               scheduledAssignments.add(shortTask.id);
               populatedBlocks.push({
@@ -203,9 +203,14 @@ export function useAssignmentPlacement(
           }
         }
 
-        // Study Hall fallback
-        if (!hasRealAssignments) {
-          // Only if NO real assignments exist at all
+        // Check if any pending assignments exist that aren't placed for today
+        const anyPendingNotPlacedToday = activeAssignments.some(a =>
+          a.completion_status === 'pending' &&
+          !(a.scheduled_block && a.scheduled_date === selectedDate)
+        );
+
+        if (!anyPendingNotPlacedToday) {
+          // No pending work exists - allowed to show fallback
           populatedBlocks.push({
             ...block,
             assignment: undefined,
@@ -213,11 +218,9 @@ export function useAssignmentPlacement(
             fallback: STUDY_HALL_FALLBACK
           });
         } else {
-          // If real assignments exist, try to find ANY pending assignment (do NOT exclude by scheduled_date)
-          const urgentAssignment = unscheduledAssignments.find(
-            a => !scheduledAssignments.has(a.id) && a.completion_status === 'pending'
-          );
-
+          // There IS pending work - do NOT show fallback
+          // Try any pending (cross-family) before leaving empty
+          const urgentAssignment = unscheduledAssignments.find(a => !scheduledAssignments.has(a.id));
           if (urgentAssignment) {
             scheduledAssignments.add(urgentAssignment.id);
             populatedBlocks.push({
@@ -226,7 +229,6 @@ export function useAssignmentPlacement(
               assignedFamily: family
             });
           } else {
-            // No assignments available, leave block empty
             populatedBlocks.push({
               ...block,
               assignment: undefined,
