@@ -100,14 +100,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   // Gate placement on data readiness
   const dataReady = !isAssignmentsLoading && !isScheduleLoading;
 
-  // Safe render guard placed after all hooks so hook order is stable
-  if (!selectedProfile || !dataReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        Loading schedule…
-      </div>
-    );
-  }
 
   // Memoize expensive calculations with assignment placement
   const { selectedDateObj, weekday } = useMemo(() => {
@@ -458,6 +450,15 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
     checkIncompleteWork();
   }, [currentBlock, selectedDate, selectedProfile, profileAssignments, guidedBlocks, checkedIncomplete]);
+
+  // Safe render guard placed after all hooks so hook order is stable
+  if (!selectedProfile || !dataReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        Loading schedule…
+      </div>
+    );
+  }
 
   if (!currentBlock) {
     const hasIncompleteWork = (incompleteWork.afterSchool.length > 0 || incompleteWork.stuck.length > 0 || incompleteWork.incomplete.length > 0) && checkedIncomplete;
