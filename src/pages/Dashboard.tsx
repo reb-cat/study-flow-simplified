@@ -242,13 +242,18 @@ const Dashboard = () => {
         );
         
         if (algebraAssignment) {
-          scheduledAssignments.add(algebraAssignment.id);
-          weekAssignmentData[dayDate].push({ 
-            ...block, 
-            assignment: algebraAssignment,
-            assignedFamily: family
-          });
-          continue;
+          // Skip old completed assignments (completed more than 24 hours ago)
+          if (algebraAssignment.completion_status === 'completed' && algebraAssignment.completed_at && new Date(algebraAssignment.completed_at) < new Date(Date.now() - 86400000)) {
+            // Don't add this assignment, continue to next logic
+          } else {
+            scheduledAssignments.add(algebraAssignment.id);
+            weekAssignmentData[dayDate].push({ 
+              ...block, 
+              assignment: algebraAssignment,
+              assignedFamily: family
+            });
+            continue;
+          }
         }
       }
 
@@ -278,23 +283,28 @@ const Dashboard = () => {
         const studyHallTask = studyHallCandidates[0];
         
         if (studyHallTask) {
-          scheduledAssignments.add(studyHallTask.id);
-          weekAssignmentData[dayDate].push({ 
-            ...block, 
-            assignment: studyHallTask,
-            assignedFamily: family
-          });
-          continue;
-        } else {
-          // Fallback for Study Hall when no suitable assignments
-          weekAssignmentData[dayDate].push({ 
-            ...block, 
-            assignment: undefined,
-            assignedFamily: family,
-            fallback: 'Review notes'
-          });
-          continue;
+          // Skip old completed assignments (completed more than 24 hours ago)
+          if (studyHallTask.completion_status === 'completed' && studyHallTask.completed_at && new Date(studyHallTask.completed_at) < new Date(Date.now() - 86400000)) {
+            // Don't add this assignment, fall through to fallback
+          } else {
+            scheduledAssignments.add(studyHallTask.id);
+            weekAssignmentData[dayDate].push({ 
+              ...block, 
+              assignment: studyHallTask,
+              assignedFamily: family
+            });
+            continue;
+          }
         }
+        
+        // Fallback for Study Hall when no suitable assignments
+        weekAssignmentData[dayDate].push({ 
+          ...block, 
+          assignment: undefined,
+          assignedFamily: family,
+          fallback: 'Review notes'
+        });
+        continue;
       }
 
       // Regular assignment matching by family
@@ -316,23 +326,29 @@ const Dashboard = () => {
       const selectedAssignment = matchingAssignments[0];
       
       if (selectedAssignment) {
-        scheduledAssignments.add(selectedAssignment.id);
-        weekAssignmentData[dayDate].push({ 
-          ...block, 
-          assignment: selectedAssignment,
-          assignedFamily: family
-        });
-      } else {
-        // Use existing fallback system
-        const fallbacks = FALLBACKS[family];
-        const fallback = Array.isArray(fallbacks) ? fallbacks[0] : fallbacks;
-        weekAssignmentData[dayDate].push({ 
-          ...block, 
-          assignment: undefined, 
-          assignedFamily: family,
-          fallback: fallback
-        });
+        // Skip old completed assignments (completed more than 24 hours ago)
+        if (selectedAssignment.completion_status === 'completed' && selectedAssignment.completed_at && new Date(selectedAssignment.completed_at) < new Date(Date.now() - 86400000)) {
+          // Don't add this assignment, fall through to fallback
+        } else {
+          scheduledAssignments.add(selectedAssignment.id);
+          weekAssignmentData[dayDate].push({ 
+            ...block, 
+            assignment: selectedAssignment,
+            assignedFamily: family
+          });
+          continue;
+        }
       }
+      
+      // Use existing fallback system
+      const fallbacks = FALLBACKS[family];
+      const fallback = Array.isArray(fallbacks) ? fallbacks[0] : fallbacks;
+      weekAssignmentData[dayDate].push({ 
+        ...block, 
+        assignment: undefined, 
+        assignedFamily: family,
+        fallback: fallback
+      });
     }
 
     // Add ALL blocks back to their respective days to ensure nothing is lost
