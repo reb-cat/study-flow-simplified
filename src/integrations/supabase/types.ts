@@ -1069,6 +1069,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      maintenance_clear_stale_blocks: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
