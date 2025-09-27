@@ -63,6 +63,10 @@
     /* System colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
+    
+    /* Status colors */
+    --stuck: 340 100% 48%;
+    --stuck-foreground: 0 0% 100%;
 
     --border: 220 13% 91%;
     --input: 0 0% 100%;
@@ -149,6 +153,9 @@
 
     --destructive: 0 63% 50%;
     --destructive-foreground: 210 40% 98%;
+    
+    --stuck: 340 100% 48%;
+    --stuck-foreground: 0 0% 100%;
 
     --border: 217 32% 25%;
     --input: 217 32% 20%;
