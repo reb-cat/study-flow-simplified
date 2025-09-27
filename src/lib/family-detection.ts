@@ -3,12 +3,12 @@
 
 export type AssignmentFamily = 'Analytical' | 'Humanities' | 'Composition' | 'Creative';
 
-// These strings are NOT used as fallbacks; they serve only as keyword guidance for family detection.
+// Family-level strings are used as *hints for detection only* and should not render as activities.
 export const FALLBACKS: Record<AssignmentFamily, string[]> = {
-  Creative: ['Map Sketch', 'Science Diagram', 'Narration Art'],
-  Analytical: ['Review problems'],
-  Humanities: ['Free reading'],
-  Composition: ['Journal entry']
+  Creative: [],
+  Analytical: [],
+  Humanities: [],
+  Composition: []
 };
 
 // Deprecated: we no longer render any textual fallbacks; Study Hall will also avoid placeholders.
