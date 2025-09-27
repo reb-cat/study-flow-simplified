@@ -19,6 +19,10 @@ export function useUnifiedAssignments(studentId?: string, isDemo: boolean = fals
     setIsLoading(true);
     setError(null);
 
+    console.log('Fetching assignments for studentId:', targetStudentId);
+    console.log('Table name:', tableName);
+    console.log('Is demo mode:', isDemo);
+
     try {
       // Different column sets for different tables
       const baseColumns = 'id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, needs_reschedule, cleared_at, completion_status, created_at, updated_at';
@@ -26,23 +30,36 @@ export function useUnifiedAssignments(studentId?: string, isDemo: boolean = fals
       const demoColumns = baseColumns; // demo table doesn't have canvas fields
       
       const columns = isDemo ? demoColumns : productionColumns;
+      console.log('Columns to select:', columns);
       
-      const { data, error: fetchError } = await supabase
+      const query = supabase
         .from(tableName as any)
         .select(columns)
         .eq('user_id', targetStudentId)
         .order('due_date', { ascending: true });
 
+      console.log('Query built, executing...');
+
+      const { data, error: fetchError } = await query;
+
       console.log('Raw data from Supabase:', data?.[0]);
       console.log('Columns being selected:', columns);
 
       if (fetchError) {
+        console.error('Assignment fetch error:', fetchError);
+        console.error('Error details:', {
+          message: fetchError.message,
+          details: fetchError.details,
+          hint: fetchError.hint,
+          code: fetchError.code
+        });
         console.error(`Failed to fetch ${isDemo ? 'demo' : 'production'} assignments:`, fetchError);
         setError(fetchError.message);
         return;
+      } else {
+        console.log('Assignments fetched successfully:', data?.length || 0);
+        console.log('Raw data from Supabase:', data?.[0]);
       }
-
-      // Transform data to unified format - handle type differences
       const unifiedData: UnifiedAssignment[] = (data || []).map((assignment: any) => ({
         id: assignment.id,
         user_id: assignment.user_id,
