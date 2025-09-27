@@ -21,7 +21,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, 
 
     try {
       // Different column sets for different tables
-      const baseColumns = 'id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, needs_reschedule, cleared_at, created_at, updated_at';
+      const baseColumns = 'id, user_id, title, course_name, subject, due_date, scheduled_date, scheduled_block, completed_at, time_spent, priority, difficulty, needs_reschedule, cleared_at, completion_status, created_at, updated_at';
       const productionColumns = `${baseColumns}, canvas_url, canvas_id`;
       const demoColumns = baseColumns; // demo table doesn't have canvas fields
       
@@ -55,6 +55,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, 
         difficulty: assignment.difficulty,
         needs_reschedule: assignment.needs_reschedule,
         cleared_at: assignment.cleared_at,
+        completion_status: assignment.completion_status,
         created_at: assignment.created_at,
         updated_at: assignment.updated_at,
         // Canvas fields (only exist in production assignments table)
