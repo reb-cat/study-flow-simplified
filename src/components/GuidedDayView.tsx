@@ -100,13 +100,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   // Gate placement on data readiness
   const dataReady = !isAssignmentsLoading && !isScheduleLoading;
 
-  if (!selectedProfile) {
-    return <div>Loading...</div>;
-  }
-
-  // Don't schedule until data is ready - prevents early placement that causes fallbacks
-  if (!dataReady) {
-    return <div>Loading schedule...</div>;
+  // Safe render guard placed *after* all hooks so hook order is stable
+  if (!selectedProfile || !dataReady) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading schedule…</div>;
   }
 
   // Memoize expensive calculations with assignment placement
