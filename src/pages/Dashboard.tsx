@@ -36,9 +36,11 @@ const Dashboard = () => {
   } = useApp();
   
   const { getCachedScheduleForDay } = useScheduleCache();
+  // Use assignments hook with correct student UUID - now automatically uses selectedProfile.id
   const { assignments } = useAssignments();
 
-  console.log('Dashboard assignments:', assignments);
+  console.log('Dashboard assignments for student:', selectedProfile?.displayName, 'UUID:', selectedProfile?.id);
+  console.log('Dashboard assignments count:', assignments?.length);
   
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showGuidedMode, setShowGuidedMode] = useState(false);
@@ -91,14 +93,19 @@ const Dashboard = () => {
         });
 
 
-        // Fetch all days in parallel to avoid sequential requests
+        // Fetch schedule blocks using correct student identifier
+        // For real users: Use selectedProfile.id (the UUID from student_profiles.student_name)
+        // For demo users: Use selectedProfile.displayName 
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
           const dayString = day.toISOString().split('T')[0];
-          // For real users: Use the selectedProfile.id which maps to student_profiles.student_name
-          // For demo users: Use displayName
           const studentIdentifier = isDemo ? selectedProfile.displayName : selectedProfile.id;
-          console.log('Fetching schedule for:', { studentIdentifier, selectedProfile: selectedProfile.displayName, dayName });
+          console.log('Fetching schedule for:', { 
+            student: selectedProfile.displayName, 
+            identifier: studentIdentifier, 
+            dayName,
+            isDemo 
+          });
           const blocks = await getCachedScheduleForDay(studentIdentifier, dayName);
           return { day: dayString, blocks };
         });
@@ -171,11 +178,12 @@ const Dashboard = () => {
 
   // Schedule assignments for the entire week at once
   const scheduleWeekAssignments = useCallback(() => {
-    console.log('About to call useAssignmentPlacement with:', {
+    console.log('Assignment placement data:', {
       assignmentsLength: assignments?.length,
       blocksLength: Object.keys(weekSchedules).length,
       studentName: isDemo ? selectedProfile.displayName : getStudentNameFromId(selectedProfile.id || ''),
-      selectedProfileId: selectedProfile.id
+      selectedProfileId: selectedProfile.id,
+      isDemo
     });
     
     if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
