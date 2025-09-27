@@ -30,6 +30,10 @@ export function useAssignmentPlacement(
     console.log('Student:', studentName);
     console.log('Date:', selectedDate);
 
+    // Check if ANY real assignments exist (even if unscheduled)
+    const hasRealAssignments = assignments.length > 0;
+    console.log('Has real assignments:', hasRealAssignments);
+
     // Add family detection to assignments
     const assignmentsWithFamily: AssignmentWithFamily[] = assignments.map(assignment => {
       const family = detectFamily(assignment);
@@ -181,13 +185,38 @@ export function useAssignmentPlacement(
           }
         }
         
-        // Study Hall fallback when no short assignments available
-        populatedBlocks.push({ 
-          ...block, 
-          assignment: undefined,
-          assignedFamily: family,
-          fallback: STUDY_HALL_FALLBACK
-        });
+        // Study Hall fallback - only if NO real assignments exist at all
+        if (!hasRealAssignments) {
+          populatedBlocks.push({ 
+            ...block, 
+            assignment: undefined,
+            assignedFamily: family,
+            fallback: STUDY_HALL_FALLBACK
+          });
+        } else {
+          // If real assignments exist, try to find ANY pending assignment to schedule
+          const urgentAssignment = unscheduledAssignments.find(a => 
+            !scheduledAssignments.has(a.id) &&
+            a.completion_status === 'pending' && 
+            !a.scheduled_date
+          );
+          
+          if (urgentAssignment) {
+            scheduledAssignments.add(urgentAssignment.id);
+            populatedBlocks.push({ 
+              ...block, 
+              assignment: urgentAssignment,
+              assignedFamily: family
+            });
+          } else {
+            // No assignments available, leave block empty
+            populatedBlocks.push({ 
+              ...block, 
+              assignment: undefined,
+              assignedFamily: family
+            });
+          }
+        }
         continue;
       }
 
@@ -234,7 +263,27 @@ export function useAssignmentPlacement(
           });
         }
       } else {
-        populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
+        // If no family-specific assignment found and real assignments exist, try ANY pending assignment
+        if (hasRealAssignments) {
+          const urgentAssignment = unscheduledAssignments.find(a => 
+            !scheduledAssignments.has(a.id) &&
+            a.completion_status === 'pending' && 
+            !a.scheduled_date
+          );
+          
+          if (urgentAssignment) {
+            scheduledAssignments.add(urgentAssignment.id);
+            populatedBlocks.push({ 
+              ...block, 
+              assignment: urgentAssignment,
+              assignedFamily: family
+            });
+          } else {
+            populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
+          }
+        } else {
+          populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
+        }
       }
     }
 
