@@ -23,6 +23,7 @@ import {
 import { UnifiedAssignment } from '@/types/assignment';
 import { AfterSchoolSummary } from '@/components/AfterSchoolSummary';
 import { CanvasSyncCard } from '@/components/CanvasSync';
+import { CanvasManager } from '@/components/admin/CanvasManager';
 import { getStudentNameFromId } from '@/lib/utils';
 
 const Dashboard = () => {
@@ -500,7 +501,13 @@ const Dashboard = () => {
         />
 
         {/* Canvas Sync - Admin Only */}
-        {isAdmin && <CanvasSyncCard />}
+        {isAdmin && (
+          <div className="space-y-4">
+            <CanvasManager />
+            {/* Keep legacy sync for backward compatibility */}
+            <CanvasSyncCard />
+          </div>
+        )}
 
         {/* Weekly Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">

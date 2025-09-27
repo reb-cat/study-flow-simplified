@@ -3,12 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 export class CanvasSync {
   private apiToken: string;
   private baseUrl: string;
-  private userId: string;
+  private studentId: string;  // The actual UUID
+  private instanceName: string;
 
-  constructor(apiToken: string, canvasUrl: string, userId: string) {
+  constructor(apiToken: string, canvasUrl: string, studentId: string, instanceName: string = 'default') {
     this.apiToken = apiToken;
     this.baseUrl = `${canvasUrl}/api/v1`;
-    this.userId = userId;
+    this.studentId = studentId;  // Will be ab0d7c00... or ba62b80b...
+    this.instanceName = instanceName;
   }
 
   async syncAssignments(): Promise<{ success: boolean; count: number; error?: string }> {
@@ -27,13 +29,14 @@ export class CanvasSync {
           const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           if (dueDate < thirtyDaysAgo) continue;
 
-          // Check if assignment already exists
+          // Check if assignment already exists for this student and instance
           const { data: existing } = await supabase
             .from('assignments')
             .select('id, completion_status')
             .eq('canvas_id', assignment.id)
-            .eq('user_id', this.userId)
-            .single();
+            .eq('user_id', this.studentId)
+            .eq('canvas_instance', parseInt(this.instanceName) || 1)
+            .maybeSingle();
 
           if (existing) {
             // Update existing but DON'T change completion_status
@@ -48,12 +51,13 @@ export class CanvasSync {
               .eq('id', existing.id);
           } else {
             // Create new assignment
-            await supabase
+            const { error: insertError } = await supabase
               .from('assignments')
               .insert({
-                user_id: this.userId,
+                user_id: this.studentId,
                 canvas_id: assignment.id,
                 canvas_course_id: course.id,
+                canvas_instance: parseInt(this.instanceName) || 1,
                 title: assignment.name,
                 subject: course.name,
                 course_name: course.course_code,
@@ -65,7 +69,11 @@ export class CanvasSync {
                 is_canvas_import: true,
                 creation_source: 'canvas',
                 completion_status: 'pending'
-              });
+              } as any);
+              
+            if (insertError) {
+              console.error('Error inserting assignment:', insertError);
+            }
           }
           
           totalSynced++;

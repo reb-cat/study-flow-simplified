@@ -66,7 +66,8 @@ export function CanvasSyncCard() {
     
     try {
       console.log('Creating CanvasSync instance...');
-      const sync = new CanvasSync(apiToken, canvasUrl, currentUser.id);
+      // Use currentUser.id as the student ID and 'legacy' as instance name for backward compatibility
+      const sync = new CanvasSync(apiToken, canvasUrl, currentUser.id, 'legacy');
       console.log('Calling syncAssignments...');
       const result = await sync.syncAssignments();
       console.log('Sync result:', result);
