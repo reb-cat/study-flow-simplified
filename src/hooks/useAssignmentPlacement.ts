@@ -98,13 +98,30 @@ export function useAssignmentPlacement(
         );
         
         if (algebraAssignment) {
-          scheduledAssignments.add(algebraAssignment.id);
-          populatedBlocks.push({ 
-            ...block, 
-            assignment: algebraAssignment,
-            assignedFamily: family
-          });
-          continue;
+          // Skip all completed assignments that are older than 24 hours
+          if (algebraAssignment.completion_status === 'completed') {
+            const completedTime = algebraAssignment.completed_at ? new Date(algebraAssignment.completed_at).getTime() : 0;
+            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+            if (completedTime < oneDayAgo) {
+              // Skip this assignment entirely, don't add to block
+            } else {
+              scheduledAssignments.add(algebraAssignment.id);
+              populatedBlocks.push({ 
+                ...block, 
+                assignment: algebraAssignment,
+                assignedFamily: family
+              });
+              continue;
+            }
+          } else {
+            scheduledAssignments.add(algebraAssignment.id);
+            populatedBlocks.push({ 
+              ...block, 
+              assignment: algebraAssignment,
+              assignedFamily: family
+            });
+            continue;
+          }
         }
       }
 
@@ -117,23 +134,40 @@ export function useAssignmentPlacement(
         );
         
         if (shortTask) {
-          scheduledAssignments.add(shortTask.id);
-          populatedBlocks.push({ 
-            ...block, 
-            assignment: shortTask,
-            assignedFamily: family
-          });
-          continue;
-        } else {
-          // Study Hall fallback when no short assignments available
-          populatedBlocks.push({ 
-            ...block, 
-            assignment: undefined,
-            assignedFamily: family,
-            fallback: STUDY_HALL_FALLBACK
-          });
-          continue;
+          // Skip all completed assignments that are older than 24 hours
+          if (shortTask.completion_status === 'completed') {
+            const completedTime = shortTask.completed_at ? new Date(shortTask.completed_at).getTime() : 0;
+            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+            if (completedTime < oneDayAgo) {
+              // Skip this assignment entirely, fall through to fallback
+            } else {
+              scheduledAssignments.add(shortTask.id);
+              populatedBlocks.push({ 
+                ...block, 
+                assignment: shortTask,
+                assignedFamily: family
+              });
+              continue;
+            }
+          } else {
+            scheduledAssignments.add(shortTask.id);
+            populatedBlocks.push({ 
+              ...block, 
+              assignment: shortTask,
+              assignedFamily: family
+            });
+            continue;
+          }
         }
+        
+        // Study Hall fallback when no short assignments available
+        populatedBlocks.push({ 
+          ...block, 
+          assignment: undefined,
+          assignedFamily: family,
+          fallback: STUDY_HALL_FALLBACK
+        });
+        continue;
       }
 
       // Regular assignment matching by family
@@ -155,12 +189,29 @@ export function useAssignmentPlacement(
       const selectedAssignment = matchingAssignments[0];
       
       if (selectedAssignment) {
-        scheduledAssignments.add(selectedAssignment.id);
-        populatedBlocks.push({ 
-          ...block, 
-          assignment: selectedAssignment,
-          assignedFamily: family
-        });
+        // Skip all completed assignments that are older than 24 hours
+        if (selectedAssignment.completion_status === 'completed') {
+          const completedTime = selectedAssignment.completed_at ? new Date(selectedAssignment.completed_at).getTime() : 0;
+          const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+          if (completedTime < oneDayAgo) {
+            // Skip this assignment entirely, fall through to no assignment
+            populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
+          } else {
+            scheduledAssignments.add(selectedAssignment.id);
+            populatedBlocks.push({ 
+              ...block, 
+              assignment: selectedAssignment,
+              assignedFamily: family
+            });
+          }
+        } else {
+          scheduledAssignments.add(selectedAssignment.id);
+          populatedBlocks.push({ 
+            ...block, 
+            assignment: selectedAssignment,
+            assignedFamily: family
+          });
+        }
       } else {
         populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
       }
