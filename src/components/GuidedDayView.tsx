@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
+import { isStudyHallBlock } from '@/lib/family-detection';
 import { supabase } from '@/integrations/supabase/client';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 
@@ -603,7 +604,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               })()}
             </div>
             <h1 className="text-3xl font-bold">
-              {currentBlock.assignment?.title || currentBlock.fallback || currentBlock.subject}
+              {currentBlock.assignment?.title || 
+                (Boolean(currentBlock.fallback) && isStudyHallBlock(currentBlock.blockType, currentBlock.startTime, currentBlock.subject, currentBlock.subject) ? currentBlock.fallback : null) ||
+                currentBlock.subject}
             </h1>
             <p className="text-muted-foreground">
               {currentBlock.blockType} • {formatTime(currentBlock.duration)}
@@ -682,14 +685,45 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               </Collapsible>
             )}
 
-            {/* Non-Assignment Block Info */}
-            {!currentBlock.assignment && currentBlock.fallback && (
-              <Card className="bg-muted/30 border-none">
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground italic">{currentBlock.fallback}</p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Fallback content - only for Study Hall blocks */}
+            {(() => {
+              const isStudyHall = isStudyHallBlock(currentBlock.blockType, currentBlock.startTime, currentBlock.subject, currentBlock.subject);
+              
+              // Safety check - warn about improper fallbacks
+              if (!isStudyHall && currentBlock.fallback) {
+                console.warn('Unexpected fallback on non-Study Hall block:', {
+                  id: currentBlock.id, 
+                  block_type: currentBlock.blockType, 
+                  time: currentBlock.startTime
+                });
+              }
+              
+              // Only show fallback in Study Hall blocks AND only if hook set .fallback
+              const showFallback = Boolean(currentBlock.fallback) && isStudyHall;
+              
+              if (showFallback) {
+                return (
+                  <Card className="bg-muted/30 border-none">
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground italic">{currentBlock.fallback}</p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              
+              // For Assignment blocks with no assignment, show neutral placeholder
+              if (!currentBlock.assignment && currentBlock.blockType === 'Assignment') {
+                return (
+                  <Card className="bg-muted/30 border-none">
+                    <CardContent className="p-4">
+                      <div className="text-sm opacity-60">No assignment selected</div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              
+              return null;
+            })()}
 
             {/* Action Buttons - Always show all buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
