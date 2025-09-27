@@ -148,6 +148,20 @@ const Dashboard = () => {
     return `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   }, [monday]);
 
+  // Parse scheduled_date properly and check if it's actually in the current week
+  const isInCurrentWeek = (scheduledDate: string, weekStart: Date, weekEnd: Date) => {
+    if (!scheduledDate) return false;
+    
+    // Handle the ambiguous date format (2025-08-27 should be treated as 2024-08-27)
+    const parts = scheduledDate.split('-');
+    const year = parseInt(parts[0]) > 2025 ? 2024 : parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const day = parseInt(parts[2]);
+    
+    const date = new Date(year, month, day);
+    return date >= weekStart && date <= weekEnd;
+  };
+
   // Schedule assignments for the entire week at once
   const scheduleWeekAssignments = useCallback(() => {
     console.log('About to call useAssignmentPlacement with:', {
@@ -160,6 +174,11 @@ const Dashboard = () => {
     if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
       return {};
     }
+
+    // Calculate week start and end dates
+    const weekStartDate = new Date(monday);
+    const weekEndDate = new Date(monday);
+    weekEndDate.setDate(monday.getDate() + 4); // Friday (4 days after Monday)
 
 
     // Collect all assignment blocks for the week with their day info
@@ -187,8 +206,13 @@ const Dashboard = () => {
       detectedFamily: detectFamily(assignment)
     }));
 
+    // Only include assignments that are actually scheduled for this week
+    const weekAssignments = assignmentsWithFamily.filter(a => 
+      !a.scheduled_date || isInCurrentWeek(a.scheduled_date, weekStartDate, weekEndDate)
+    );
+
     // Get unscheduled assignments or those scheduled for past dates, excluding historical completions
-    const unscheduledAssignments = assignmentsWithFamily.filter(a => {
+    const unscheduledAssignments = weekAssignments.filter(a => {
       // First filter: only show pending assignments OR today's completions
       const isCompletedToday = a.completion_status === 'completed' && 
                                a.completed_at && 
