@@ -46,37 +46,43 @@ const Dashboard = () => {
   const [syncMessage, setSyncMessage] = useState('');
   
   const syncCanvasAssignments = async () => {
-    if (!selectedProfile?.id) {
-      console.error('No student selected');
-      console.log('selectedProfile:', selectedProfile);
-      setSyncMessage('No student selected');
+    const studentId = selectedProfile?.id;
+    console.log('Selected profile:', selectedProfile);
+    console.log('Student ID to send:', studentId);
+    
+    if (!studentId) {
+      console.error('No student ID available');
+      setSyncMessage('Please select a student first');
       return;
     }
 
     setSyncing(true);
-    setSyncMessage('');
-    console.log('Calling sync-canvas for student ID:', selectedProfile.id);
-    console.log('Full selectedProfile:', selectedProfile);
     
+    // Try a direct POST request instead of invoke
     try {
-      const requestBody = { studentId: selectedProfile.id };
-      console.log('Request body being sent:', requestBody);
+      const response = await fetch(
+        `https://tbtewpyegsmfkaplfryr.supabase.co/functions/v1/sync-canvas`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRidGV3cHllZ3NtZmthcGxmcnlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4Njk5MzksImV4cCI6MjA3MzQ0NTkzOX0.F7C0_6Ov7gs6Uj3EaPLrGlH35Rd1nmQ5Aj-u6xFDGoo`,
+          },
+          body: JSON.stringify({ studentId })
+        }
+      );
+
+      const data = await response.json();
+      console.log('Sync response:', data);
       
-      const { data, error } = await supabase.functions.invoke('sync-canvas', {
-        body: requestBody
-      });
-      
-      if (error) {
-        console.error('Sync error:', error);
-        setSyncMessage(`Error: ${error.message}`);
+      if (!response.ok) {
+        setSyncMessage(`Error: ${data.error || 'Sync failed'}`);
       } else {
-        console.log('Sync response:', data);
-        setSyncMessage(data?.message || 'Canvas sync started successfully');
-        // Refresh after a moment
+        setSyncMessage('Canvas sync completed successfully');
         setTimeout(() => window.location.reload(), 2000);
       }
-    } catch (err) {
-      console.error('Sync failed:', err);
+    } catch (error) {
+      console.error('Sync error:', error);
       setSyncMessage('Sync failed - check console');
     } finally {
       setSyncing(false);
