@@ -7,7 +7,7 @@ import {
   getBlockFamily,
   isStudyHallBlock,
   shouldPrioritizeAlgebra,
-  STUDY_HALL_FALLBACK
+  STUDY_HALL_FALLBACK,
 } from '@/lib/family-detection';
 
 interface AssignmentWithFamily extends UnifiedAssignment {
@@ -16,11 +16,14 @@ interface AssignmentWithFamily extends UnifiedAssignment {
 
 /**
  * Hook to populate Assignment and Study Hall blocks with actual assignments
- * using Charlotte Mason family patterns
+ * using Charlotte Mason family patterns.
+ *
+ * IMPORTANT: This hook always calls exactly one `useMemo`.
+ * Never conditionally call hooks or return before the hook — that breaks hook order.
  */
 export function useAssignmentPlacement(
-  assignments: UnifiedAssignment[],
-  scheduleBlocks: SupabaseScheduleBlock[],
+  assignments: UnifiedAssignment[] | undefined,
+  scheduleBlocks: SupabaseScheduleBlock[] | undefined,
   studentName: string,
   selectedDate: string
 ): {
@@ -28,363 +31,198 @@ export function useAssignmentPlacement(
   assignmentsWithFamily: AssignmentWithFamily[];
   unscheduledCount: number;
 } {
-  // Short-circuit if data isn't ready to prevent fallbacks on empty dataset
-  if (!assignments?.length || !scheduleBlocks?.length) {
-    return useMemo(() => ({
-      populatedBlocks: [],
-      assignmentsWithFamily: [],
-      unscheduledCount: 0
-    }), [assignments?.length, scheduleBlocks?.length]);
-  }
-
   return useMemo(() => {
-    console.log('=== ASSIGNMENT PLACEMENT DEBUG ===');
-    console.log('Input assignments:', assignments);
-    console.log('Input scheduleBlocks:', scheduleBlocks);
-    console.log('Student:', studentName);
-    console.log('Date:', selectedDate);
+    const aList: UnifiedAssignment[] = Array.isArray(assignments) ? assignments : [];
+    const bList: SupabaseScheduleBlock[] = Array.isArray(scheduleBlocks) ? scheduleBlocks : [];
 
-    // Add family detection to assignments
-    const assignmentsWithFamily: AssignmentWithFamily[] = (assignments || []).map(assignment => {
-      const family = detectFamily(assignment);
+    // If data not ready, return an inert structure (prevents placeholder scheduling on empty data)
+    if (aList.length === 0 || bList.length === 0) {
       return {
-        ...assignment,
-        detectedFamily: family
+        populatedBlocks: [],
+        assignmentsWithFamily: [],
+        unscheduledCount: 0,
       };
-    });
+    }
 
-    // Filter out completed assignments entirely - they shouldn't be placed in any blocks
-    const activeAssignments = assignmentsWithFamily.filter(a => a.completion_status !== 'completed');
+    // --- Normalize & classify assignments ---
+    const withFamily: AssignmentWithFamily[] = aList.map((a) => ({
+      ...a,
+      detectedFamily: detectFamily(a),
+    }));
 
-    // Check if any *active* (not completed) assignments exist
-    const hasRealAssignments = activeAssignments.length > 0;
-    console.log('Has real assignments (active, not completed):', hasRealAssignments);
+    // Active = not completed
+    const active = withFamily.filter((a) => a.completion_status !== 'completed');
 
-    console.log(
-      'Assignments with families:',
-      activeAssignments.map(a => ({
-        title: a.title,
-        subject: a.subject,
-        family: a.detectedFamily,
-        scheduled_date: a.scheduled_date,
-        scheduled_block: a.scheduled_block
-      }))
-    );
-
-    // Less restrictive unscheduled filter:
-    // - Ignore scheduled_date (old dates shouldn't block rescheduling)
-    // - Only exclude if actively in a block today (scheduled_block set)
-    // - Include items with no due date
-    // - Include items due within next 30 days (or overdue)
-    const unscheduledAssignments = activeAssignments
-      .filter(a => {
-        // Treat as placed only if it's placed for the selected day
-        if (a.scheduled_block && a.scheduled_date === selectedDate) return false;
-
-        // Only pending items are eligible (completed already filtered above)
-        return true; // do NOT gate by due_date at all
-      })
+    // Eligible today = not already scheduled for this same day/block
+    const unscheduled = active
+      .filter((a) => !(a.scheduled_block && a.scheduled_date === selectedDate))
       .sort((a, b) => {
-        // Overdue first, then earlier due dates, then no due date
         const now = Date.now();
-        const aTime = a.due_date ? new Date(a.due_date).getTime() : Infinity;
-        const bTime = b.due_date ? new Date(b.due_date).getTime() : Infinity;
-
-        const aOver = aTime < now, bOver = bTime < now;
+        const at = a.due_date ? +new Date(a.due_date) : Infinity;
+        const bt = b.due_date ? +new Date(b.due_date) : Infinity;
+        const aOver = at < now;
+        const bOver = bt < now;
         if (aOver && !bOver) return -1;
         if (bOver && !aOver) return 1;
-        return aTime - bTime;
+        return at - bt;
       });
 
-    console.log('Unscheduled assignments after filtering:', unscheduledAssignments.length);
-    console.log('Unscheduled count:', unscheduledAssignments.length);
+    // --- Build the day ---
+    const dayName = getDayName(selectedDate);
 
-    // Log family counts to prove the cause
-    const famCounts = unscheduledAssignments.reduce((m, a) => {
-      m[a.detectedFamily] = (m[a.detectedFamily] || 0) + 1;
-      return m;
-    }, {} as Record<string, number>);
-    console.log('UNSCHEDULED by family:', famCounts);
-
-    // Get Assignment and Study Hall blocks for processing
-    const assignableBlocks = (scheduleBlocks || []).filter(block => {
-      const blockType = block.block_type || '';
-      const isStudyHall = isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name);
-      return blockType === 'Assignment' || isStudyHall;
+    // Only blocks that can accept work
+    const assignable = bList.filter((blk) => {
+      const isSH = isStudyHallBlock(blk.block_type, blk.start_time, blk.subject, blk.block_name || undefined);
+      return (blk.block_type || '') === 'Assignment' || isSH;
     });
 
-    console.log(
-      'Assignable blocks:',
-      assignableBlocks.map(b => ({
-        block_type: b.block_type,
-        block_number: b.block_number,
-        subject: b.subject,
-        block_name: b.block_name
-      }))
-    );
+    const scheduledIds = new Set<string>();
+    const populated: PopulatedScheduleBlock[] = [];
 
-    // Track which assignments have been scheduled to prevent duplicates
-    const scheduledAssignments = new Set<string>();
-
-    // Process blocks and populate with assignments
-    const populatedBlocks: PopulatedScheduleBlock[] = [];
-
-    // First, handle all assignable blocks (Assignment and Study Hall blocks)
-    for (const block of assignableBlocks) {
-      const dayName = getDayName(selectedDate);
-      const family = getBlockFamily(studentName, dayName, block.block_number || 0);
-      console.log(`Processing block ${block.block_number}: family="${family}"`);
+    for (const blk of assignable) {
+      const family = getBlockFamily(studentName, dayName, blk.block_number ?? 0);
 
       if (!family) {
-        populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: undefined });
+        populated.push({ ...blk, assignment: undefined, assignedFamily: undefined });
         continue;
       }
 
-      // Special case: Khalil's Algebra priority
-      if (shouldPrioritizeAlgebra(studentName, dayName, block.block_number || 0)) {
-        const algebraAssignment = unscheduledAssignments.find(
-          a =>
-            !scheduledAssignments.has(a.id) &&
-            ((a.subject || '').toLowerCase().includes('algebra') ||
-              (a.course_name || '').toLowerCase().includes('algebra'))
+      // Khalil algebra priority
+      if (shouldPrioritizeAlgebra(studentName, dayName, blk.block_number ?? 0)) {
+        const algebra = unscheduled.find(
+          (u) =>
+            !scheduledIds.has(u.id) &&
+            ((u.subject || '').toLowerCase().includes('algebra') || (u.course_name || '').toLowerCase().includes('algebra'))
         );
-
-        if (algebraAssignment) {
-          // Skip all completed assignments that are older than 24 hours
-          if (algebraAssignment.completion_status === 'completed') {
-            const completedTime = algebraAssignment.completed_at ? new Date(algebraAssignment.completed_at).getTime() : 0;
-            const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-            if (completedTime < oneDayAgo) {
-              // Skip this assignment entirely, don't add to block
-            } else {
-              scheduledAssignments.add(algebraAssignment.id);
-              populatedBlocks.push({
-                ...block,
-                assignment: algebraAssignment,
-                assignedFamily: family
-              });
-              continue;
-            }
-          } else {
-            scheduledAssignments.add(algebraAssignment.id);
-            populatedBlocks.push({
-              ...block,
-              assignment: algebraAssignment,
-              assignedFamily: family
-            });
-            continue;
-          }
+        if (algebra) {
+          scheduledIds.add(algebra.id);
+          populated.push({ ...blk, assignment: algebra, assignedFamily: family });
+          continue;
         }
       }
 
-      // Special case: Study Hall blocks prefer short tasks
-      if (isStudyHallBlock(block.block_type, block.start_time, block.subject, block.block_name)) {
-        const shortTask = unscheduledAssignments.find(
-          a => !scheduledAssignments.has(a.id) && a.detectedFamily === family && isShortTask(a)
-        );
+      const isSH = isStudyHallBlock(blk.block_type, blk.start_time, blk.subject, blk.block_name || undefined);
 
-        if (shortTask) {
-          // Skip all completed assignments that are older than 24 hours
-          if (shortTask.completion_status === 'completed') {
-            const completedTime = shortTask.completed_at ? new Date(shortTask.completed_at).getTime() : 0;
-            const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-            if (completedTime < oneDayAgo) {
-              // Skip this assignment entirely, fall through to fallback logic
-            } else {
-              scheduledAssignments.add(shortTask.id);
-              populatedBlocks.push({
-                ...block,
-                assignment: shortTask,
-                assignedFamily: family
-              });
-              continue;
-            }
-          } else {
-            scheduledAssignments.add(shortTask.id);
-            populatedBlocks.push({
-              ...block,
-              assignment: shortTask,
-              assignedFamily: family
-            });
+      if (isSH) {
+        // Prefer a short task from the same family
+        const short = unscheduled.find(
+          (u) => !scheduledIds.has(u.id) && u.detectedFamily === family && isShortTask(u)
+        );
+        if (short) {
+          scheduledIds.add(short.id);
+          populated.push({ ...blk, assignment: short, assignedFamily: family });
+          continue;
+        }
+
+        // If any pending exists, do NOT show a fallback; place anything reasonable
+        const anyPending = active.some(
+          (a) => a.completion_status === 'pending' && !(a.scheduled_block && a.scheduled_date === selectedDate)
+        );
+        if (anyPending) {
+          const any = unscheduled.find((u) => !scheduledIds.has(u.id));
+          if (any) {
+            scheduledIds.add(any.id);
+            populated.push({ ...blk, assignment: any, assignedFamily: family });
             continue;
           }
+          populated.push({ ...blk, assignment: undefined, assignedFamily: family });
+          continue;
         }
 
-        // Check if any pending assignments exist that aren't placed for today
-        const anyPendingNotPlacedToday = activeAssignments.some(a =>
-          a.completion_status === 'pending' &&
-          !(a.scheduled_block && a.scheduled_date === selectedDate)
-        );
-
-        if (!anyPendingNotPlacedToday) {
-          // No pending work exists - allowed to show fallback
-          populatedBlocks.push({
-            ...block,
-            assignment: undefined,
-            assignedFamily: family,
-            fallback: STUDY_HALL_FALLBACK
-          });
-        } else {
-          // There IS pending work - do NOT show fallback
-          // Try any pending (cross-family) before leaving empty
-          const urgentAssignment = unscheduledAssignments.find(a => !scheduledAssignments.has(a.id));
-          if (urgentAssignment) {
-            scheduledAssignments.add(urgentAssignment.id);
-            populatedBlocks.push({
-              ...block,
-              assignment: urgentAssignment,
-              assignedFamily: family
-            });
-          } else {
-            populatedBlocks.push({
-              ...block,
-              assignment: undefined,
-              assignedFamily: family
-            });
-          }
-        }
+        // No pending work at all → allowed to show Study Hall fallback (currently blank string)
+        populated.push({ ...blk, assignment: undefined, assignedFamily: family, fallback: STUDY_HALL_FALLBACK });
         continue;
       }
 
-      // Regular assignment matching by family
-      const matchingAssignments = unscheduledAssignments
-        .filter(a => !scheduledAssignments.has(a.id) && a.detectedFamily === family)
+      // Regular Assignment block: same-family first
+      const inFamily = unscheduled
+        .filter((u) => !scheduledIds.has(u.id) && u.detectedFamily === family)
         .sort((a, b) => {
-          // Sort by due date (earliest first)
-          if (a.due_date && b.due_date) {
-            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-          }
-          if (a.due_date) return -1;
-          if (b.due_date) return 1;
-          return 0;
+          const at = a.due_date ? +new Date(a.due_date) : Infinity;
+          const bt = b.due_date ? +new Date(b.due_date) : Infinity;
+          return at - bt;
         });
 
-      let selectedAssignment = matchingAssignments[0];
+      let picked = inFamily[0];
 
-      // If no family-specific assignment, try least-used-family fallback
-      if (!selectedAssignment) {
-        // Track how many times each family was placed earlier today
-        const placedFamilyCounts = populatedBlocks.reduce((m, b) => {
-          if (b.assignment && (b.assignment as AssignmentWithFamily).detectedFamily) {
-            const family = (b.assignment as AssignmentWithFamily).detectedFamily;
-            m[family] = (m[family] || 0) + 1;
-          }
-          return m;
-        }, {} as Record<string, number>);
-
-        // Pick a candidate from the least-used family today
-        const fallbackCandidate = unscheduledAssignments
-          .filter(a => !scheduledAssignments.has(a.id))
+      // If none, pick from the least-used family so far today to enforce rotation
+      if (!picked) {
+        const usedCount: Record<string, number> = {};
+        for (const p of populated) {
+          const af = (p.assignment as AssignmentWithFamily | undefined)?.detectedFamily;
+          if (af) usedCount[af] = (usedCount[af] || 0) + 1;
+        }
+        picked = unscheduled
+          .filter((u) => !scheduledIds.has(u.id))
           .sort((a, b) => {
-            const ac = placedFamilyCounts[a.detectedFamily] || 0;
-            const bc = placedFamilyCounts[b.detectedFamily] || 0;
-            if (ac !== bc) return ac - bc;                // prefer families we used less today
+            const ac = usedCount[a.detectedFamily] || 0;
+            const bc = usedCount[b.detectedFamily] || 0;
+            if (ac !== bc) return ac - bc; // prefer families we used less today
             const at = a.due_date ? +new Date(a.due_date) : Infinity;
             const bt = b.due_date ? +new Date(b.due_date) : Infinity;
-            return at - bt;                                // then earliest/overdue first
+            return at - bt;
           })[0];
-
-        if (fallbackCandidate) {
-          selectedAssignment = fallbackCandidate;
-        }
       }
 
-      if (selectedAssignment) {
-        // Skip all completed assignments that are older than 24 hours
-        if (selectedAssignment.completion_status === 'completed') {
-          const completedTime = selectedAssignment.completed_at ? new Date(selectedAssignment.completed_at).getTime() : 0;
-          const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-          if (completedTime < oneDayAgo) {
-            // Skip this assignment entirely, fall through to no assignment
-            populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
-          } else {
-            scheduledAssignments.add(selectedAssignment.id);
-            populatedBlocks.push({
-              ...block,
-              assignment: selectedAssignment,
-              assignedFamily: family
-            });
-          }
-        } else {
-          scheduledAssignments.add(selectedAssignment.id);
-          populatedBlocks.push({
-            ...block,
-            assignment: selectedAssignment,
-            assignedFamily: family
-          });
-        }
-      } else {
-        populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
+      populated.push({ ...blk, assignment: picked, assignedFamily: family });
+      if (picked) scheduledIds.add(picked.id);
+    }
+
+    // Add all remaining (non-assignable) blocks as-is
+    for (const blk of bList) {
+      if (!populated.find((p) => p.id === blk.id)) {
+        populated.push({ ...blk, assignment: undefined, assignedFamily: undefined });
       }
     }
 
-    // Second pass: Add ALL remaining blocks (Co-op, Travel, Prep/Load, Bible, Lunch, Movement, etc.)
-    for (const block of scheduleBlocks || []) {
-      const alreadyProcessed = populatedBlocks.find(p => p.id === block.id);
-      if (!alreadyProcessed) {
-        // Add non-assignable blocks as-is
-        populatedBlocks.push({
-          ...block,
-          assignment: undefined,
-          assignedFamily: undefined
-        });
-      }
-    }
+    // Chronological order
+    populated.sort((a, b) => {
+      const [ah, am] = a.start_time.split(':').map(Number);
+      const [bh, bm] = b.start_time.split(':').map(Number);
+      return ah * 60 + am - (bh * 60 + bm);
+    });
 
     return {
-      populatedBlocks: populatedBlocks.sort((a, b) => {
-        // Sort by start_time to ensure proper chronological order
-        const timeToMinutes = (timeStr: string) => {
-          const [hours, minutes] = timeStr.split(':').map(Number);
-          return hours * 60 + minutes;
-        };
-        return timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
-      }),
-      assignmentsWithFamily: activeAssignments,
-      // Make robust to avoid negatives
-      unscheduledCount: Math.max(0, unscheduledAssignments.length - scheduledAssignments.size)
+      populatedBlocks: populated,
+      assignmentsWithFamily: active,
+      unscheduledCount: Math.max(0, unscheduled.length - scheduledIds.size),
     };
   }, [
-    assignments?.length,
+    studentName,
+    selectedDate,
     JSON.stringify(
-      assignments?.map(a => ({
+      (assignments || []).map((a) => ({
         id: a.id,
         title: a.title,
+        subject: a.subject,
         course_name: a.course_name,
+        due_date: a.due_date,
         scheduled_date: a.scheduled_date,
-        scheduled_block: a.scheduled_block
-      })) || []
+        scheduled_block: a.scheduled_block,
+        completion_status: a.completion_status,
+      }))
     ),
-    scheduleBlocks?.length,
     JSON.stringify(
-      scheduleBlocks?.map(b => ({
+      (scheduleBlocks || []).map((b) => ({
         id: b.id,
         block_type: b.block_type,
         block_number: b.block_number,
-        start_time: b.start_time
-      })) || []
+        start_time: b.start_time,
+        subject: b.subject,
+        block_name: (b as any).block_name,
+      }))
     ),
-    studentName,
-    selectedDate
   ]);
 }
 
-/**
- * Helper to get day name from date string
- */
 function getDayName(dateString: string): string {
   const date = new Date(dateString + 'T12:00:00'); // avoid TZ issues
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   return dayNames[date.getDay()];
 }
 
-/**
- * Helper to identify short tasks suitable for Study Hall
- */
 function isShortTask(assignment: AssignmentWithFamily): boolean {
   const title = (assignment.title || '').toLowerCase();
-
-  // Keywords that suggest short tasks
   const shortTaskKeywords = [
     'check',
     'review',
@@ -395,8 +233,7 @@ function isShortTask(assignment: AssignmentWithFamily): boolean {
     'problem',
     'drill',
     'vocab',
-    'vocabulary'
+    'vocabulary',
   ];
-
-  return shortTaskKeywords.some(keyword => title.includes(keyword));
+  return shortTaskKeywords.some((kw) => title.includes(kw));
 }
