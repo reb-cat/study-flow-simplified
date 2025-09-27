@@ -109,17 +109,17 @@ export function OverviewScheduleBlock({ block, assignment, status }: OverviewSch
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-3 rounded-lg ${
+        className={`flex items-start justify-between p-3 rounded-lg ${
           isCompleted ? 'bg-gray-100 cursor-pointer hover:bg-gray-200' :
           shouldBeActionable && assignment ? 'cursor-pointer hover:bg-gray-50' : ''
         } ${getBlockStyle()}`}
         onClick={() => (isCompleted || shouldBeActionable) && setExpanded(!expanded)}
       >
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 pr-3">
           <div className="text-xs font-medium text-foreground/70 mb-1">
             {convertTo12Hour(block.start_time)}
           </div>
-          <div className={`text-sm font-medium break-words whitespace-normal leading-tight ${getTitleClassName()}`}>
+          <div className={`text-sm font-medium break-words hyphens-auto leading-tight ${getTitleClassName()}`}>
             {getAssignmentTitle()}
           </div>
         </div>
