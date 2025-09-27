@@ -52,11 +52,32 @@ export function useAssignmentPlacement(
       scheduled_block: a.scheduled_block
     })));
 
-    // Get unscheduled assignments (exclude scheduled and cleared assignments)
-    // Note: Completed assignments are already filtered out above
-    const unscheduledAssignments = activeAssignments.filter(a => {
-      return !a.scheduled_date && !a.scheduled_block;
-    });
+    // Filter for assignments due within 7-10 days
+    const unscheduledAssignments = activeAssignments
+      .filter(a => {
+        // Must be unscheduled
+        if (a.scheduled_date || a.scheduled_block) return false;
+        
+        // Only include assignments due within the next 10 days
+        if (a.due_date) {
+          const dueDate = new Date(a.due_date);
+          const today = new Date();
+          const tenDaysOut = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000);
+          
+          // Skip if due date is in the past or more than 10 days away
+          if (dueDate < today || dueDate > tenDaysOut) return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => {
+        // Sort by due date - soonest first
+        if (!a.due_date && !b.due_date) return 0;
+        if (!a.due_date) return 1;  // No due date goes last
+        if (!b.due_date) return -1;
+        
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      });
     console.log('Unscheduled count:', unscheduledAssignments.length);
 
     // Get Assignment and Study Hall blocks for processing
