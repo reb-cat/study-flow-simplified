@@ -45,12 +45,19 @@ export function CanvasSyncCard() {
   };
 
   const handleSync = async () => {
+    console.log('Sync button clicked');
+    console.log('User ID:', currentUser?.id);
+    console.log('API Token length:', apiToken?.length);
+    console.log('Canvas URL:', canvasUrl);
+    
     if (!currentUser?.id) {
+      console.log('No user ID found');
       setMessage('Please log in to sync assignments');
       return;
     }
     
     if (!validateInputs()) {
+      console.log('Validation failed');
       return;
     }
     
@@ -58,8 +65,11 @@ export function CanvasSyncCard() {
     setMessage('Syncing assignments from Canvas...');
     
     try {
+      console.log('Creating CanvasSync instance...');
       const sync = new CanvasSync(apiToken, canvasUrl, currentUser.id);
+      console.log('Calling syncAssignments...');
       const result = await sync.syncAssignments();
+      console.log('Sync result:', result);
       
       if (result.success) {
         setMessage(`✓ Successfully synced ${result.count} assignments from Canvas`);

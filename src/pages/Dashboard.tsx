@@ -30,7 +30,8 @@ const Dashboard = () => {
     selectedProfile, 
     currentUser,
     userRole,
-    isAdmin
+    isAdmin,
+    isDemo
   } = useApp();
   
   const { getCachedScheduleForDay } = useScheduleCache();
@@ -93,8 +94,10 @@ const Dashboard = () => {
         const promises = weekDaysInEffect.map(async (day) => {
           const dayName = getDayName(day);
           const dayString = day.toISOString().split('T')[0];
-          // Use currentUser.id (UUID) for real users, fall back to displayName for demo users
-          const studentIdentifier = currentUser?.id || selectedProfile.displayName;
+          // For real users: Use the selectedProfile.id which maps to student_profiles.student_name
+          // For demo users: Use displayName
+          const studentIdentifier = isDemo ? selectedProfile.displayName : selectedProfile.id;
+          console.log('Fetching schedule for:', { studentIdentifier, selectedProfile: selectedProfile.displayName, dayName });
           const blocks = await getCachedScheduleForDay(studentIdentifier, dayName);
           return { day: dayString, blocks };
         });
@@ -114,7 +117,7 @@ const Dashboard = () => {
     };
 
     fetchWeekSchedule();
-  }, [currentUser?.id, selectedProfile?.displayName, currentWeek]); // Use UUID for real users, displayName for demo users
+  }, [selectedProfile?.id, selectedProfile?.displayName, currentWeek, isDemo]); // Use correct identifier based on mode
 
   const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -170,8 +173,8 @@ const Dashboard = () => {
     console.log('About to call useAssignmentPlacement with:', {
       assignmentsLength: assignments?.length,
       blocksLength: Object.keys(weekSchedules).length,
-      studentName: getStudentNameFromId(currentUser?.id || ''),
-      currentUserId: currentUser?.id
+      studentName: isDemo ? selectedProfile.displayName : getStudentNameFromId(selectedProfile.id || ''),
+      selectedProfileId: selectedProfile.id
     });
     
     if (!selectedProfile || !assignments || Object.keys(weekSchedules).length === 0) {
@@ -251,8 +254,8 @@ const Dashboard = () => {
     // Process blocks and populate with assignments
     for (const blockWithDay of allBlocksForWeek) {
       const { dayDate, dayName, ...block } = blockWithDay;
-      // Convert UUID to student name for family detection
-      const studentName = getStudentNameFromId(currentUser?.id || '');
+      // Convert selectedProfile to student name for family detection
+      const studentName = isDemo ? selectedProfile.displayName : getStudentNameFromId(selectedProfile.id || '');
       const family = getBlockFamily(studentName, dayName, block.block_number || 0);
       
       if (!family) {
@@ -407,8 +410,9 @@ const Dashboard = () => {
 
     return weekAssignmentData;
   }, [
-    currentUser?.id,
+    selectedProfile?.id,
     selectedProfile?.displayName,
+    isDemo,
     JSON.stringify(assignments?.map(a => ({ id: a.id, title: a.title, course_name: a.course_name }))),
     JSON.stringify(Object.keys(weekSchedules)),
     getDayName
