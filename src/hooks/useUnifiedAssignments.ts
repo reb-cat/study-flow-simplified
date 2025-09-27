@@ -42,6 +42,25 @@ export function useUnifiedAssignments(studentId?: string, isDemo: boolean = fals
 
       const { data, error: fetchError } = await query;
 
+      console.log('Query response:', { 
+        data: data?.length || 0, 
+        error: fetchError,
+        targetStudentId 
+      });
+
+      // If error or no data, try without the user_id filter to test
+      if (!data || data.length === 0) {
+        const { data: testData } = await supabase
+          .from(tableName as any)
+          .select('*')
+          .limit(5);
+        
+        console.log('Test query without filter:', testData?.length || 0);
+        if (testData && testData.length > 0) {
+          console.log('Sample record user_ids:', testData.map((r: any) => r.user_id));
+        }
+      }
+
       console.log('Raw data from Supabase:', data?.[0]);
       console.log('Columns being selected:', columns);
 
