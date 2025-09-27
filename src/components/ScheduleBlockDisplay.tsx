@@ -17,12 +17,14 @@ export function ScheduleBlockDisplay({ block, assignedFamily, children }: Schedu
   return (
     <div className={`space-y-2 p-3 ${blockClassName}`}>
       <div className="text-xs font-medium text-foreground/80">
-        <span>
-          {convertTo12Hour(block.start_time)}
-          {block.block_type !== 'Assignment' ? ` • ${block.subject || block.block_name}` : ''}
-        </span>
+        <span>{convertTo12Hour(block.start_time)} • {block.subject || block.block_name}</span>
       </div>
       
+      {block.block_type === 'Assignment' && !children && (
+        <div className="text-sm text-muted-foreground italic p-2 bg-muted/50 rounded">
+          Assignment block - needs population
+        </div>
+      )}
       
       {children}
     </div>

@@ -3,26 +3,28 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Clock, AlertTriangle, Timer, ExternalLink, Edit, Trash2 } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 import { Assignment } from '@/types';
+import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 interface OverviewBlockProps {
   assignment: Assignment;
+  onUpdate?: () => void;
   onEdit?: (assignment: Assignment) => void;
   onDelete?: (assignmentId: string) => void;
   onStartTimer?: (assignmentId: string) => void;
-  onMarkStatus?: (
-    assignmentId: string,
-    status: 'completed' | 'pending' | 'stuck' | 'needs_more_time'
-  ) => void;
 }
 
-export function OverviewBlock({
-  assignment,
-  onEdit,
-  onDelete,
-  onStartTimer,
-  onMarkStatus,
+export function OverviewBlock({ 
+  assignment, 
+  onUpdate, 
+  onEdit, 
+  onDelete, 
+  onStartTimer 
 }: OverviewBlockProps) {
+  const { updateAssignment, selectedProfile } = useApp();
+
   const statusConfig = {
     pending: { 
       label: 'Not Started', 
@@ -56,11 +58,42 @@ export function OverviewBlock({
   const status = statusConfig[currentStatus as keyof typeof statusConfig] || statusConfig.pending;
   const StatusIcon = status.icon;
 
-  const handleStatusUpdate = (
-    newStatus: 'completed' | 'pending' | 'stuck' | 'needs_more_time'
-  ) => {
-    if (!onMarkStatus) return;
-    onMarkStatus(assignment.id, newStatus);
+  const handleStatusUpdate = async (newStatus: 'completed' | 'pending' | 'stuck' | 'needs_more_time') => {
+    if (!selectedProfile) return;
+
+    try {
+      const updates: Partial<Assignment> = {};
+      
+      if (newStatus === 'completed') {
+        updates.completed = true;
+      } else {
+        updates.completed = false;
+      }
+
+      updateAssignment(assignment.id, updates);
+
+      const messages = {
+        completed: { title: "Great work! 🎉", description: "Assignment completed successfully." },
+        stuck: { title: "Help is on the way!", description: "This task has been flagged for assistance." },
+        pending: { title: "Keep going!", description: "Assignment marked as in progress." },
+        needs_more_time: { title: "No worries!", description: "Take the time you need." }
+      };
+
+      const message = messages[newStatus];
+      toast({
+        title: message.title,
+        description: message.description
+      });
+
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error updating assignment:', error);
+      toast({
+        title: "Error",
+        description: "Could not update assignment. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatTime = (minutes: number) => {

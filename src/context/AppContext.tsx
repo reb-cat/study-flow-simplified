@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Profile, Assignment, ScheduleTemplate, TimerSession, ActiveTimer, AppUser } from '@/types';
-import type { PopulatedScheduleBlock } from '@/types/schedule';
 import { generateDemoData } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -38,10 +37,6 @@ interface AppContextType {
   resumeTimer: () => void;
   stopTimer: () => void;
   getTimerForAssignment: (assignmentId: string) => number; // total seconds
-
-  // Guided Day canonical schedule cache (studentId+date keyed)
-  getGuidedDaySchedule?: (studentId: string, date: string) => PopulatedScheduleBlock[] | null;
-  setGuidedDaySchedule?: (studentId: string, date: string, blocks: PopulatedScheduleBlock[]) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -63,18 +58,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [scheduleTemplate, setScheduleTemplate] = useState<ScheduleTemplate[]>([]);
   const [timerSessions, setTimerSessions] = useState<TimerSession[]>([]);
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
-
-  // Canonical Guided Day schedules keyed by `${studentId}::${date}`
-  const [guidedSchedules, setGuidedSchedules] = useState<Record<string, PopulatedScheduleBlock[]>>({});
-  const dayKey = useCallback((studentId: string, date: string) => `${studentId}::${date}`, []);
-
-  const getGuidedDaySchedule = useCallback((studentId: string, date: string) => {
-    return guidedSchedules[dayKey(studentId, date)] || null;
-  }, [guidedSchedules, dayKey]);
-
-  const setGuidedDaySchedule = useCallback((studentId: string, date: string, blocks: PopulatedScheduleBlock[]) => {
-    setGuidedSchedules(prev => ({ ...prev, [dayKey(studentId, date)]: blocks }));
-  }, [dayKey]);
 
   // Load data on mount
   useEffect(() => {
@@ -661,8 +644,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteAssignment,
       scheduleTemplate,
       getScheduleForStudent,
-      getGuidedDaySchedule,
-      setGuidedDaySchedule,
       activeTimer,
       timerSessions,
       startTimer,

@@ -4,15 +4,16 @@ import { UnifiedAssignment } from '@/types/assignment';
 import { convertTo12Hour } from '@/lib/utils';
 import { getScheduleBlockClassName } from '@/lib/schedule-colors';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface OverviewScheduleBlockProps {
   block: SupabaseScheduleBlock;
   assignment?: UnifiedAssignment;
   status?: string;
-  onMarkComplete?: (assignmentId: string, blockId: string) => void;
 }
 
-export function OverviewScheduleBlock({ block, assignment, status, onMarkComplete }: OverviewScheduleBlockProps) {
+export function OverviewScheduleBlock({ block, assignment, status }: OverviewScheduleBlockProps) {
   const [expanded, setExpanded] = useState(false);
   const blockClassName = getScheduleBlockClassName(block);
   const isCompleted = status === 'complete' || status === 'overtime';
@@ -26,9 +27,38 @@ export function OverviewScheduleBlock({ block, assignment, status, onMarkComplet
   const shouldBeActionable = isAfterSchoolItem || (isRegularIncomplete && isAfterSchool);
 
   // Handle marking assignment complete
-  const handleMarkComplete = () => {
-    if (assignment && onMarkComplete) {
-      onMarkComplete(assignment.id, block.id);
+  const handleMarkComplete = async () => {
+    if (!assignment) return;
+
+    try {
+      // Update assignment as completed
+      await supabase.from('demo_assignments')
+        .update({ completed_at: new Date().toISOString() })
+        .eq('id', assignment.id);
+
+      // Add status to daily_schedule_status if not already there
+      await supabase.from('daily_schedule_status')
+        .upsert({
+          template_block_id: block.id,
+          date: new Date().toISOString().split('T')[0],
+          student_name: `demo-${block.student_name.toLowerCase()}`,
+          status: 'complete'
+        });
+
+      toast({
+        title: "Assignment completed! ✅",
+        description: `Great work on ${assignment.title}`
+      });
+
+      // Refresh the page to show updated status
+      window.location.reload();
+    } catch (error) {
+      console.error('Error marking assignment complete:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark assignment complete",
+        variant: "destructive"
+      });
     }
   };
 
@@ -48,14 +78,21 @@ export function OverviewScheduleBlock({ block, assignment, status, onMarkComplet
     if (assignment) {
       return assignment.title;
     }
-    if (block.block_type === 'Assignment') {
+    if ((block as any).fallback) {
+      return (block as any).fallback;
+    }
+    if (block.block_type === 'Assignment' || block.block_type === 'Study Hall') {
       return 'No assignment scheduled';
     }
     return block.subject || block.block_name;
   };
 
   const getTitleClassName = () => {
-    if (!assignment && block.block_type === 'Assignment') {
+    if ((block as any).fallback) {
+      return 'text-muted-foreground italic';
+    }
+    if (!assignment && (block.block_type === 'Assignment' || 
+        (block.subject === 'Study Hall' || block.block_name === 'Study Hall'))) {
       return 'text-muted-foreground/60 italic';
     }
     return 'text-foreground';
@@ -81,7 +118,6 @@ export function OverviewScheduleBlock({ block, assignment, status, onMarkComplet
         <div className="flex-1 min-w-0 pr-3">
           <div className="text-xs font-medium text-foreground/70 mb-1">
             {convertTo12Hour(block.start_time)}
-            {block.block_type !== 'Assignment' ? ` • ${block.subject || block.block_name}` : ''}
           </div>
           <div className={`text-sm font-medium break-words hyphens-auto leading-tight ${getTitleClassName()}`}>
             {getAssignmentTitle()}
@@ -89,7 +125,7 @@ export function OverviewScheduleBlock({ block, assignment, status, onMarkComplet
         </div>
         <div className={`text-2xl font-mono ${
           status === 'complete' ? 'text-green-600' :
-          status === 'stuck' ? 'text-stuck' :
+          status === 'stuck' ? 'text-red-600' :
           status === 'overtime' ? 'text-orange-600' :
           'text-foreground/80'
         }`}>

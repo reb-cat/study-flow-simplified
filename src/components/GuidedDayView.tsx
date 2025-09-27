@@ -11,7 +11,6 @@ import { toast } from '@/hooks/use-toast';
 import { useAssignmentPlacement } from '@/hooks/useAssignmentPlacement';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useSupabaseSchedule } from '@/hooks/useSupabaseSchedule';
-import { isStudyHallBlock } from '@/lib/family-detection';
 import { supabase } from '@/integrations/supabase/client';
 import { PopulatedScheduleBlock } from '@/types/schedule';
 
@@ -35,9 +34,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     startTimer,
     pauseTimer,
     stopTimer,
-    activeTimer,
-    getGuidedDaySchedule,
-    setGuidedDaySchedule,
+    activeTimer
   } = useApp();
   
   // Get unified assignments and schedule data
@@ -100,6 +97,14 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   // Gate placement on data readiness
   const dataReady = !isAssignmentsLoading && !isScheduleLoading;
 
+  if (!selectedProfile) {
+    return <div>Loading...</div>;
+  }
+
+  // Don't schedule until data is ready - prevents early placement that causes fallbacks
+  if (!dataReady) {
+    return <div>Loading schedule...</div>;
+  }
 
   // Memoize expensive calculations with assignment placement
   const { selectedDateObj, weekday } = useMemo(() => {
@@ -144,37 +149,39 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     effectiveDate
   );
 
-  // Write the computed schedule to the context cache as the canonical schedule
-  useEffect(() => {
-    if (selectedProfile?.id && Array.isArray(populatedBlocks)) {
-      setGuidedDaySchedule?.(selectedProfile.id, effectiveDate, populatedBlocks);
-    }
-  }, [selectedProfile?.id, effectiveDate, populatedBlocks, setGuidedDaySchedule]);
-
-  // Build guided blocks from canonical schedule context, populatedSchedule, or calculated
+  // Build guided blocks from populated schedule or calculate if not provided
   const guidedBlocks = useMemo(() => {
-    // Prefer the canonical schedule from context (set by GuidedDayView)
-    const fromContext = selectedProfile?.id ? getGuidedDaySchedule?.(selectedProfile.id, effectiveDate) : null;
+    if (populatedSchedule && populatedSchedule.length > 0) {
+      // Use what Dashboard calculated
+      return populatedSchedule.map(block => ({
+        id: block.id,
+        blockNumber: block.block_number,
+        startTime: block.start_time,
+        endTime: block.end_time,
+        subject: block.subject,
+        blockType: block.block_type,
+        assignment: block.assignment,
+        assignedFamily: block.assignedFamily,
+        fallback: block.fallback,
+        duration: calculateBlockDuration(block.start_time, block.end_time)
+      }));
+    }
 
-    const source = (fromContext && fromContext.length > 0)
-      ? fromContext
-      : (populatedSchedule && populatedSchedule.length > 0)
-        ? populatedSchedule
-        : populatedBlocks;
+    // Fallback to current calculation if not provided
 
-    return source.map(block => ({
+    return populatedBlocks.map(block => ({
       id: block.id,
       blockNumber: block.block_number,
       startTime: block.start_time,
       endTime: block.end_time,
       subject: block.subject,
       blockType: block.block_type,
-      assignment: (block as any).assignment || null,
-      assignedFamily: (block as any).assignedFamily,
-      fallback: (block as any).fallback,
+      assignment: block.assignment || null,
+      assignedFamily: block.assignedFamily,
+      fallback: block.fallback,
       duration: calculateBlockDuration(block.start_time, block.end_time)
     }));
-  }, [getGuidedDaySchedule, selectedProfile?.id, effectiveDate, populatedSchedule, populatedBlocks, calculateBlockDuration]);
+  }, [populatedSchedule, populatedBlocks, calculateBlockDuration, scheduleBlocks.length]);
 
   // Determine if some blocks have been completed
   const hasCompletedSomeBlocks = useMemo(() => {
@@ -451,15 +458,6 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     checkIncompleteWork();
   }, [currentBlock, selectedDate, selectedProfile, profileAssignments, guidedBlocks, checkedIncomplete]);
 
-  // Safe render guard placed after all hooks so hook order is stable
-  if (!selectedProfile || !dataReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        Loading schedule…
-      </div>
-    );
-  }
-
   if (!currentBlock) {
     const hasIncompleteWork = (incompleteWork.afterSchool.length > 0 || incompleteWork.stuck.length > 0 || incompleteWork.incomplete.length > 0) && checkedIncomplete;
 
@@ -605,26 +603,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               })()}
             </div>
             <h1 className="text-3xl font-bold">
-              {(() => {
-                const isStudyHall = isStudyHallBlock(
-                  currentBlock.blockType,
-                  currentBlock.startTime,
-                  currentBlock.subject,
-                  currentBlock.subject
-                );
-
-                // 1) Prefer real assignment title
-                if (currentBlock.assignment?.title) return currentBlock.assignment.title;
-
-                // 2) Study Hall may show its fallback (often blank now)
-                if (isStudyHall && currentBlock.fallback) return currentBlock.fallback;
-
-                // 3) For non-Assignment blocks (Co-op, Travel, Lunch, etc.) show the subject label
-                if (currentBlock.blockType !== 'Assignment') return currentBlock.subject;
-
-                // 4) For Assignment blocks with no assignment, show nothing in the title
-                return null;
-              })()}
+              {currentBlock.assignment?.title || currentBlock.fallback || currentBlock.subject}
             </h1>
             <p className="text-muted-foreground">
               {currentBlock.blockType} • {formatTime(currentBlock.duration)}
@@ -703,45 +682,14 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               </Collapsible>
             )}
 
-            {/* Fallback content - only for Study Hall blocks */}
-            {(() => {
-              const isStudyHall = isStudyHallBlock(currentBlock.blockType, currentBlock.startTime, currentBlock.subject, currentBlock.subject);
-              
-              // Safety check - warn about improper fallbacks
-              if (!isStudyHall && currentBlock.fallback) {
-                console.warn('Unexpected fallback on non-Study Hall block:', {
-                  id: currentBlock.id, 
-                  block_type: currentBlock.blockType, 
-                  time: currentBlock.startTime
-                });
-              }
-              
-              // Only show fallback in Study Hall blocks AND only if hook set .fallback
-              const showFallback = Boolean(currentBlock.fallback) && isStudyHall;
-              
-              if (showFallback) {
-                return (
-                  <Card className="bg-muted/30 border-none">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground italic">{currentBlock.fallback}</p>
-                    </CardContent>
-                  </Card>
-                );
-              }
-              
-              // For Assignment blocks with no assignment, show neutral placeholder
-              if (!currentBlock.assignment && currentBlock.blockType === 'Assignment') {
-                return (
-                  <Card className="bg-muted/30 border-none">
-                    <CardContent className="p-4">
-                      <div className="text-sm opacity-60">No assignment selected</div>
-                    </CardContent>
-                  </Card>
-                );
-              }
-              
-              return null;
-            })()}
+            {/* Non-Assignment Block Info */}
+            {!currentBlock.assignment && currentBlock.fallback && (
+              <Card className="bg-muted/30 border-none">
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground italic">{currentBlock.fallback}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Action Buttons - Always show all buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
