@@ -415,7 +415,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 if (!profileError && studentProfiles) {
                   // Convert database profiles to app profiles
                   const appProfiles: Profile[] = studentProfiles.map(sp => ({
-                    id: sp.id,
+                    id: sp.student_name, // Use student_name field which contains the actual UUID
                     userId: session.user.id,
                     displayName: sp.display_name || sp.student_name,
                     role: 'student' as const
