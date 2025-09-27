@@ -48,17 +48,22 @@ const Dashboard = () => {
   const syncCanvasAssignments = async () => {
     if (!selectedProfile?.id) {
       console.error('No student selected');
+      console.log('selectedProfile:', selectedProfile);
       setSyncMessage('No student selected');
       return;
     }
 
     setSyncing(true);
     setSyncMessage('');
-    console.log('Calling sync-canvas for:', selectedProfile.id);
+    console.log('Calling sync-canvas for student ID:', selectedProfile.id);
+    console.log('Full selectedProfile:', selectedProfile);
     
     try {
+      const requestBody = { studentId: selectedProfile.id };
+      console.log('Request body being sent:', requestBody);
+      
       const { data, error } = await supabase.functions.invoke('sync-canvas', {
-        body: { studentId: selectedProfile.id }
+        body: requestBody
       });
       
       if (error) {

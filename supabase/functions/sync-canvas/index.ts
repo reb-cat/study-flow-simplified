@@ -20,6 +20,7 @@ serve(async (req) => {
     let requestBody;
     try {
       requestBody = await req.json();
+      console.log('Parsed request body:', requestBody);
     } catch (parseError) {
       console.error('Failed to parse request body:', parseError);
       return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
@@ -29,9 +30,11 @@ serve(async (req) => {
     }
     
     const { studentId } = requestBody;
+    console.log('Extracted studentId:', studentId, 'Type:', typeof studentId);
     
     if (!studentId) {
       console.error('No studentId provided in request');
+      console.log('Request body keys:', Object.keys(requestBody || {}));
       return new Response(JSON.stringify({ error: 'Student ID is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
