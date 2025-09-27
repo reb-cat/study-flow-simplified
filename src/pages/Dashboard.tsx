@@ -562,12 +562,20 @@ const Dashboard = () => {
               <CardTitle>Canvas Sync</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                onClick={syncCanvasAssignments} 
-                disabled={syncing}
-              >
-                {syncing ? 'Syncing...' : 'Sync Canvas Assignments'}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={syncCanvasAssignments} 
+                  disabled={syncing}
+                >
+                  {syncing ? 'Syncing...' : 'Sync Canvas Assignments'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => console.log('Current student ID:', selectedProfile?.id)}
+                >
+                  Log Student ID
+                </Button>
+              </div>
               {syncMessage && (
                 <p className={`text-sm ${syncMessage.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
                   {syncMessage}
