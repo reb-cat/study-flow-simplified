@@ -99,6 +99,13 @@ export function useAssignmentPlacement(
     console.log('Unscheduled assignments after filtering:', unscheduledAssignments.length);
     console.log('Unscheduled count:', unscheduledAssignments.length);
 
+    // Log family counts to prove the cause
+    const famCounts = unscheduledAssignments.reduce((m, a) => {
+      m[a.detectedFamily] = (m[a.detectedFamily] || 0) + 1;
+      return m;
+    }, {} as Record<string, number>);
+    console.log('UNSCHEDULED by family:', famCounts);
+
     // Get Assignment and Study Hall blocks for processing
     const assignableBlocks = (scheduleBlocks || []).filter(block => {
       const blockType = block.block_type || '';
@@ -252,7 +259,35 @@ export function useAssignmentPlacement(
           return 0;
         });
 
-      const selectedAssignment = matchingAssignments[0];
+      let selectedAssignment = matchingAssignments[0];
+
+      // If no family-specific assignment, try least-used-family fallback
+      if (!selectedAssignment) {
+        // Track how many times each family was placed earlier today
+        const placedFamilyCounts = populatedBlocks.reduce((m, b) => {
+          if (b.assignment && (b.assignment as AssignmentWithFamily).detectedFamily) {
+            const family = (b.assignment as AssignmentWithFamily).detectedFamily;
+            m[family] = (m[family] || 0) + 1;
+          }
+          return m;
+        }, {} as Record<string, number>);
+
+        // Pick a candidate from the least-used family today
+        const fallbackCandidate = unscheduledAssignments
+          .filter(a => !scheduledAssignments.has(a.id))
+          .sort((a, b) => {
+            const ac = placedFamilyCounts[a.detectedFamily] || 0;
+            const bc = placedFamilyCounts[b.detectedFamily] || 0;
+            if (ac !== bc) return ac - bc;                // prefer families we used less today
+            const at = a.due_date ? +new Date(a.due_date) : Infinity;
+            const bt = b.due_date ? +new Date(b.due_date) : Infinity;
+            return at - bt;                                // then earliest/overdue first
+          })[0];
+
+        if (fallbackCandidate) {
+          selectedAssignment = fallbackCandidate;
+        }
+      }
 
       if (selectedAssignment) {
         // Skip all completed assignments that are older than 24 hours
@@ -279,21 +314,7 @@ export function useAssignmentPlacement(
           });
         }
       } else {
-        // If no family-specific assignment found and real assignments exist, try ANY pending assignment
-        const urgentAssignment = hasRealAssignments
-          ? unscheduledAssignments.find(a => !scheduledAssignments.has(a.id) && a.completion_status === 'pending')
-          : undefined;
-
-        if (urgentAssignment) {
-          scheduledAssignments.add(urgentAssignment.id);
-          populatedBlocks.push({
-            ...block,
-            assignment: urgentAssignment,
-            assignedFamily: family
-          });
-        } else {
-          populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
-        }
+        populatedBlocks.push({ ...block, assignment: undefined, assignedFamily: family });
       }
     }
 
