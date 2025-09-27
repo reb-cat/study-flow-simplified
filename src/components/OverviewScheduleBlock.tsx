@@ -4,16 +4,15 @@ import { UnifiedAssignment } from '@/types/assignment';
 import { convertTo12Hour } from '@/lib/utils';
 import { getScheduleBlockClassName } from '@/lib/schedule-colors';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 interface OverviewScheduleBlockProps {
   block: SupabaseScheduleBlock;
   assignment?: UnifiedAssignment;
   status?: string;
+  onMarkComplete?: (assignmentId: string, blockId: string) => void;
 }
 
-export function OverviewScheduleBlock({ block, assignment, status }: OverviewScheduleBlockProps) {
+export function OverviewScheduleBlock({ block, assignment, status, onMarkComplete }: OverviewScheduleBlockProps) {
   const [expanded, setExpanded] = useState(false);
   const blockClassName = getScheduleBlockClassName(block);
   const isCompleted = status === 'complete' || status === 'overtime';
@@ -27,38 +26,9 @@ export function OverviewScheduleBlock({ block, assignment, status }: OverviewSch
   const shouldBeActionable = isAfterSchoolItem || (isRegularIncomplete && isAfterSchool);
 
   // Handle marking assignment complete
-  const handleMarkComplete = async () => {
-    if (!assignment) return;
-
-    try {
-      // Update assignment as completed
-      await supabase.from('demo_assignments')
-        .update({ completed_at: new Date().toISOString() })
-        .eq('id', assignment.id);
-
-      // Add status to daily_schedule_status if not already there
-      await supabase.from('daily_schedule_status')
-        .upsert({
-          template_block_id: block.id,
-          date: new Date().toISOString().split('T')[0],
-          student_name: `demo-${block.student_name.toLowerCase()}`,
-          status: 'complete'
-        });
-
-      toast({
-        title: "Assignment completed! ✅",
-        description: `Great work on ${assignment.title}`
-      });
-
-      // Refresh the page to show updated status
-      window.location.reload();
-    } catch (error) {
-      console.error('Error marking assignment complete:', error);
-      toast({
-        title: "Error",
-        description: "Failed to mark assignment complete",
-        variant: "destructive"
-      });
+  const handleMarkComplete = () => {
+    if (assignment && onMarkComplete) {
+      onMarkComplete(assignment.id, block.id);
     }
   };
 
