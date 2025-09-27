@@ -21,10 +21,10 @@
     --popover-foreground: 222 84% 4.9%;
 
     /* Brand colors - Custom teal primary */
-    --primary: 185 84% 25%;
+    --primary: 190 62% 17%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 185 84% 20%;
-    --primary-light: 185 84% 96%;
+    --primary-hover: 190 62% 12%;
+    --primary-light: 190 62% 96%;
 
     /* Success & completion - Accessible green */
     --success: 142 76% 36%;
@@ -74,7 +74,7 @@
     --radius-lg: 1rem;
     
     /* Gradients - Accessible combinations */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(185 84% 35%));
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(190 62% 25%));
     --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 76% 32%));
     --gradient-timer: linear-gradient(135deg, hsl(var(--timer)), hsl(25 85% 40%));
     --gradient-accent: linear-gradient(135deg, hsl(220 14% 91%), hsl(220 14% 86%));
@@ -124,10 +124,10 @@
     --popover: 220 13% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 185 84% 53%;
+    --primary: 190 62% 25%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 185 84% 58%;
-    --primary-light: 185 84% 15%;
+    --primary-hover: 190 62% 30%;
+    --primary-light: 190 62% 15%;
 
     --success: 142 76% 50%;
     --success-foreground: 0 0% 100%;
