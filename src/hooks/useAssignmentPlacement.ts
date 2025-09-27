@@ -78,31 +78,22 @@ export function useAssignmentPlacement(
     // - Include items due within next 30 days (or overdue)
     const unscheduledAssignments = activeAssignments
       .filter(a => {
-        if (a.scheduled_block && a.scheduled_date === selectedDate) return false; // only treat as placed if it's for today
-        if (!a.due_date) return true;
+        // Treat as placed only if it's placed for the selected day
+        if (a.scheduled_block && a.scheduled_date === selectedDate) return false;
 
-        const dueDate = new Date(a.due_date);
-        const today = new Date();
-        const thirtyDaysOut = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-        // Include if due soon OR overdue
-        return dueDate <= thirtyDaysOut;
+        // Only pending items are eligible (completed already filtered above)
+        return true; // do NOT gate by due_date at all
       })
       .sort((a, b) => {
-        // Prioritize overdue and soon-due assignments
-        if (!a.due_date && !b.due_date) return 0;
-        if (!a.due_date) return 1;
-        if (!b.due_date) return -1;
-
-        const aDate = new Date(a.due_date).getTime();
-        const bDate = new Date(b.due_date).getTime();
+        // Overdue first, then earlier due dates, then no due date
         const now = Date.now();
+        const aTime = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+        const bTime = b.due_date ? new Date(b.due_date).getTime() : Infinity;
 
-        // Overdue assignments first
-        if (aDate < now && bDate >= now) return -1;
-        if (bDate < now && aDate >= now) return 1;
-
-        return aDate - bDate;
+        const aOver = aTime < now, bOver = bTime < now;
+        if (aOver && !bOver) return -1;
+        if (bOver && !aOver) return 1;
+        return aTime - bTime;
       });
 
     console.log('Unscheduled assignments after filtering:', unscheduledAssignments.length);
