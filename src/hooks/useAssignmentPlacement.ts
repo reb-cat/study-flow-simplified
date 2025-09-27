@@ -48,11 +48,12 @@ export function useAssignmentPlacement(
     })));
 
     // Get unscheduled assignments (exclude scheduled, completed, and cleared assignments)
-    const unscheduledAssignments = assignmentsWithFamily.filter(a => 
-      !a.scheduled_date && 
-      !a.scheduled_block && 
-      a.completion_status !== 'completed'
-    );
+    const unscheduledAssignments = assignmentsWithFamily.filter(a => {
+      // First exclude all completed assignments
+      if (a.completion_status === 'completed') return false;
+      // Then check if unscheduled
+      return !a.scheduled_date && !a.scheduled_block;
+    });
     console.log('Unscheduled count:', unscheduledAssignments.length);
 
     // Get Assignment and Study Hall blocks for processing
