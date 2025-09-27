@@ -1,4 +1,5 @@
 import React from 'react';
+import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { OverviewScheduleBlock } from '@/components/OverviewScheduleBlock';
 import { SupabaseScheduleBlock } from '@/hooks/useSupabaseSchedule';
@@ -25,43 +26,32 @@ export function OverviewDayCard({
   formatDate,
   onDayClick
 }: OverviewDayCardProps) {
+  const { getGuidedDaySchedule } = useApp();
   const year = day.getFullYear();
   const month = String(day.getMonth() + 1).padStart(2, '0');
   const dayNum = String(day.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${dayNum}`;
+  const canonicalBlocks = getGuidedDaySchedule?.(selectedProfile?.id, dateStr) || null;
   const dayAssignments = assignments.filter(a => a.scheduled_date === dateStr);
   const [blockStatuses, setBlockStatuses] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     async function fetchStatuses() {
-      const studentName = selectedProfile?.displayName ? 
-        (selectedProfile.displayName.toLowerCase().startsWith('demo') ? 
-          `demo-${selectedProfile.displayName.toLowerCase()}` : 
-          selectedProfile.displayName) : '';
+      const studentId = selectedProfile?.id || '';
       
-      const { data: blockStatuses } = await supabase
+      const { data: fetchedStatuses } = await supabase
         .from('daily_schedule_status')
         .select('*')
-        .eq('student_name', studentName)
-        .eq('date', dateStr)
-        .gte('created_at', new Date(new Date(dateStr).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString());
+        .eq('student_name', studentId)
+        .eq('date', dateStr);
 
-      const validStatuses = (blockStatuses || []).filter(status => {
-        if (status.status === 'complete') {
-          const statusDate = new Date(status.updated_at || status.created_at);
-          const today = new Date();
-          return statusDate.toDateString() === today.toDateString();
-        }
-        return true;
-      });
-
-      setBlockStatuses(validStatuses);
+      setBlockStatuses(fetchedStatuses || []);
     }
 
-    if (selectedProfile?.displayName) {
+    if (selectedProfile?.id) {
       fetchStatuses();
     }
-  }, [dateStr, selectedProfile]);
+  }, [dateStr, selectedProfile?.id]);
 
   return (
     <Card className="card-elevated h-fit">
@@ -79,7 +69,7 @@ export function OverviewDayCard({
       </CardHeader>
       <CardContent className="space-y-2">
         {scheduleBlocks.map((block) => {
-          const populatedBlock = populatedBlocks.find(p => p.id === block.id);
+          const populatedBlock = (canonicalBlocks || populatedBlocks).find(p => p.id === block.id);
           const manualAssignment = dayAssignments.find(a =>
             a.scheduled_block === block.block_number && !populatedBlock?.assignment
           );

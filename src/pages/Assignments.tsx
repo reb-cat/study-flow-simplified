@@ -116,9 +116,6 @@ const Assignments = () => {
               <OverviewBlock
                 key={assignment.id}
                 assignment={assignment}
-                onUpdate={() => {
-                  // Refresh assignments list
-                }}
                 onEdit={(assignment) => {
                   // Handle edit if needed
                 }}

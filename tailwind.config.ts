@@ -44,6 +44,10 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        stuck: {
+          DEFAULT: "hsl(var(--stuck))",
+          foreground: "hsl(var(--stuck-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
