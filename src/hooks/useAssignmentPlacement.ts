@@ -30,14 +30,24 @@ export function useAssignmentPlacement(
     console.log('Student:', studentName);
     console.log('Date:', selectedDate);
 
-    // Add family detection to assignments
-    const assignmentsWithFamily: AssignmentWithFamily[] = assignments.map(assignment => {
-      const family = detectFamily(assignment);
-      return {
-        ...assignment,
-        detectedFamily: family
-      };
-    });
+    // Add family detection to assignments, excluding completed assignments entirely
+    const assignmentsWithFamily: AssignmentWithFamily[] = assignments
+      .filter(assignment => {
+        // Exclude completed assignments unless they were completed today
+        if (assignment.completion_status === 'completed') {
+          const isCompletedToday = assignment.completed_at && 
+                                   new Date(assignment.completed_at).toDateString() === new Date().toDateString();
+          return isCompletedToday;
+        }
+        return true;
+      })
+      .map(assignment => {
+        const family = detectFamily(assignment);
+        return {
+          ...assignment,
+          detectedFamily: family
+        };
+      });
     
     console.log('Assignments with families:', assignmentsWithFamily.map(a => ({
       title: a.title,
@@ -47,11 +57,9 @@ export function useAssignmentPlacement(
       scheduled_block: a.scheduled_block
     })));
 
-    // Get unscheduled assignments (exclude scheduled, completed, and cleared assignments)
+    // Get unscheduled assignments (exclude scheduled and cleared assignments)
+    // Note: Completed assignments are already filtered out above
     const unscheduledAssignments = assignmentsWithFamily.filter(a => {
-      // First exclude all completed assignments
-      if (a.completion_status === 'completed') return false;
-      // Then check if unscheduled
       return !a.scheduled_date && !a.scheduled_block;
     });
     console.log('Unscheduled count:', unscheduledAssignments.length);
