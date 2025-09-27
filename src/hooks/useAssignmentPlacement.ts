@@ -28,6 +28,15 @@ export function useAssignmentPlacement(
   assignmentsWithFamily: AssignmentWithFamily[];
   unscheduledCount: number;
 } {
+  // Short-circuit if data isn't ready to prevent fallbacks on empty dataset
+  if (!assignments?.length || !scheduleBlocks?.length) {
+    return useMemo(() => ({
+      populatedBlocks: [],
+      assignmentsWithFamily: [],
+      unscheduledCount: 0
+    }), [assignments?.length, scheduleBlocks?.length]);
+  }
+
   return useMemo(() => {
     console.log('=== ASSIGNMENT PLACEMENT DEBUG ===');
     console.log('Input assignments:', assignments);

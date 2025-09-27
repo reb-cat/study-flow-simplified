@@ -38,7 +38,7 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
   } = useApp();
   
   // Get unified assignments and schedule data
-  const { assignments: profileAssignments } = useAssignments();
+  const { assignments: profileAssignments, isLoading: isAssignmentsLoading } = useAssignments();
   const { getScheduleForDay } = useSupabaseSchedule();
   
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
@@ -90,8 +90,20 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     return null;
   }, [selectedDate]);
 
+  // Get schedule data asynchronously
+  const [scheduleBlocks, setScheduleBlocks] = useState<any[]>([]);
+  const [isScheduleLoading, setIsScheduleLoading] = useState(false);
+
   if (!selectedProfile) {
     return <div>Loading...</div>;
+  }
+
+  // Gate placement on data readiness
+  const dataReady = !isAssignmentsLoading && !isScheduleLoading;
+
+  // Don't schedule until data is ready - prevents early placement that causes fallbacks
+  if (!dataReady) {
+    return <div>Loading schedule...</div>;
   }
 
   // Memoize expensive calculations with assignment placement
@@ -102,10 +114,9 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
     return { selectedDateObj, weekday };
   }, [selectedProfile.id, effectiveDate, selectedProfile.displayName]);
   
-  // Get schedule data asynchronously
-  const [scheduleBlocks, setScheduleBlocks] = useState<any[]>([]);
   useEffect(() => {
     if (selectedProfile?.displayName) {
+      setIsScheduleLoading(true);
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const selectedDateObj = new Date(effectiveDate + 'T12:00:00');
       const weekday = selectedDateObj.getDay() === 0 ? 7 : selectedDateObj.getDay();
@@ -124,7 +135,8 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
 
           setScheduleBlocks(sortedBlocks);
         })
-        .catch(err => console.error('Failed to load schedule:', err));
+        .catch(err => console.error('Failed to load schedule:', err))
+        .finally(() => setIsScheduleLoading(false));
     }
   }, [selectedProfile?.displayName, effectiveDate, getScheduleForDay]);
 
