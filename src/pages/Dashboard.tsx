@@ -187,8 +187,17 @@ const Dashboard = () => {
       detectedFamily: detectFamily(assignment)
     }));
 
-    // Get unscheduled assignments or those scheduled for past dates
+    // Get unscheduled assignments or those scheduled for past dates, excluding historical completions
     const unscheduledAssignments = assignmentsWithFamily.filter(a => {
+      // First filter: only show pending assignments OR today's completions
+      const isCompletedToday = a.completion_status === 'completed' && 
+                               a.completed_at && 
+                               new Date(a.completed_at).toDateString() === new Date().toDateString();
+      
+      if (a.completion_status === 'completed' && !isCompletedToday) {
+        return false; // Exclude historical completions
+      }
+
       // Include if no schedule at all
       if (!a.scheduled_date && !a.scheduled_block) return true;
 
