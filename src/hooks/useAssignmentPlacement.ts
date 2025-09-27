@@ -56,32 +56,41 @@ export function useAssignmentPlacement(
       scheduled_block: a.scheduled_block
     })));
 
-    // Filter for assignments due within 7-10 days
+    // Change the unscheduledAssignments filter to be less restrictive
     const unscheduledAssignments = activeAssignments
       .filter(a => {
-        // Must be unscheduled
-        if (a.scheduled_date || a.scheduled_block) return false;
+        // Remove the scheduled_date check - old dates shouldn't block rescheduling
+        if (a.scheduled_block) return false; // Only skip if actively in a block
         
-        // Only include assignments due within the next 10 days
-        if (a.due_date) {
-          const dueDate = new Date(a.due_date);
-          const today = new Date();
-          const tenDaysOut = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000);
-          
-          // Skip if due date is in the past or more than 10 days away
-          if (dueDate < today || dueDate > tenDaysOut) return false;
-        }
+        // For assignments with no due date, include them
+        if (!a.due_date) return true;
         
-        return true;
+        // Include assignments due in the next 30 days (not just 10)
+        const dueDate = new Date(a.due_date);
+        const today = new Date();
+        const thirtyDaysOut = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+        
+        // Include if due soon OR overdue
+        return dueDate <= thirtyDaysOut;
       })
       .sort((a, b) => {
-        // Sort by due date - soonest first
+        // Prioritize overdue and soon-due assignments
         if (!a.due_date && !b.due_date) return 0;
-        if (!a.due_date) return 1;  // No due date goes last
+        if (!a.due_date) return 1;
         if (!b.due_date) return -1;
         
-        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+        const aDate = new Date(a.due_date).getTime();
+        const bDate = new Date(b.due_date).getTime();
+        const now = Date.now();
+        
+        // Overdue assignments first
+        if (aDate < now && bDate >= now) return -1;
+        if (bDate < now && aDate >= now) return 1;
+        
+        return aDate - bDate;
       });
+
+    console.log('Unscheduled assignments after filtering:', unscheduledAssignments.length);
     console.log('Unscheduled count:', unscheduledAssignments.length);
 
     // Get Assignment and Study Hall blocks for processing
