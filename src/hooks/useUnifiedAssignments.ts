@@ -6,15 +6,15 @@ import { UnifiedAssignment } from '@/types/assignment';
  * Unified hook that works for both demo and production assignments
  * The only difference is the table name
  */
-export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, refreshKey?: number) {
+export function useUnifiedAssignments(studentId?: string, isDemo: boolean = false, refreshKey?: number) {
   const [assignments, setAssignments] = useState<UnifiedAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const tableName = isDemo ? 'demo_assignments' : 'assignments';
 
-  const fetchAssignments = async (targetUserId?: string) => {
-    if (!targetUserId) return;
+  const fetchAssignments = async (targetStudentId?: string) => {
+    if (!targetStudentId) return;
 
     setIsLoading(true);
     setError(null);
@@ -30,7 +30,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, 
       const { data, error: fetchError } = await supabase
         .from(tableName as any)
         .select(columns)
-        .eq('user_id', targetUserId)
+        .eq('user_id', targetStudentId)
         .order('due_date', { ascending: true });
 
       console.log('Raw data from Supabase:', data?.[0]);
@@ -94,7 +94,7 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, 
       }
 
       // Refresh data after update
-      await fetchAssignments(userId);
+      await fetchAssignments(studentId);
     } catch (err) {
       console.error('Error updating assignment:', err);
       setError(err instanceof Error ? err.message : 'Failed to update assignment');
@@ -102,16 +102,16 @@ export function useUnifiedAssignments(userId?: string, isDemo: boolean = false, 
   };
 
   useEffect(() => {
-    if (userId) {
-      fetchAssignments(userId);
+    if (studentId) {
+      fetchAssignments(studentId);
     }
-  }, [userId, isDemo, refreshKey]);
+  }, [studentId, isDemo, refreshKey]);
 
   return {
     assignments,
     isLoading,
     error,
-    refetch: () => fetchAssignments(userId),
+    refetch: () => fetchAssignments(studentId),
     updateAssignment: isDemo ? undefined : updateAssignment
   };
 }

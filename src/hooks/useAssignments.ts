@@ -6,11 +6,11 @@ import { useUnifiedAssignments } from './useUnifiedAssignments';
  * Uses the same logic for both, just different table names
  */
 export function useAssignments(refreshKey?: number) {
-  const { currentUser, isDemo } = useApp();
+  const { selectedProfile, isDemo } = useApp();
 
-  // Use unified hook with appropriate table based on demo mode
+  // Use unified hook with selected student's ID (UUID for real users, displayName for demo)
   return useUnifiedAssignments(
-    currentUser ? currentUser.id : undefined,
+    selectedProfile ? selectedProfile.id : undefined,
     isDemo,
     refreshKey
   );
