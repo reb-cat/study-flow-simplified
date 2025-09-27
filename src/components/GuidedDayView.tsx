@@ -604,9 +604,26 @@ export const GuidedDayView: React.FC<GuidedDayViewProps> = ({
               })()}
             </div>
             <h1 className="text-3xl font-bold">
-              {currentBlock.assignment?.title || 
-                (Boolean(currentBlock.fallback) && isStudyHallBlock(currentBlock.blockType, currentBlock.startTime, currentBlock.subject, currentBlock.subject) ? currentBlock.fallback : null) ||
-                currentBlock.subject}
+              {(() => {
+                const isStudyHall = isStudyHallBlock(
+                  currentBlock.blockType,
+                  currentBlock.startTime,
+                  currentBlock.subject,
+                  currentBlock.subject
+                );
+
+                // 1) Prefer real assignment title
+                if (currentBlock.assignment?.title) return currentBlock.assignment.title;
+
+                // 2) Study Hall may show its fallback (often blank now)
+                if (isStudyHall && currentBlock.fallback) return currentBlock.fallback;
+
+                // 3) For non-Assignment blocks (Co-op, Travel, Lunch, etc.) show the subject label
+                if (currentBlock.blockType !== 'Assignment') return currentBlock.subject;
+
+                // 4) For Assignment blocks with no assignment, show nothing in the title
+                return null;
+              })()}
             </h1>
             <p className="text-muted-foreground">
               {currentBlock.blockType} • {formatTime(currentBlock.duration)}
