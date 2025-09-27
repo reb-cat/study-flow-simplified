@@ -119,7 +119,7 @@ export function OverviewScheduleBlock({ block, assignment, status }: OverviewSch
           <div className="text-xs font-medium text-foreground/70 mb-1">
             {convertTo12Hour(block.start_time)}
           </div>
-          <div className={`text-sm font-medium ${getTitleClassName()}`}>
+          <div className={`text-sm font-medium break-words whitespace-normal leading-tight ${getTitleClassName()}`}>
             {getAssignmentTitle()}
           </div>
         </div>
