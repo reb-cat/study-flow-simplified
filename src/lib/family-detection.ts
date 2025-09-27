@@ -3,7 +3,7 @@
 
 export type AssignmentFamily = 'Analytical' | 'Humanities' | 'Composition' | 'Creative';
 
-// Fallback activities for when no assignment is available
+// These strings are NOT used as fallbacks; they serve only as keyword guidance for family detection.
 export const FALLBACKS: Record<AssignmentFamily, string[]> = {
   Creative: ['Map Sketch', 'Science Diagram', 'Narration Art'],
   Analytical: ['Review problems'],
@@ -11,8 +11,8 @@ export const FALLBACKS: Record<AssignmentFamily, string[]> = {
   Composition: ['Journal entry']
 };
 
-// Study Hall specific fallback
-export const STUDY_HALL_FALLBACK = 'Review notes';
+// Deprecated: we no longer render any textual fallbacks; Study Hall will also avoid placeholders.
+export const STUDY_HALL_FALLBACK = '';
 
 // Block family assignments for each student and day
 export const BLOCK_FAMILIES: Record<string, Record<string, Record<number, AssignmentFamily>>> = {
