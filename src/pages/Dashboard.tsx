@@ -42,8 +42,19 @@ const Dashboard = () => {
   console.log('Dashboard assignments count:', assignments?.length);
   
   // Canvas sync function using edge function
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
+  
   const syncCanvasAssignments = async () => {
-    if (!selectedProfile?.id) return;
+    if (!selectedProfile?.id) {
+      console.error('No student selected');
+      setSyncMessage('No student selected');
+      return;
+    }
+
+    setSyncing(true);
+    setSyncMessage('');
+    console.log('Calling sync-canvas for:', selectedProfile.id);
     
     try {
       const { data, error } = await supabase.functions.invoke('sync-canvas', {
@@ -51,17 +62,19 @@ const Dashboard = () => {
       });
       
       if (error) {
-        console.error('Canvas sync error:', error);
-        return;
+        console.error('Sync error:', error);
+        setSyncMessage(`Error: ${error.message}`);
+      } else {
+        console.log('Sync response:', data);
+        setSyncMessage(data?.message || 'Canvas sync started successfully');
+        // Refresh after a moment
+        setTimeout(() => window.location.reload(), 2000);
       }
-      
-      if (data?.success) {
-        console.log('Canvas sync successful:', data);
-        // Refresh assignments
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Canvas sync failed:', error);
+    } catch (err) {
+      console.error('Sync failed:', err);
+      setSyncMessage('Sync failed - check console');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -537,10 +550,18 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle>Canvas Sync</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Button onClick={syncCanvasAssignments}>
-                Sync Canvas Assignments
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={syncCanvasAssignments} 
+                disabled={syncing}
+              >
+                {syncing ? 'Syncing...' : 'Sync Canvas Assignments'}
               </Button>
+              {syncMessage && (
+                <p className={`text-sm ${syncMessage.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                  {syncMessage}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
